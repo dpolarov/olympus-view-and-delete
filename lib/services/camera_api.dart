@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'file_saver.dart' as file_saver;
 
@@ -109,8 +108,10 @@ class CameraApi {
   }
 
   /// Recursively list images starting from a directory (like olympus-wifi)
-  /// Uses get_imglist.cgi; directories (attrib & 16) are traversed recursively
-  Future<List<CameraFile>> listImages(String dir) async {
+  /// Uses get_imglist.cgi; directories (attrib & 16) are traversed recursively.
+  /// If [onBatch] is provided, each directory's files are reported immediately
+  /// so the UI can display them progressively.
+  Future<List<CameraFile>> listImages(String dir, {void Function(List<CameraFile>)? onBatch}) async {
     http.Response resp;
     try {
       resp = await _client
@@ -124,6 +125,8 @@ class CameraApi {
     if (resp.statusCode == 404) return []; // empty directory
 
     final files = <CameraFile>[];
+    final immediateFiles = <CameraFile>[];
+    final subDirs = <String>[];
     final lines = resp.body.trim().split(RegExp(r'\r?\n'));
 
     for (final line in lines) {
@@ -145,13 +148,11 @@ class CameraApi {
         if (attrib & 2 != 0 || attrib & 4 != 0 || attrib & 8 != 0) continue;
 
         if (attrib & 16 != 0) {
-          // Directory — recurse into it
-          final subPath = '$dirName/$fileName';
-          final subFiles = await listImages(subPath);
-          files.addAll(subFiles);
+          // Directory — queue for recursive traversal
+          subDirs.add('$dirName/$fileName');
         } else {
           // Regular file
-          files.add(CameraFile(
+          final file = CameraFile(
             directory: dirName,
             filename: fileName,
             size: size,
@@ -159,24 +160,40 @@ class CameraApi {
             dateRaw: dateRaw,
             timeRaw: timeRaw,
             date: CameraFile.decodeFatDateTime(dateRaw, timeRaw),
-          ));
+          );
+          immediateFiles.add(file);
         }
       } catch (_) {
         continue;
       }
     }
+
+    // Report this directory's files immediately
+    if (immediateFiles.isNotEmpty) {
+      files.addAll(immediateFiles);
+      onBatch?.call(immediateFiles);
+    }
+
+    // Then recurse into subdirectories
+    for (final subDir in subDirs) {
+      final subFiles = await listImages(subDir, onBatch: onBatch);
+      files.addAll(subFiles);
+    }
+
     return files;
   }
 
-  /// List all files on the camera
-  Future<List<CameraFile>> listAllFiles() async {
+  /// List all files on the camera.
+  /// If [onBatch] is provided, files are reported progressively as each
+  /// directory is scanned, allowing the UI to show results immediately.
+  Future<List<CameraFile>> listAllFiles({void Function(List<CameraFile>)? onBatch}) async {
     try {
       await switchMode('play');
     } catch (_) {}
 
     await Future.delayed(const Duration(milliseconds: 500));
 
-    final allFiles = await listImages('/DCIM');
+    final allFiles = await listImages('/DCIM', onBatch: onBatch);
 
     // Sort newest first
     allFiles.sort((a, b) => b.date.compareTo(a.date));

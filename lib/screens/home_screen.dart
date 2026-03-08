@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import '../services/camera_api.dart';
 import '../services/file_saver.dart' as file_saver;
+import '../services/thumbnail_manager.dart';
 import '../widgets/photo_grid.dart';
 import '../widgets/date_filter_sheet.dart';
 import '../widgets/delete_progress_dialog.dart';
@@ -38,6 +39,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _gridView = true;
   bool _showRaw = false; // Show ORF/RAW files
 
+  // Progressive loading generation (to cancel stale callbacks)
+  int _loadGeneration = 0;
+
   @override
   void initState() {
     super.initState();
@@ -51,13 +55,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadFiles() async {
+    _loadGeneration++;
+    final generation = _loadGeneration;
+
     setState(() {
       _loading = true;
       _error = null;
+      _allFiles = [];
+      _filteredFiles = [];
     });
+    ThumbnailManager.instance.clear();
 
     try {
       final ok = await _api.testConnection();
+      if (!mounted || generation != _loadGeneration) return;
       setState(() => _connected = ok);
       if (!ok) {
         setState(() =>
@@ -67,18 +78,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
       try {
         final info = await _api.getCameraInfo();
-        setState(() => _cameraModel = info['model'] ?? 'Olympus Camera');
+        if (mounted && generation == _loadGeneration) {
+          setState(() => _cameraModel = info['model'] ?? 'Olympus Camera');
+        }
       } catch (_) {}
 
-      final files = await _api.listAllFiles();
+      final files = await _api.listAllFiles(
+        onBatch: (batch) {
+          if (!mounted || generation != _loadGeneration) return;
+          setState(() {
+            _allFiles.addAll(batch);
+            _applyFilter();
+          });
+        },
+      );
+
+      if (!mounted || generation != _loadGeneration) return;
+
+      // Replace with final sorted list
       setState(() {
         _allFiles = files;
         _applyFilter();
       });
     } catch (e) {
+      if (!mounted || generation != _loadGeneration) return;
       setState(() => _error = e.toString());
     } finally {
-      setState(() => _loading = false);
+      if (mounted && generation == _loadGeneration) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -552,10 +580,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     if (_allFiles.isNotEmpty)
                       Text(
-                        ' · ${_filteredFiles.length} files · '
-                        '${(_allFiles.fold<int>(0, (s, f) => s + f.size) / (1024 * 1024)).toStringAsFixed(1)} MB',
+                        _loading
+                            ? ' · Loading... ${_allFiles.length} files'
+                            : ' · ${_filteredFiles.length} files · '
+                              '${(_allFiles.fold<int>(0, (s, f) => s + f.size) / (1024 * 1024)).toStringAsFixed(1)} MB',
                         style:
                             TextStyle(color: Colors.grey[600], fontSize: 13),
+                      ),
+                    if (_loading && _allFiles.isNotEmpty)
+                      const SizedBox(width: 8),
+                    if (_loading && _allFiles.isNotEmpty)
+                      const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFFE94560),
+                        ),
                       ),
                   ],
                 ),

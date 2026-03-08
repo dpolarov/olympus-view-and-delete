@@ -1,7 +1,9 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../services/camera_api.dart';
+import '../services/thumbnail_manager.dart';
 
-class PhotoGrid extends StatelessWidget {
+class PhotoGrid extends StatefulWidget {
   final List<CameraFile> files;
   final bool gridView;
   final bool selectionMode;
@@ -20,36 +22,71 @@ class PhotoGrid extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    if (gridView) {
-      return GridView.builder(
-        padding: const EdgeInsets.all(8),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 6,
-          mainAxisSpacing: 6,
-          childAspectRatio: 0.8,
-        ),
-        itemCount: files.length,
-        itemBuilder: (ctx, i) => _GridItem(
-          file: files[i],
-          selected: selectedPaths.contains(files[i].fullPath),
-          selectionMode: selectionMode,
-          onTap: () => onTap(files[i]),
-          onLongPress: () => onLongPress(files[i]),
-        ),
-      );
-    }
+  State<PhotoGrid> createState() => _PhotoGridState();
+}
 
+class _PhotoGridState extends State<PhotoGrid> {
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification is ScrollUpdateNotification ||
+            notification is ScrollEndNotification) {
+          _updateVisibleRange(notification);
+        }
+        return false;
+      },
+      child: widget.gridView ? _buildGrid() : _buildList(),
+    );
+  }
+
+  void _updateVisibleRange(ScrollNotification notification) {
+    final metrics = notification.metrics;
+    // Approximate row height for grid (3 columns, aspect 0.8)
+    final width = MediaQuery.of(context).size.width - 16; // padding
+    final itemWidth = (width - 12) / 3; // 3 cols, 2 gaps of 6
+    final itemHeight = itemWidth / 0.8 + 6; // aspect + spacing
+    const columns = 3;
+    final firstRow = (metrics.pixels / itemHeight).floor();
+    final lastRow =
+        ((metrics.pixels + metrics.viewportDimension) / itemHeight).ceil();
+    final first = (firstRow * columns).clamp(0, widget.files.length);
+    final last = (lastRow * columns).clamp(0, widget.files.length);
+    ThumbnailManager.instance.updateVisibleRange(first, last);
+  }
+
+  Widget _buildGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 6,
+        mainAxisSpacing: 6,
+        childAspectRatio: 0.8,
+      ),
+      itemCount: widget.files.length,
+      itemBuilder: (ctx, i) => _GridItem(
+        file: widget.files[i],
+        index: i,
+        selected: widget.selectedPaths.contains(widget.files[i].fullPath),
+        selectionMode: widget.selectionMode,
+        onTap: () => widget.onTap(widget.files[i]),
+        onLongPress: () => widget.onLongPress(widget.files[i]),
+      ),
+    );
+  }
+
+  Widget _buildList() {
     return ListView.builder(
       padding: const EdgeInsets.all(8),
-      itemCount: files.length,
+      itemCount: widget.files.length,
       itemBuilder: (ctx, i) => _ListItem(
-        file: files[i],
-        selected: selectedPaths.contains(files[i].fullPath),
-        selectionMode: selectionMode,
-        onTap: () => onTap(files[i]),
-        onLongPress: () => onLongPress(files[i]),
+        file: widget.files[i],
+        index: i,
+        selected: widget.selectedPaths.contains(widget.files[i].fullPath),
+        selectionMode: widget.selectionMode,
+        onTap: () => widget.onTap(widget.files[i]),
+        onLongPress: () => widget.onLongPress(widget.files[i]),
       ),
     );
   }
@@ -57,6 +94,7 @@ class PhotoGrid extends StatelessWidget {
 
 class _GridItem extends StatelessWidget {
   final CameraFile file;
+  final int index;
   final bool selected;
   final bool selectionMode;
   final VoidCallback onTap;
@@ -64,6 +102,7 @@ class _GridItem extends StatelessWidget {
 
   const _GridItem({
     required this.file,
+    required this.index,
     required this.selected,
     required this.selectionMode,
     required this.onTap,
@@ -93,30 +132,9 @@ class _GridItem extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    file.thumbnailUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: const Color(0xFF252540),
-                      child: const Icon(Icons.broken_image,
-                          color: Colors.grey, size: 32),
-                    ),
-                    loadingBuilder: (_, child, progress) {
-                      if (progress == null) return child;
-                      return Container(
-                        color: const Color(0xFF252540),
-                        child: const Center(
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFFE94560),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                  _CameraThumbnail(
+                    url: file.thumbnailUrl,
+                    index: index,
                   ),
                   if (selected)
                     Positioned(
@@ -163,6 +181,7 @@ class _GridItem extends StatelessWidget {
 
 class _ListItem extends StatelessWidget {
   final CameraFile file;
+  final int index;
   final bool selected;
   final bool selectionMode;
   final VoidCallback onTap;
@@ -170,6 +189,7 @@ class _ListItem extends StatelessWidget {
 
   const _ListItem({
     required this.file,
+    required this.index,
     required this.selected,
     required this.selectionMode,
     required this.onTap,
@@ -198,14 +218,10 @@ class _ListItem extends StatelessWidget {
             SizedBox(
               width: 72,
               height: 72,
-              child: Image.network(
-                file.thumbnailUrl,
+              child: _CameraThumbnail(
+                url: file.thumbnailUrl,
+                index: index,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: const Color(0xFF252540),
-                  child: const Icon(Icons.broken_image,
-                      color: Colors.grey, size: 24),
-                ),
               ),
             ),
             Expanded(
@@ -243,5 +259,82 @@ class _ListItem extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Thumbnail widget that loads via ThumbnailManager (throttled, prioritized).
+class _CameraThumbnail extends StatefulWidget {
+  final String url;
+  final int index;
+  final BoxFit fit;
+
+  const _CameraThumbnail({
+    required this.url,
+    required this.index,
+    this.fit = BoxFit.cover,
+  });
+
+  @override
+  State<_CameraThumbnail> createState() => _CameraThumbnailState();
+}
+
+class _CameraThumbnailState extends State<_CameraThumbnail> {
+  Uint8List? _bytes;
+  bool _loading = true;
+  bool _error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(_CameraThumbnail old) {
+    super.didUpdateWidget(old);
+    if (old.url != widget.url) {
+      _loading = true;
+      _error = false;
+      _bytes = null;
+      _load();
+    }
+  }
+
+  Future<void> _load() async {
+    final bytes =
+        await ThumbnailManager.instance.load(widget.url, widget.index);
+    if (!mounted) return;
+    setState(() {
+      _bytes = bytes;
+      _loading = false;
+      _error = bytes == null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error) {
+      return Container(
+        color: const Color(0xFF252540),
+        child:
+            const Icon(Icons.broken_image, color: Colors.grey, size: 32),
+      );
+    }
+    if (_loading || _bytes == null) {
+      return Container(
+        color: const Color(0xFF252540),
+        child: const Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Color(0xFFE94560),
+            ),
+          ),
+        ),
+      );
+    }
+    return Image.memory(_bytes!, fit: widget.fit);
   }
 }

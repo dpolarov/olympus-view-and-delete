@@ -1,9 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olympus View — Manage Olympus / OM System cameras via WiFi</title>
+
+    <!-- ===== PRIMARY SEO ===== -->
+    <title>Olympus View — WiFi File Manager for Olympus &amp; OM System | Delete Photos, OI.Share Alternative</title>
+    <meta name="description" content="Free open-source app to manage Olympus and OM System cameras via WiFi. Delete photos directly from your camera, batch download by date, filter RAW files. Works on Android, Windows and browser. Best OI.Share alternative.">
+    <meta name="keywords" content="Olympus WiFi app, delete photos from Olympus camera, OI.Share alternative, OM System file manager, Olympus camera WiFi, delete files from camera, Olympus TG-6 WiFi, OM-1 WiFi app, batch download Olympus, RAW filter camera">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Olympus View">
+    <link rel="canonical" href="https://dpolarov.github.io/olympus-view-and-delete/">
+
+    <!-- ===== HREFLANG (multilingual) ===== -->
+    <link rel="alternate" hreflang="en" href="https://dpolarov.github.io/olympus-view-and-delete/">
+    <link rel="alternate" hreflang="ru" href="https://dpolarov.github.io/olympus-view-and-delete/?lang=ru">
+    <link rel="alternate" hreflang="uk" href="https://dpolarov.github.io/olympus-view-and-delete/?lang=uk">
+    <link rel="alternate" hreflang="x-default" href="https://dpolarov.github.io/olympus-view-and-delete/">
+
+    <!-- ===== OPEN GRAPH ===== -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dpolarov.github.io/olympus-view-and-delete/">
+    <meta property="og:title" content="Olympus View — Delete &amp; Manage Olympus Camera Files via WiFi">
+    <meta property="og:description" content="Free app to view, download and delete photos on Olympus &amp; OM System cameras via WiFi. The OI.Share alternative that actually lets you delete files. Android, Windows &amp; Web.">
+    <meta property="og:image" content="https://dpolarov.github.io/olympus-view-and-delete/img/gallery.png">
+    <meta property="og:image:alt" content="Olympus View app — photo gallery interface for OM-1 camera">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ru_RU">
+    <meta property="og:site_name" content="Olympus View">
+
+    <!-- ===== TWITTER CARD ===== -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Olympus View — WiFi File Manager for Olympus &amp; OM System Cameras">
+    <meta name="twitter:description" content="Delete, download and manage photos on Olympus / OM System cameras via WiFi. Free &amp; open source. OI.Share alternative.">
+    <meta name="twitter:image" content="https://dpolarov.github.io/olympus-view-and-delete/img/gallery.png">
+
+    <!-- ===== JSON-LD: SoftwareApplication ===== -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Olympus View",
+      "alternateName": ["Olympus View and Delete", "OI.Share Alternative"],
+      "description": "Free open-source app for managing photos on Olympus and OM System cameras via WiFi. Features file deletion, batch download by date, RAW/ORF filter, and QR code connection. Works on Android, Windows and in the browser.",
+      "applicationCategory": "MultimediaApplication",
+      "applicationSubCategory": "Photography",
+      "operatingSystem": ["Android", "Windows", "Web"],
+      "url": "https://dpolarov.github.io/olympus-view-and-delete/",
+      "downloadUrl": "https://github.com/dpolarov/olympus-view-and-delete/tree/master/releases",
+      "codeRepository": "https://github.com/dpolarov/olympus-view-and-delete",
+      "license": "https://opensource.org/licenses/MIT",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "screenshot": [
+        "https://dpolarov.github.io/olympus-view-and-delete/img/gallery.png",
+        "https://dpolarov.github.io/olympus-view-and-delete/img/connect.png"
+      ],
+      "featureList": [
+        "Delete files directly from Olympus camera via WiFi",
+        "Batch download photos by date",
+        "RAW/ORF file filter",
+        "QR code WiFi connection (OIS1, OIS3)",
+        "Multi-platform: Android, Windows, Web browser"
+      ],
+      "keywords": "Olympus WiFi, OI.Share alternative, delete photos from camera, OM System app"
+    }
+    </script>
+
+    <!-- ===== JSON-LD: FAQ (rich snippets) ===== -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Can OI.Share delete photos from an Olympus camera?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. The official OI.Share app cannot delete photos from your Olympus or OM System camera. Olympus View is a free alternative that supports direct file deletion from the camera via WiFi."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How to delete photos from an Olympus camera via WiFi?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Use Olympus View: enable WiFi on your camera, connect with the app via QR code (Android) or direct WiFi (Windows/Web), long-press a photo to enter selection mode, then tap the delete button. Files are removed directly from the camera memory card."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the best OI.Share alternative?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Olympus View is a free, open-source OI.Share alternative. Unlike OI.Share, it supports file deletion, batch download by date, RAW file filtering, and runs on Android, Windows, and in any web browser."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which Olympus and OM System cameras are supported?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Olympus View works with all Olympus and OM System cameras that support WiFi connectivity via the OPC (Olympus OPC Communication Protocol), including Olympus TG-6, OM System OM-1, and other WiFi-enabled models."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Как удалить фото с камеры Olympus через WiFi?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Используйте приложение Olympus View: включите WiFi на камере, подключитесь через QR-код (Android) или прямое WiFi-соединение (Windows/браузер), зажмите фото для входа в режим выбора, затем нажмите кнопку удаления."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Что лучше OI.Share для удаления файлов?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Olympus View — бесплатная альтернатива OI.Share с открытым исходным кодом. В отличие от OI.Share, поддерживает удаление файлов с камеры, массовое скачивание по датам, фильтр RAW файлов и работает на Android, Windows и в браузере."
+          }
+        }
+      ]
+    }
+    </script>
     <style>
         :root {
             --bg: #060d1b;
@@ -280,6 +403,20 @@
             color: var(--text-muted);
         }
 
+        /* FAQ */
+        .faq { margin-bottom: 40px; }
+        .faq-item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+        .faq-item:hover { border-color: var(--accent); }
+        .faq-item h3 { margin-top: 0; color: var(--accent); font-size: 1.05rem; }
+        .faq-item p { color: var(--text-muted); margin: 0; }
+
         @media (max-width: 600px) {
             .hero h1 { font-size: 2rem; }
             .hero p { font-size: 1rem; }
@@ -305,8 +442,8 @@
 <div id="lang-en" class="lang-section active">
 
 <section class="hero">
-    <h1>Olympus View</h1>
-    <p>Manage photos on Olympus and OM System cameras via WiFi. Download, delete and browse files — from your phone or computer.</p>
+    <h1>Olympus View — WiFi File Manager for Olympus &amp; OM System Cameras</h1>
+    <p>Manage, download and <strong>delete photos</strong> on Olympus and OM System cameras via WiFi — from your phone or computer. The free <strong>OI.Share alternative</strong> that actually works.</p>
     <div class="hero-badges">
         <a href="#dl-en" class="badge badge-primary">Android</a>
         <a href="#dl-en" class="badge badge-outline">Windows</a>
@@ -317,8 +454,8 @@
 
 <div class="container">
     <div class="advantage">
-        <h2>Why not OI.Share?</h2>
-        <p style="margin-bottom:16px">The official Olympus <strong>OI.Share</strong> app has serious limitations. Olympus View solves them:</p>
+        <h2>Why not OI.Share? Olympus View vs OI.Share</h2>
+        <p style="margin-bottom:16px">The official Olympus <strong>OI.Share</strong> app has serious limitations. <strong>Olympus View</strong> — the open-source OI.Share alternative — solves them:</p>
         <ul>
             <li><strong>Delete files from camera</strong> <span class="vs">— OI.Share cannot delete photos</span></li>
             <li><strong>Batch download by date</strong> <span class="vs">— OI.Share only allows one by one</span></li>
@@ -372,11 +509,11 @@
     <h2>Screenshots</h2>
     <div class="screenshots">
         <div class="screenshot">
-            <img src="img/gallery.png" alt="Photo gallery view">
+            <img src="img/gallery.png" alt="Olympus View photo gallery — OM-1 camera, 3788 files displayed via WiFi" loading="lazy" width="300" height="533">
             <div class="screenshot-caption">Photo gallery — OM-1, 3788 files</div>
         </div>
         <div class="screenshot">
-            <img src="img/connect.png" alt="QR scan and connect">
+            <img src="img/connect.png" alt="Olympus View QR code scan to connect to Olympus camera WiFi" loading="lazy" width="300" height="533">
             <div class="screenshot-caption">QR scan &amp; WiFi connect</div>
         </div>
     </div>
@@ -414,6 +551,22 @@
         <h2>Open Source</h2>
         <p>Olympus View is built with Flutter/Dart. The source code is fully open — you can study, modify and build it yourself.</p>
         <div class="code-block">flutter pub get<br>flutter run</div>
+    </div>
+
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq">
+        <div class="faq-item">
+            <h3>Can OI.Share delete photos from an Olympus camera?</h3>
+            <p>No. The official OI.Share app <strong>cannot delete photos</strong> from your Olympus or OM System camera. Olympus View fills this gap — it supports direct file deletion from the camera memory card via WiFi.</p>
+        </div>
+        <div class="faq-item">
+            <h3>How to delete photos from an Olympus camera via WiFi?</h3>
+            <p>Enable WiFi on your camera → connect with Olympus View via QR code (Android) or direct WiFi (Windows/Web) → long-press a photo to enter selection mode → tap the delete button. Files are removed directly from the camera.</p>
+        </div>
+        <div class="faq-item">
+            <h3>Does it work without installing anything?</h3>
+            <p>Yes. The <strong>Web version</strong> works in any browser — no installation needed. Just connect your PC to the camera's WiFi hotspot and open the web app.</p>
+        </div>
     </div>
 
     <h2>Technical Details</h2>
@@ -557,8 +710,8 @@
 <div id="lang-ru" class="lang-section">
 
 <section class="hero">
-    <h1>Olympus View</h1>
-    <p>Управляйте фотографиями на камерах Olympus и OM System через WiFi. Скачивайте, удаляйте и просматривайте файлы — прямо с телефона или компьютера.</p>
+    <h1>Olympus View — управление камерой через WiFi с удалением файлов</h1>
+    <p>Просматривайте, скачивайте и <strong>удаляйте фото</strong> на камерах Olympus и OM System через WiFi. Бесплатная альтернатива <strong>OI.Share</strong> с открытым кодом — для Android, Windows и браузера.</p>
     <div class="hero-badges">
         <a href="#dl-ru" class="badge badge-primary">Android</a>
         <a href="#dl-ru" class="badge badge-outline">Windows</a>
@@ -569,8 +722,8 @@
 
 <div class="container">
     <div class="advantage">
-        <h2>Почему не OI.Share?</h2>
-        <p style="margin-bottom:16px">Официальное приложение Olympus <strong>OI.Share</strong> имеет серьёзные ограничения. Olympus View решает их:</p>
+        <h2>Почему не OI.Share? Olympus View vs OI.Share</h2>
+        <p style="margin-bottom:16px">Официальное приложение Olympus <strong>OI.Share</strong> имеет серьёзные ограничения. <strong>Olympus View</strong> — бесплатная альтернатива с открытым кодом — решает их:</p>
         <ul>
             <li><strong>Удаление файлов с камеры</strong> <span class="vs">— OI.Share не умеет удалять фото</span></li>
             <li><strong>Массовое скачивание по датам</strong> <span class="vs">— OI.Share позволяет только по одному</span></li>
@@ -624,11 +777,11 @@
     <h2>Скриншоты</h2>
     <div class="screenshots">
         <div class="screenshot">
-            <img src="img/gallery.png" alt="Галерея фотографий">
+            <img src="img/gallery.png" alt="Olympus View — галерея фотографий с камеры OM-1 через WiFi, 3788 файлов" loading="lazy" width="300" height="533">
             <div class="screenshot-caption">Галерея фото — OM-1, 3788 файлов</div>
         </div>
         <div class="screenshot">
-            <img src="img/connect.png" alt="QR сканирование и подключение">
+            <img src="img/connect.png" alt="Сканирование QR-кода камеры Olympus для подключения по WiFi" loading="lazy" width="300" height="533">
             <div class="screenshot-caption">QR сканирование и WiFi подключение</div>
         </div>
     </div>
@@ -668,6 +821,22 @@
         <div class="code-block">flutter pub get<br>flutter run</div>
     </div>
 
+    <h2>Часто задаваемые вопросы</h2>
+    <div class="faq">
+        <div class="faq-item">
+            <h3>Можно ли удалить фото с камеры Olympus через OI.Share?</h3>
+            <p>Нет. Официальное приложение <strong>OI.Share не умеет удалять фотографии</strong> с камеры. Olympus View восполняет этот пробел — поддерживает прямое удаление файлов с карты памяти камеры через WiFi.</p>
+        </div>
+        <div class="faq-item">
+            <h3>Как удалить фото с камеры Olympus через WiFi?</h3>
+            <p>Включите WiFi на камере → подключитесь через Olympus View по QR-коду (Android) или прямому WiFi (Windows/браузер) → зажмите фото для режима выбора → нажмите кнопку удаления. Файлы удаляются прямо с камеры.</p>
+        </div>
+        <div class="faq-item">
+            <h3>Работает ли приложение без установки?</h3>
+            <p>Да. <strong>Web-версия</strong> работает в любом браузере — установка не нужна. Подключите ПК к WiFi камеры и откройте веб-приложение.</p>
+        </div>
+    </div>
+
     <h2>Технические детали</h2>
     <h3>Стек</h3>
     <p>Flutter 3 / Dart — Material 3 — OPC Communication Protocol</p>
@@ -685,12 +854,37 @@
 </footer>
 
 <script>
+const langMeta = {
+  en: { htmlLang: 'en', title: 'Olympus View — WiFi File Manager for Olympus & OM System | Delete Photos, OI.Share Alternative', desc: 'Free open-source app to manage Olympus and OM System cameras via WiFi. Delete photos, batch download by date, filter RAW files. Works on Android, Windows and browser.' },
+  ru: { htmlLang: 'ru', title: 'Olympus View — управление камерой Olympus через WiFi с удалением фото | Альтернатива OI.Share', desc: 'Бесплатное приложение для управления камерами Olympus и OM System через WiFi. Удаляйте фото с камеры, массово скачивайте по датам, фильтруйте RAW. Android, Windows и браузер.' },
+  uk: { htmlLang: 'uk', title: 'Olympus View — керування камерою Olympus через WiFi з видаленням фото | Альтернатива OI.Share', desc: 'Безкоштовний застосунок для керування камерами Olympus та OM System через WiFi. Видаляйте фото з камери, масово завантажуйте за датами, фільтруйте RAW. Android, Windows і браузер.' }
+};
+
 function switchLang(lang) {
     document.querySelectorAll('.lang-section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.lang-bar button').forEach(b => b.classList.remove('active'));
     document.getElementById('lang-' + lang).classList.add('active');
-    document.querySelector('.lang-bar button[onclick*="' + lang + '"]').classList.add('active');
+    document.querySelector('.lang-bar button[onclick*="\'' + lang + '\'"]').classList.add('active');
+
+    // Update html lang attribute for accessibility & SEO crawlers
+    document.documentElement.lang = langMeta[lang].htmlLang;
+
+    // Update title and meta description for social sharing
+    document.title = langMeta[lang].title;
+    const descTag = document.querySelector('meta[name="description"]');
+    if (descTag) descTag.setAttribute('content', langMeta[lang].desc);
+
+    // Update URL without reload
+    const url = new URL(window.location);
+    if (lang === 'en') { url.searchParams.delete('lang'); } else { url.searchParams.set('lang', lang); }
+    window.history.replaceState({}, '', url);
 }
+
+// Auto-detect language from URL param on load
+(function() {
+    const p = new URLSearchParams(window.location.search).get('lang');
+    if (p && ['ru', 'uk'].includes(p)) { switchLang(p); }
+})();
 </script>
 
 </body>

@@ -52,7 +52,7 @@ Unlike the official **OI.Share** app, Olympus View can:
 
 | Photo Gallery | QR Scan & Connect |
 |:---:|:---:|
-| ![Gallery](site/img/gallery.png) | ![Connect](site/img/connect.png) |
+| ![Gallery](docs/img/gallery.png) | ![Connect](docs/img/connect.png) |
 | OM-1, 3788 files | WiFi connection screen |
 
 ## Installation
@@ -187,7 +187,7 @@ Open source. Free to use and modify.
 
 | Галерея фото | QR сканування |
 |:---:|:---:|
-| ![Gallery](site/img/gallery.png) | ![Connect](site/img/connect.png) |
+| ![Gallery](docs/img/gallery.png) | ![Connect](docs/img/connect.png) |
 | OM-1, 3788 файлів | Підключення до WiFi |
 
 ## Встановлення
@@ -299,7 +299,7 @@ flutter build web --release
 
 | Галерея фото | QR сканирование |
 |:---:|:---:|
-| ![Gallery](site/img/gallery.png) | ![Connect](site/img/connect.png) |
+| ![Gallery](docs/img/gallery.png) | ![Connect](docs/img/connect.png) |
 | OM-1, 3788 файлов | Подключение к WiFi |
 
 ## Установка

@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olympus View — Manage Olympus / OM System cameras via WiFi</title>
+    <style>
+        :root {
+            --bg: #060d1b;
+            --surface: #0c1525;
+            --card: #111d32;
+            --accent: #5b8def;
+            --accent2: #1a2744;
+            --text: #e8ecf4;
+            --text-muted: #7b8ba5;
+            --green: #36d399;
+            --border: #1e2d45;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; color: #7da8ff; }
+
+        /* Lang switcher */
+        .lang-bar {
+            background: var(--surface);
+            padding: 10px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        .lang-bar button {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 18px;
+            margin: 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .lang-bar button.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(91,141,239,0.1);
+        }
+        .lang-bar button:hover { border-color: var(--accent); color: var(--text); }
+        .github-link {
+            position: absolute;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .github-link:hover { color: var(--text); text-decoration: none; }
+        .github-link svg { width: 20px; height: 20px; fill: currentColor; }
+        .lang-section { display: none; }
+        .lang-section.active { display: block; }
+
+        /* Hero */
+        .hero {
+            background: radial-gradient(ellipse at 50% 0%, #0f1f3d 0%, var(--bg) 70%);
+            padding: 100px 20px 80px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 3.2rem;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff 0%, #94b8ff 50%, #5b8def 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 32px;
+        }
+        .hero-badges {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .badge {
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .badge-primary { background: var(--accent); color: #fff; }
+        .badge-outline { border: 1px solid var(--border); color: var(--text-muted); }
+        .badge-green { background: rgba(54,211,153,0.15); color: var(--green); border: 1px solid rgba(54,211,153,0.3); }
+        a.badge { text-decoration: none; transition: transform 0.15s, opacity 0.15s; }
+        a.badge:hover { transform: translateY(-2px); opacity: 0.9; text-decoration: none; color: inherit; }
+
+        /* Container */
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        h2 { font-size: 2rem; margin-bottom: 24px; color: var(--accent); }
+        h3 { font-size: 1.3rem; margin: 24px 0 12px; }
+
+        /* Advantage */
+        .advantage {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--card) 100%);
+            border-left: 3px solid var(--accent);
+            padding: 32px;
+            margin-bottom: 40px;
+            border-radius: 0 12px 12px 0;
+        }
+        .advantage h2 { margin-bottom: 16px; }
+        .advantage ul { list-style: none; padding: 0; }
+        .advantage li { padding: 8px 0; font-size: 1.1rem; }
+        .advantage li::before { content: "\2713  "; color: var(--green); font-weight: bold; }
+        .advantage .vs { color: var(--text-muted); font-size: 0.9rem; }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        .feature-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .feature-card h3 { margin-top: 0; color: var(--text); }
+        .feature-card p { color: var(--text-muted); }
+        .feature-icon { font-size: 2rem; margin-bottom: 12px; }
+
+        /* Cameras */
+        .cameras { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 40px; }
+        .camera-tag {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 1rem;
+        }
+
+        /* Downloads */
+        .downloads {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+        .download-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .download-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+        a.download-card { text-decoration: none; color: var(--text); display: block; }
+        a.download-card:hover { text-decoration: none; color: var(--text); }
+        .download-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .download-card h3 { margin: 0 0 8px; }
+        .download-card p { color: var(--text-muted); font-size: 0.9rem; }
+
+        /* Code */
+        .code-block {
+            background: #080f1e;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #ccc;
+            margin: 16px 0;
+        }
+
+        /* Open source */
+        .opensource {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            border: 1px solid rgba(54,211,153,0.3);
+        }
+        .opensource h2 { color: var(--green); }
+        .opensource p { color: var(--text-muted); max-width: 600px; margin: 0 auto 20px; font-size: 1.1rem; }
+
+        /* Steps */
+        .steps { counter-reset: step; list-style: none; padding: 0; }
+        .steps li {
+            counter-increment: step;
+            padding: 16px 0 16px 60px;
+            position: relative;
+            border-left: 2px solid var(--border);
+            margin-left: 20px;
+        }
+        .steps li::before {
+            content: counter(step);
+            position: absolute;
+            left: -21px;
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .steps li strong { color: var(--text); }
+
+        footer {
+            background: var(--surface);
+            padding: 32px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        /* Screenshots */
+        .screenshots {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+        .screenshot {
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: transform 0.2s, border-color 0.2s;
+            max-width: 300px;
+        }
+        .screenshot:hover {
+            transform: scale(1.02);
+            border-color: var(--accent);
+        }
+        .screenshot img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .screenshot-caption {
+            background: var(--card);
+            padding: 10px 16px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 2rem; }
+            .hero p { font-size: 1rem; }
+            .container { padding: 40px 16px; }
+            .screenshot { max-width: 260px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Language switcher -->
+<nav class="lang-bar">
+    <button class="active" onclick="switchLang('en')">English</button>
+    <button onclick="switchLang('uk')">Українська</button>
+    <button onclick="switchLang('ru')">Русский</button>
+    <a href="https://github.com/ceviatacrmg/olympus_flutter" class="github-link" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+    </a>
+</nav>
+
+<!-- ==================== ENGLISH ==================== -->
+<div id="lang-en" class="lang-section active">
+
+<section class="hero">
+    <h1>Olympus View</h1>
+    <p>Manage photos on Olympus and OM System cameras via WiFi. Download, delete and browse files — from your phone or computer.</p>
+    <div class="hero-badges">
+        <a href="#dl-en" class="badge badge-primary">Android</a>
+        <a href="#dl-en" class="badge badge-outline">Windows</a>
+        <a href="#dl-en" class="badge badge-outline">Web</a>
+        <a href="https://github.com/ceviatacrmg/olympus_flutter" target="_blank" rel="noopener" class="badge badge-green">Open Source</a>
+    </div>
+</section>
+
+<div class="container">
+    <div class="advantage">
+        <h2>Why not OI.Share?</h2>
+        <p style="margin-bottom:16px">The official Olympus <strong>OI.Share</strong> app has serious limitations. Olympus View solves them:</p>
+        <ul>
+            <li><strong>Delete files from camera</strong> <span class="vs">— OI.Share cannot delete photos</span></li>
+            <li><strong>Batch download by date</strong> <span class="vs">— OI.Share only allows one by one</span></li>
+            <li><strong>RAW/ORF filter</strong> <span class="vs">— OI.Share shows all duplicates</span></li>
+            <li><strong>Works on Windows and in browser</strong> <span class="vs">— OI.Share is mobile only</span></li>
+            <li><strong>Open source</strong> <span class="vs">— OI.Share is closed and no longer updated</span></li>
+        </ul>
+    </div>
+
+    <h2>Supported Cameras</h2>
+    <div class="cameras">
+        <div class="camera-tag">Olympus TG-6</div>
+        <div class="camera-tag">OM System OM-1</div>
+        <div class="camera-tag">Other Olympus/OM System WiFi cameras</div>
+    </div>
+
+    <h2>Features</h2>
+    <div class="features">
+        <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <h3>QR Code Scanning</h3>
+            <p>Scan the QR code from the camera screen — the app connects to WiFi automatically. Supports OIS1 and OIS3 formats.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🗑️</div>
+            <h3>File Deletion</h3>
+            <p>Select unwanted files and delete them directly from the camera. Free up memory card space without a computer.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📅</div>
+            <h3>Select by Date</h3>
+            <p>Select one file and press the button — all files from the same date are selected automatically.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🖼️</div>
+            <h3>RAW Filter</h3>
+            <p>Hide ORF/RAW files with one button to remove duplicates when shooting RAW+JPG.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⬇️</div>
+            <h3>Batch Download</h3>
+            <p>Download groups of files with progress. On Android photos appear in gallery immediately.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💻</div>
+            <h3>Multi-platform</h3>
+            <p>Works on Android, Windows and in any browser. Unified interface across all platforms.</p>
+        </div>
+    </div>
+
+    <h2>Screenshots</h2>
+    <div class="screenshots">
+        <div class="screenshot">
+            <img src="img/gallery.png" alt="Photo gallery view">
+            <div class="screenshot-caption">Photo gallery — OM-1, 3788 files</div>
+        </div>
+        <div class="screenshot">
+            <img src="img/connect.png" alt="QR scan and connect">
+            <div class="screenshot-caption">QR scan &amp; WiFi connect</div>
+        </div>
+    </div>
+
+    <h2>How to Use</h2>
+    <ol class="steps">
+        <li>Enable WiFi on the Olympus / OM System camera</li>
+        <li>On <strong>Android</strong>: open the app and scan the QR code from the camera screen</li>
+        <li>On <strong>Windows</strong>: connect to the camera WiFi, then open the app</li>
+        <li>The photo list loads automatically with thumbnails</li>
+        <li><strong>Long press</strong> on a photo — enter file selection mode</li>
+        <li>Use buttons for batch selection, download and deletion</li>
+    </ol>
+
+    <h2 id="dl-en">Download</h2>
+    <div class="downloads">
+        <a href="https://github.com/ceviatacrmg/olympus_flutter/releases/latest/download/OlympusView.apk" class="download-card">
+            <div class="download-icon">🤖</div>
+            <h3>Android</h3>
+            <p>APK file<br>Manual install</p>
+        </a>
+        <a href="https://github.com/ceviatacrmg/olympus_flutter/releases/latest" class="download-card" target="_blank" rel="noopener">
+            <div class="download-icon">🪟</div>
+            <h3>Windows</h3>
+            <p>Portable EXE<br>No installation needed</p>
+        </a>
+        <a href="https://github.com/ceviatacrmg/olympus_flutter/releases/latest" class="download-card" target="_blank" rel="noopener">
+            <div class="download-icon">🌐</div>
+            <h3>Web</h3>
+            <p>Open in browser<br>No installation</p>
+        </a>
+    </div>
+
+    <div class="opensource">
+        <h2>Open Source</h2>
+        <p>Olympus View is built with Flutter/Dart. The source code is fully open — you can study, modify and build it yourself.</p>
+        <div class="code-block">flutter pub get<br>flutter run</div>
+    </div>
+
+    <h2>Technical Details</h2>
+    <h3>Stack</h3>
+    <p>Flutter 3 / Dart — Material 3 — OPC Communication Protocol</p>
+    <h3>Camera Protocol</h3>
+    <p style="margin-top:8px">The app communicates with the camera via HTTP over WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Uses the OPC (Olympus OPC Communication Protocol).</p>
+    <h3>QR Decoding</h3>
+    <p style="margin-top:8px">Olympus and OM System cameras use a proprietary QR code format (OIS1, OIS3) with a substitution cipher. The app decodes them automatically and extracts WiFi SSID, password and Bluetooth info.</p>
+</div>
+
+</div><!-- /lang-en -->
+
+<!-- ==================== UKRAINIAN ==================== -->
+<div id="lang-uk" class="lang-section">
+
+<section class="hero">
+    <h1>Olympus View</h1>
+    <p>Керуйте фотографіями на камерах Olympus та OM System через WiFi. Завантажуйте, видаляйте та переглядайте файли — з телефону або комп'ютера.</p>
+    <div class="hero-badges">
+        <a href="#dl-uk" class="badge badge-primary">Android</a>
+        <a href="#dl-uk" class="badge badge-outline">Windows</a>
+        <a href="#dl-uk" class="badge badge-outline">Web</a>
+        <a href="https://github.com/ceviatacrmg/olympus_flutter" target="_blank" rel="noopener" class="badge badge-green">Open Source</a>
+    </div>
+</section>
+
+<div class="container">
+    <div class="advantage">
+        <h2>Чому не OI.Share?</h2>
+        <p style="margin-bottom:16px">Офіційний додаток Olympus <strong>OI.Share</strong> має серйозні обмеження. Olympus View вирішує їх:</p>
+        <ul>
+            <li><strong>Видалення файлів з камери</strong> <span class="vs">— OI.Share не вміє видаляти фото</span></li>
+            <li><strong>Масове завантаження за датами</strong> <span class="vs">— OI.Share дозволяє лише по одному</span></li>
+            <li><strong>Фільтр RAW/ORF файлів</strong> <span class="vs">— OI.Share показує всі дублі</span></li>
+            <li><strong>Працює на Windows та у браузері</strong> <span class="vs">— OI.Share лише мобільний</span></li>
+            <li><strong>Відкритий вихідний код</strong> <span class="vs">— OI.Share закритий і більше не оновлюється</span></li>
+        </ul>
+    </div>
+
+    <h2>Підтримувані камери</h2>
+    <div class="cameras">
+        <div class="camera-tag">Olympus TG-6</div>
+        <div class="camera-tag">OM System OM-1</div>
+        <div class="camera-tag">Інші камери Olympus/OM System з WiFi</div>
+    </div>
+
+    <h2>Можливості</h2>
+    <div class="features">
+        <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <h3>Сканування QR-коду</h3>
+            <p>Відскануйте QR-код з екрану камери — додаток автоматично підключиться до WiFi. Підтримка форматів OIS1 та OIS3.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🗑️</div>
+            <h3>Видалення файлів</h3>
+            <p>Виберіть непотрібні файли та видаліть їх прямо з камери. Звільняйте карту пам'яті без комп'ютера.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📅</div>
+            <h3>Вибір за датами</h3>
+            <p>Виділіть один файл і натисніть кнопку — усі файли за ту саму дату будуть вибрані автоматично.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🖼️</div>
+            <h3>RAW фільтр</h3>
+            <p>Приховуйте ORF/RAW файли однією кнопкою, щоб прибрати дублі при зйомці в RAW+JPG.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⬇️</div>
+            <h3>Масове завантаження</h3>
+            <p>Завантажуйте групи файлів з прогресом. На Android фото одразу з'являються у галереї.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💻</div>
+            <h3>Мультиплатформа</h3>
+            <p>Працює на Android, Windows та у будь-якому браузері. Єдиний інтерфейс на всіх платформах.</p>
+        </div>
+    </div>
+
+    <h2>Скріншоти</h2>
+    <div class="screenshots">
+        <div class="screenshot">
+            <img src="img/gallery.png" alt="Галерея фотографій">
+            <div class="screenshot-caption">Галерея фото — OM-1, 3788 файлів</div>
+        </div>
+        <div class="screenshot">
+            <img src="img/connect.png" alt="QR сканування та підключення">
+            <div class="screenshot-caption">QR сканування та WiFi підключення</div>
+        </div>
+    </div>
+
+    <h2>Як використовувати</h2>
+    <ol class="steps">
+        <li>Увімкніть WiFi на камері Olympus / OM System</li>
+        <li>На <strong>Android</strong>: відкрийте додаток та відскануйте QR-код з екрану камери</li>
+        <li>На <strong>Windows</strong>: підключіться до WiFi камери, потім відкрийте додаток</li>
+        <li>Список фотографій завантажиться автоматично з мініатюрами</li>
+        <li><strong>Довге натискання</strong> на фото — режим вибору файлів</li>
+        <li>Використовуйте кнопки для масового вибору, завантаження та видалення</li>
+    </ol>
+
+    <h2 id="dl-uk">Завантажити</h2>
+    <div class="downloads">
+        <a href="https://github.com/ceviatacrmg/olympus_flutter/releases/latest/download/OlympusView.apk" class="download-card">
+            <div class="download-icon">🤖</div>
+            <h3>Android</h3>
+            <p>APK файл<br>Встановити вручну</p>
+        </a>
+        <a href="https://github.com/ceviatacrmg/olympus_flutter/releases/latest" class="download-card" target="_blank" rel="noopener">
+            <div class="download-icon">🪟</div>
+            <h3>Windows</h3>
+            <p>Portable EXE<br>Не потребує встановлення</p>
+        </a>
+        <a href="https://github.com/ceviatacrmg/olympus_flutter/releases/latest" class="download-card" target="_blank" rel="noopener">
+            <div class="download-icon">🌐</div>
+            <h3>Web</h3>
+            <p>Відкрити у браузері<br>Без встановлення</p>
+        </a>
+    </div>
+
+    <div class="opensource">
+        <h2>Відкритий вихідний код</h2>
+        <p>Olympus View написаний на Flutter/Dart. Вихідний код повністю відкритий — ви можете вивчити його, модифікувати та зібрати самостійно.</p>
+        <div class="code-block">flutter pub get<br>flutter run</div>
+    </div>
+
+    <h2>Технічні деталі</h2>
+    <h3>Стек</h3>
+    <p>Flutter 3 / Dart — Material 3 — OPC Communication Protocol</p>
+    <h3>Протокол камери</h3>
+    <p style="margin-top:8px">Додаток спілкується з камерою через HTTP по WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Використовується протокол OPC (Olympus OPC Communication Protocol).</p>
+    <h3>Декодування QR</h3>
+    <p style="margin-top:8px">Камери Olympus та OM System використовують пропрієтарний формат QR-кодів (OIS1, OIS3) з підстановочним шифром. Додаток декодує їх автоматично та витягує SSID, пароль WiFi та інформацію про Bluetooth.</p>
+</div>
+
+</div><!-- /lang-uk -->
+
+<!-- ==================== RUSSIAN ==================== -->
+<div id="lang-ru" class="lang-section">
+
+<section class="hero">
+    <h1>Olympus View</h1>
+    <p>Управляйте фотографиями на камерах Olympus и OM System через WiFi. Скачивайте, удаляйте и просматривайте файлы — прямо с телефона или компьютера.</p>
+    <div class="hero-badges">
+        <a href="#dl-ru" class="badge badge-primary">Android</a>
+        <a href="#dl-ru" class="badge badge-outline">Windows</a>
+        <a href="#dl-ru" class="badge badge-outline">Web</a>
+        <a href="https://github.com/ceviatacrmg/olympus_flutter" target="_blank" rel="noopener" class="badge badge-green">Open Source</a>
+    </div>
+</section>
+
+<div class="container">
+    <div class="advantage">
+        <h2>Почему не OI.Share?</h2>
+        <p style="margin-bottom:16px">Официальное приложение Olympus <strong>OI.Share</strong> имеет серьёзные ограничения. Olympus View решает их:</p>
+        <ul>
+            <li><strong>Удаление файлов с камеры</strong> <span class="vs">— OI.Share не умеет удалять фото</span></li>
+            <li><strong>Массовое скачивание по датам</strong> <span class="vs">— OI.Share позволяет только по одному</span></li>
+            <li><strong>Фильтр RAW/ORF файлов</strong> <span class="vs">— OI.Share показывает все дубли</span></li>
+            <li><strong>Работает на Windows и в браузере</strong> <span class="vs">— OI.Share только мобильное</span></li>
+            <li><strong>Открытый исходный код</strong> <span class="vs">— OI.Share закрытый и больше не обновляется</span></li>
+        </ul>
+    </div>
+
+    <h2>Поддерживаемые камеры</h2>
+    <div class="cameras">
+        <div class="camera-tag">Olympus TG-6</div>
+        <div class="camera-tag">OM System OM-1</div>
+        <div class="camera-tag">Другие камеры Olympus/OM System с WiFi</div>
+    </div>
+
+    <h2>Возможности</h2>
+    <div class="features">
+        <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <h3>QR-код сканирование</h3>
+            <p>Отсканируйте QR-код с экрана камеры — приложение автоматически подключится к WiFi. Поддержка форматов OIS1 и OIS3.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🗑️</div>
+            <h3>Удаление файлов</h3>
+            <p>Выберите ненужные файлы и удалите их прямо с камеры. Освобождайте карту памяти без компьютера.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📅</div>
+            <h3>Выбор по датам</h3>
+            <p>Выделите один файл и нажмите кнопку — все файлы за ту же дату будут выбраны автоматически.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🖼️</div>
+            <h3>RAW фильтр</h3>
+            <p>Скрывайте ORF/RAW файлы одной кнопкой, чтобы убрать дубли при съёмке в RAW+JPG.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⬇️</div>
+            <h3>Массовое скачивание</h3>
+            <p>Скачивайте группы файлов с прогрессом. На Android фото сразу появляются в галерее.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💻</div>
+            <h3>Мультиплатформа</h3>
+            <p>Работает на Android, Windows и в любом браузере. Единый интерфейс на всех платформах.</p>
+        </div>
+    </div>
+
+    <h2>Скриншоты</h2>
+    <div class="screenshots">
+        <div class="screenshot">
+            <img src="img/gallery.png" alt="Галерея фотографий">
+            <div class="screenshot-caption">Галерея фото — OM-1, 3788 файлов</div>
+        </div>
+        <div class="screenshot">
+            <img src="img/connect.png" alt="QR сканирование и подключение">
+            <div class="screenshot-caption">QR сканирование и WiFi подключение</div>
+        </div>
+    </div>
+
+    <h2>Как использовать</h2>
+    <ol class="steps">
+        <li>Включите WiFi на камере Olympus / OM System</li>
+        <li>На <strong>Android</strong>: откройте приложение и отсканируйте QR-код с экрана камеры</li>
+        <li>На <strong>Windows</strong>: подключитесь к WiFi камеры, затем откройте приложение</li>
+        <li>Список фотографий загрузится автоматически с превью</li>
+        <li><strong>Долгое нажатие</strong> на фото — режим выбора файлов</li>
+        <li>Используйте кнопки для массового выбора, скачивания и удаления</li>
+    </ol>
+
+    <h2 id="dl-ru">Скачать</h2>
+    <div class="downloads">
+        <a href="https://github.com/ceviatacrmg/olympus_flutter/releases/latest/download/OlympusView.apk" class="download-card">
+            <div class="download-icon">🤖</div>
+            <h3>Android</h3>
+            <p>APK файл<br>Установить вручную</p>
+        </a>
+        <a href="https://github.com/ceviatacrmg/olympus_flutter/releases/latest" class="download-card" target="_blank" rel="noopener">
+            <div class="download-icon">🪟</div>
+            <h3>Windows</h3>
+            <p>Portable EXE<br>Не требует установки</p>
+        </a>
+        <a href="https://github.com/ceviatacrmg/olympus_flutter/releases/latest" class="download-card" target="_blank" rel="noopener">
+            <div class="download-icon">🌐</div>
+            <h3>Web</h3>
+            <p>Открыть в браузере<br>Без установки</p>
+        </a>
+    </div>
+
+    <div class="opensource">
+        <h2>Открытый исходный код</h2>
+        <p>Olympus View написан на Flutter/Dart. Исходный код полностью открыт — вы можете изучить его, модифицировать и собрать самостоятельно.</p>
+        <div class="code-block">flutter pub get<br>flutter run</div>
+    </div>
+
+    <h2>Технические детали</h2>
+    <h3>Стек</h3>
+    <p>Flutter 3 / Dart — Material 3 — OPC Communication Protocol</p>
+    <h3>Протокол камеры</h3>
+    <p style="margin-top:8px">Приложение общается с камерой по HTTP через WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Используется протокол OPC (Olympus OPC Communication Protocol).</p>
+    <h3>Декодирование QR</h3>
+    <p style="margin-top:8px">Камеры Olympus и OM System используют проприетарный формат QR-кодов (OIS1, OIS3) с подстановочным шифром. Приложение декодирует их автоматически и извлекает SSID, пароль WiFi и информацию о Bluetooth.</p>
+</div>
+
+</div><!-- /lang-ru -->
+
+<footer>
+    <p>Olympus View — open source app for Olympus / OM System cameras</p>
+    <p style="margin-top:8px">Flutter / Dart &bull; OPC Protocol &bull; <a href="https://github.com/ceviatacrmg/olympus_flutter" target="_blank" rel="noopener" style="color:var(--accent)">GitHub</a></p>
+</footer>
+
+<script>
+function switchLang(lang) {
+    document.querySelectorAll('.lang-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.lang-bar button').forEach(b => b.classList.remove('active'));
+    document.getElementById('lang-' + lang).classList.add('active');
+    document.querySelector('.lang-bar button[onclick*="' + lang + '"]').classList.add('active');
+}
+</script>
+
+</body>
+</html>

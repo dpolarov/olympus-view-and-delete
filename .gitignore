@@ -52,7 +52,7 @@ app.*.map.json
 /olympus-wifi/
 
 # Releases folder
-/releases/
+#/releases/
 
 # IDE
 .vscode/

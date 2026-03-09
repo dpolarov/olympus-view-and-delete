@@ -417,11 +417,70 @@
         .faq-item h3 { margin-top: 0; color: var(--accent); font-size: 1.05rem; }
         .faq-item p { color: var(--text-muted); margin: 0; }
 
+        /* Feedback form */
+        .feedback-form {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            margin-top: 40px;
+        }
+        .feedback-form h2 { margin-bottom: 8px; }
+        .feedback-form p.form-desc { color: var(--text-muted); margin-bottom: 24px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-group textarea { resize: vertical; min-height: 120px; }
+        .form-submit {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+        .form-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+        .form-success {
+            display: none;
+            background: rgba(54,211,153,0.1);
+            border: 1px solid rgba(54,211,153,0.3);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: var(--green);
+            font-weight: 500;
+        }
+
         @media (max-width: 600px) {
             .hero h1 { font-size: 2rem; }
             .hero p { font-size: 1rem; }
             .container { padding: 40px 16px; }
             .screenshot { max-width: 260px; }
+            .feedback-form { padding: 20px; }
         }
     </style>
 </head>
@@ -576,6 +635,28 @@
     <p style="margin-top:8px">The app communicates with the camera via HTTP over WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Uses the OPC (Olympus OPC Communication Protocol).</p>
     <h3>QR Decoding</h3>
     <p style="margin-top:8px">Olympus and OM System cameras use a proprietary QR code format (OIS1, OIS3) with a substitution cipher. The app decodes them automatically and extracts WiFi SSID, password and Bluetooth info.</p>
+
+    <div class="feedback-form" id="feedback-en">
+        <h2>Feedback</h2>
+        <p class="form-desc">Found a bug, have a question or suggestion? Let us know!</p>
+        <form action="https://formspree.io/f/xojkjpvl" method="POST" class="contact-form" data-lang="en">
+            <div class="form-group">
+                <label for="name-en">Name</label>
+                <input type="text" id="name-en" name="name" placeholder="Your name" required>
+            </div>
+            <div class="form-group">
+                <label for="email-en">Email</label>
+                <input type="email" id="email-en" name="email" placeholder="your@email.com" required>
+            </div>
+            <div class="form-group">
+                <label for="message-en">Message</label>
+                <textarea id="message-en" name="message" placeholder="Describe a bug, ask a question or share an idea..." required></textarea>
+            </div>
+            <input type="hidden" name="_subject" value="Olympus View Feedback (EN)">
+            <button type="submit" class="form-submit">Send Message</button>
+        </form>
+        <div class="form-success">Thank you! Your message has been sent.</div>
+    </div>
 </div>
 
 </div><!-- /lang-en -->
@@ -702,6 +783,28 @@
     <p style="margin-top:8px">Додаток спілкується з камерою через HTTP по WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Використовується протокол OPC (Olympus OPC Communication Protocol).</p>
     <h3>Декодування QR</h3>
     <p style="margin-top:8px">Камери Olympus та OM System використовують пропрієтарний формат QR-кодів (OIS1, OIS3) з підстановочним шифром. Додаток декодує їх автоматично та витягує SSID, пароль WiFi та інформацію про Bluetooth.</p>
+
+    <div class="feedback-form" id="feedback-uk">
+        <h2>Зворотній зв'язок</h2>
+        <p class="form-desc">Знайшли помилку, маєте питання чи пропозицію? Напишіть нам!</p>
+        <form action="https://formspree.io/f/xeogrgvr" method="POST" class="contact-form" data-lang="uk">
+            <div class="form-group">
+                <label for="name-uk">Ім'я</label>
+                <input type="text" id="name-uk" name="name" placeholder="Ваше ім'я" required>
+            </div>
+            <div class="form-group">
+                <label for="email-uk">Email</label>
+                <input type="email" id="email-uk" name="email" placeholder="your@email.com" required>
+            </div>
+            <div class="form-group">
+                <label for="message-uk">Повідомлення</label>
+                <textarea id="message-uk" name="message" placeholder="Опишіть помилку, задайте питання або поділіться ідеєю..." required></textarea>
+            </div>
+            <input type="hidden" name="_subject" value="Olympus View Feedback (UK)">
+            <button type="submit" class="form-submit">Надіслати</button>
+        </form>
+        <div class="form-success">Дякуємо! Ваше повідомлення надіслано.</div>
+    </div>
 </div>
 
 </div><!-- /lang-uk -->
@@ -844,6 +947,28 @@
     <p style="margin-top:8px">Приложение общается с камерой по HTTP через WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Используется протокол OPC (Olympus OPC Communication Protocol).</p>
     <h3>Декодирование QR</h3>
     <p style="margin-top:8px">Камеры Olympus и OM System используют проприетарный формат QR-кодов (OIS1, OIS3) с подстановочным шифром. Приложение декодирует их автоматически и извлекает SSID, пароль WiFi и информацию о Bluetooth.</p>
+
+    <div class="feedback-form" id="feedback-ru">
+        <h2>Обратная связь</h2>
+        <p class="form-desc">Нашли ошибку, есть вопрос или предложение? Напишите нам!</p>
+        <form action="https://formspree.io/f/xeogrgvr" method="POST" class="contact-form" data-lang="ru">
+            <div class="form-group">
+                <label for="name-ru">Имя</label>
+                <input type="text" id="name-ru" name="name" placeholder="Ваше имя" required>
+            </div>
+            <div class="form-group">
+                <label for="email-ru">Email</label>
+                <input type="email" id="email-ru" name="email" placeholder="your@email.com" required>
+            </div>
+            <div class="form-group">
+                <label for="message-ru">Сообщение</label>
+                <textarea id="message-ru" name="message" placeholder="Опишите ошибку, задайте вопрос или поделитесь идеей..." required></textarea>
+            </div>
+            <input type="hidden" name="_subject" value="Olympus View Feedback (RU)">
+            <button type="submit" class="form-submit">Отправить</button>
+        </form>
+        <div class="form-success">Спасибо! Ваше сообщение отправлено.</div>
+    </div>
 </div>
 
 </div><!-- /lang-ru -->
@@ -885,6 +1010,37 @@ function switchLang(lang) {
     const p = new URLSearchParams(window.location.search).get('lang');
     if (p && ['ru', 'uk'].includes(p)) { switchLang(p); }
 })();
+
+// Feedback form — AJAX submit via Formspree
+document.querySelectorAll('.contact-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = form.querySelector('.form-submit');
+        const successDiv = form.parentElement.querySelector('.form-success');
+        const origText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '...';
+
+        fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { 'Accept': 'application/json' }
+        }).then(r => {
+            if (r.ok) {
+                form.style.display = 'none';
+                successDiv.style.display = 'block';
+            } else {
+                btn.textContent = origText;
+                btn.disabled = false;
+                alert('Error sending message. Please try again.');
+            }
+        }).catch(() => {
+            btn.textContent = origText;
+            btn.disabled = false;
+            alert('Network error. Please try again.');
+        });
+    });
+});
 </script>
 
 </body>

@@ -141,6 +141,7 @@ class _GridItem extends StatelessWidget {
                   _CameraThumbnail(
                     url: file.thumbnailUrl,
                     index: index,
+                    imagePath: file.fullPath,
                   ),
                   if (selected)
                     Positioned(
@@ -229,6 +230,7 @@ class _ListItem extends StatelessWidget {
               child: _CameraThumbnail(
                 url: file.thumbnailUrl,
                 index: index,
+                imagePath: file.fullPath,
                 fit: BoxFit.cover,
               ),
             ),
@@ -274,11 +276,13 @@ class _ListItem extends StatelessWidget {
 class _CameraThumbnail extends StatefulWidget {
   final String url;
   final int index;
+  final String imagePath;
   final BoxFit fit;
 
   const _CameraThumbnail({
     required this.url,
     required this.index,
+    this.imagePath = '',
     this.fit = BoxFit.cover,
   });
 
@@ -309,8 +313,8 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
   }
 
   Future<void> _load() async {
-    final bytes =
-        await ThumbnailManager.instance.load(widget.url, widget.index);
+    final bytes = await ThumbnailManager.instance.load(
+      widget.url, widget.index, imagePath: widget.imagePath);
     if (!mounted) return;
     setState(() {
       _bytes = bytes;

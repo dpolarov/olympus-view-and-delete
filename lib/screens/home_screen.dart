@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:wifi_iot/wifi_iot.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../services/camera_api.dart';
 import '../services/file_saver.dart' as file_saver;
 import '../services/thumbnail_manager.dart';
@@ -27,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _connected = false;
   String? _error;
   String _cameraModel = '';
+  String _statusMessage = '';
 
   // Selection
   bool _selectionMode = false;
@@ -47,13 +50,81 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadFiles();
+    _initLoad();
   }
 
   @override
   void dispose() {
     _api.dispose();
     super.dispose();
+  }
+
+  /// Initial load: quick camera check → auto-connect last saved → load files
+  Future<void> _initLoad() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _statusMessage = 'Checking camera...';
+    });
+
+    // Quick check if camera is already reachable
+    final alreadyConnected = await _api.testConnection();
+    if (!mounted) return;
+    if (alreadyConnected) {
+      _loadFiles();
+      return;
+    }
+
+    // Not reachable — try auto-connecting to last saved camera
+    if (_isMobilePlatform()) {
+      final history = await ConnectionHistory.load();
+      if (history.isNotEmpty) {
+        final last = history.first;
+        final name = last.cameraName ?? last.ssid;
+        setState(() => _statusMessage = 'Connecting to $name...');
+        try {
+          await Permission.location.request();
+          final wifiOk = await WiFiForIoTPlugin.connect(
+            last.ssid,
+            password: last.password,
+            security: last.security == 'NONE'
+                ? NetworkSecurity.NONE
+                : last.security == 'WEP'
+                    ? NetworkSecurity.WEP
+                    : NetworkSecurity.WPA,
+            joinOnce: false,
+            withInternet: false,
+          );
+          if (wifiOk && mounted) {
+            setState(() => _statusMessage = 'WiFi connected, reaching camera...');
+            await WiFiForIoTPlugin.forceWifiUsage(true);
+            await ConnectionHistory.save(SavedConnection(
+              ssid: last.ssid,
+              password: last.password,
+              security: last.security,
+              cameraName: last.cameraName,
+              btName: last.btName,
+              btPasscode: last.btPasscode,
+              lastConnected: DateTime.now(),
+            ));
+            if (mounted) {
+              _loadFiles();
+              return;
+            }
+          } else if (mounted) {
+            setState(() => _statusMessage = 'WiFi connection failed');
+          }
+        } catch (_) {}
+      }
+    }
+
+    // Could not connect
+    if (mounted) {
+      setState(() {
+        _loading = false;
+        _error = 'Cannot connect to camera.\nConnect to camera WiFi first.';
+      });
+    }
   }
 
   Future<void> _loadFiles() async {
@@ -69,7 +140,15 @@ class _HomeScreenState extends State<HomeScreen> {
     ThumbnailManager.instance.clear();
 
     try {
-      final ok = await _api.testConnection();
+      // Retry testConnection (WiFi route may need time after switch)
+      if (mounted) setState(() => _statusMessage = 'Connecting to camera...');
+      bool ok = false;
+      for (int attempt = 0; attempt < 3; attempt++) {
+        ok = await _api.testConnection();
+        if (ok || !mounted || generation != _loadGeneration) break;
+        if (mounted) setState(() => _statusMessage = 'Retrying... (${attempt + 1}/3)');
+        if (attempt < 2) await Future.delayed(const Duration(seconds: 1));
+      }
       if (!mounted || generation != _loadGeneration) return;
       setState(() => _connected = ok);
       if (!ok) {
@@ -78,6 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
+      if (mounted) setState(() => _statusMessage = 'Loading camera info...');
       try {
         final info = await _api.getCameraInfo();
         if (mounted && generation == _loadGeneration) {
@@ -102,6 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       } catch (_) {}
 
+      if (mounted) setState(() => _statusMessage = 'Loading file list...');
       final files = await _api.listAllFiles(
         onBatch: (batch) {
           if (!mounted || generation != _loadGeneration) return;
@@ -213,21 +294,53 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _connectFromSaved(SavedConnection conn) async {
     if (_isMobilePlatform()) {
-      // On mobile: navigate to QR screen with pre-filled credentials
-      final connected = await Navigator.push<bool>(
-        context,
-        MaterialPageRoute(
-          builder: (_) => QrScanScreen(
-            initialSsid: conn.ssid,
-            initialPassword: conn.password,
-          ),
-        ),
-      );
-      if (connected == true && mounted) {
-        _loadFiles();
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+      try {
+        await Permission.location.request();
+        final connected = await WiFiForIoTPlugin.connect(
+          conn.ssid,
+          password: conn.password,
+          security: conn.security == 'NONE'
+              ? NetworkSecurity.NONE
+              : conn.security == 'WEP'
+                  ? NetworkSecurity.WEP
+                  : NetworkSecurity.WPA,
+          joinOnce: false,
+          withInternet: false,
+        );
+        if (connected) {
+          await WiFiForIoTPlugin.forceWifiUsage(true);
+          // Update last connected time
+          await ConnectionHistory.save(SavedConnection(
+            ssid: conn.ssid,
+            password: conn.password,
+            security: conn.security,
+            cameraName: conn.cameraName,
+            btName: conn.btName,
+            btPasscode: conn.btPasscode,
+            lastConnected: DateTime.now(),
+          ));
+          if (mounted) _loadFiles();
+        } else {
+          if (mounted) {
+            setState(() {
+              _loading = false;
+              _error = 'Failed to connect to ${conn.ssid}';
+            });
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _loading = false;
+            _error = 'Connection error: $e';
+          });
+        }
       }
     } else {
-      // On desktop/web: just retry (user connects manually)
       _loadFiles();
     }
   }
@@ -455,7 +568,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const CircularProgressIndicator(color: Color(0xFFE94560)),
               const SizedBox(height: 16),
-              Text('Connecting to camera...',
+              Text(_statusMessage.isNotEmpty ? _statusMessage : 'Connecting...',
                   style: TextStyle(color: Colors.grey[500])),
             ],
           ),
@@ -469,11 +582,15 @@ class _HomeScreenState extends State<HomeScreen> {
         body: LayoutBuilder(
           builder: (context, constraints) => SingleChildScrollView(
             child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
+                minWidth: constraints.maxWidth,
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                 const Icon(Icons.camera_alt, size: 64, color: Colors.grey),
                 const SizedBox(height: 16),
@@ -505,7 +622,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(
                   width: 220,
                   child: OutlinedButton.icon(
-                    onPressed: _loadFiles,
+                    onPressed: _initLoad,
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retry Connection'),
                     style: OutlinedButton.styleFrom(
@@ -785,8 +902,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       selectedPaths: _selectedPaths,
                       onTap: _toggleSelect,
                       onLongPress: _enterSelectionMode,
-                      onPreview: (file, index) {
-                        Navigator.push(
+                      onPreview: (file, index) async {
+                        final deleted = await Navigator.push<bool>(
                           context,
                           MaterialPageRoute(
                             builder: (_) => PhotoPreviewScreen(
@@ -796,6 +913,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         );
+                        if (deleted == true && mounted) {
+                          _loadFiles();
+                        }
                       },
                     ),
                   ),

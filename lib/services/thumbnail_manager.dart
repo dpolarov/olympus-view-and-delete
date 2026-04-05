@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'camera_api.dart' show cameraIp;
+import 'image_cache.dart';
 
 /// Manages thumbnail loading with concurrency limit and priority for visible items.
 class ThumbnailManager {
@@ -25,7 +26,8 @@ class ThumbnailManager {
   }
 
   /// Request a thumbnail. Returns cached data immediately if available.
-  Future<Uint8List?> load(String url, int index) {
+  /// [imagePath] is the camera file path (e.g. /DCIM/100OLYMP/P1010001.JPG)
+  Future<Uint8List?> load(String url, int index, {String imagePath = ''}) {
     if (_cache.containsKey(url)) {
       return Future.value(_cache[url]);
     }
@@ -35,9 +37,26 @@ class ThumbnailManager {
 
     final completer = Completer<Uint8List?>();
     _inflight[url] = completer;
-    _queue.add(_Request(url: url, index: index, completer: completer));
-    _processQueue();
+    _queue.add(_Request(url: url, index: index, completer: completer, imagePath: imagePath));
+    // Try disk cache first
+    if (imagePath.isNotEmpty) {
+      _tryDiskCache(url, imagePath, completer);
+    } else {
+      _processQueue();
+    }
     return completer.future;
+  }
+
+  Future<void> _tryDiskCache(String url, String imagePath, Completer<Uint8List?> completer) async {
+    final cached = await ImageDiskCache.instance.get(imagePath, 'thumb');
+    if (cached != null) {
+      _cache[url] = cached;
+      if (!completer.isCompleted) completer.complete(cached);
+      _queue.removeWhere((r) => r.url == url);
+      _inflight.remove(url);
+      return;
+    }
+    _processQueue();
   }
 
   void _processQueue() {
@@ -80,6 +99,9 @@ class ThumbnailManager {
       if (resp.statusCode == 200 && resp.bodyBytes.isNotEmpty) {
         final bytes = Uint8List.fromList(resp.bodyBytes);
         _cache[req.url] = bytes;
+        if (req.imagePath.isNotEmpty) {
+          ImageDiskCache.instance.put(req.imagePath, 'thumb', bytes);
+        }
         if (!req.completer.isCompleted) req.completer.complete(bytes);
       } else {
         if (!req.completer.isCompleted) req.completer.complete(null);
@@ -111,6 +133,7 @@ class ThumbnailManager {
 class _Request {
   final String url;
   final int index;
+  final String imagePath;
   final Completer<Uint8List?> completer;
-  _Request({required this.url, required this.index, required this.completer});
+  _Request({required this.url, required this.index, required this.completer, this.imagePath = ''});
 }

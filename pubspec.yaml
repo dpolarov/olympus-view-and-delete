@@ -16,6 +16,7 @@ dependencies:
   mobile_scanner: ^5.1.0
   wifi_iot: ^0.3.19+1
   media_scanner: ^2.1.0
+  shared_preferences: ^2.2.0
 
 dev_dependencies:
   flutter_test:

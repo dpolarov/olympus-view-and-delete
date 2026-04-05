@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, Tar
 import '../services/camera_api.dart';
 import '../services/file_saver.dart' as file_saver;
 import '../services/thumbnail_manager.dart';
+import '../services/connection_history.dart';
 import '../widgets/photo_grid.dart';
 import '../widgets/date_filter_sheet.dart';
 import '../widgets/delete_progress_dialog.dart';
@@ -80,7 +81,24 @@ class _HomeScreenState extends State<HomeScreen> {
       try {
         final info = await _api.getCameraInfo();
         if (mounted && generation == _loadGeneration) {
-          setState(() => _cameraModel = info['model'] ?? 'Olympus Camera');
+          final model = info['model'] ?? 'Olympus Camera';
+          setState(() => _cameraModel = model);
+          // Update camera name in connection history
+          final history = await ConnectionHistory.load();
+          if (history.isNotEmpty) {
+            final latest = history.first;
+            if (latest.cameraName != model) {
+              await ConnectionHistory.save(SavedConnection(
+                ssid: latest.ssid,
+                password: latest.password,
+                security: latest.security,
+                cameraName: model,
+                btName: latest.btName,
+                btPasscode: latest.btPasscode,
+                lastConnected: latest.lastConnected,
+              ));
+            }
+          }
         }
       } catch (_) {}
 
@@ -191,6 +209,27 @@ class _HomeScreenState extends State<HomeScreen> {
     if (kIsWeb) return false;
     return defaultTargetPlatform == TargetPlatform.android ||
            defaultTargetPlatform == TargetPlatform.iOS;
+  }
+
+  Future<void> _connectFromSaved(SavedConnection conn) async {
+    if (_isMobilePlatform()) {
+      // On mobile: navigate to QR screen with pre-filled credentials
+      final connected = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QrScanScreen(
+            initialSsid: conn.ssid,
+            initialPassword: conn.password,
+          ),
+        ),
+      );
+      if (connected == true && mounted) {
+        _loadFiles();
+      }
+    } else {
+      // On desktop/web: just retry (user connects manually)
+      _loadFiles();
+    }
   }
 
   Future<void> _openQrScanner() async {
@@ -427,12 +466,15 @@ class _HomeScreenState extends State<HomeScreen> {
     // Error state
     if (_error != null && _allFiles.isEmpty) {
       return Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+        body: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                 const Icon(Icons.camera_alt, size: 64, color: Colors.grey),
                 const SizedBox(height: 16),
                 Text(_error!,
@@ -472,8 +514,83 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                // Saved cameras
+                FutureBuilder<List<SavedConnection>>(
+                  future: ConnectionHistory.load(),
+                  builder: (context, snapshot) {
+                    final connections = snapshot.data ?? [];
+                    if (connections.isEmpty) return const SizedBox.shrink();
+                    return Column(
+                      children: [
+                        const SizedBox(height: 32),
+                        const Divider(color: Color(0xFF333355)),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.history, color: Color(0xFFE94560), size: 18),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Saved cameras',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        ...connections.map((conn) => GestureDetector(
+                              onTap: () => _connectFromSaved(conn),
+                              child: Container(
+                                width: double.infinity,
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1A1A2E),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: const Color(0xFF333355)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.wifi, color: Color(0xFF2ECC71), size: 22),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            conn.cameraName.isNotEmpty
+                                                ? conn.cameraName
+                                                : conn.ssid,
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            conn.cameraName.isNotEmpty
+                                                ? '${conn.ssid} · ${conn.lastConnectedStr}'
+                                                : conn.lastConnectedStr,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[500],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Icon(Icons.chevron_right, color: Colors.grey[600]),
+                                  ],
+                                ),
+                              ),
+                            )),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
+          ),
+        ),
           ),
         ),
       );

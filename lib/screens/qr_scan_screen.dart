@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:wifi_iot/wifi_iot.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../services/connection_history.dart';
 
 /// Olympus/OM System QR code decoder
 /// OIS1 format (TG-6):  OIS1,<encoded_ssid>,<encoded_password>
@@ -117,7 +118,14 @@ class WifiCredentials {
 }
 
 class QrScanScreen extends StatefulWidget {
-  const QrScanScreen({super.key});
+  final String? initialSsid;
+  final String? initialPassword;
+
+  const QrScanScreen({
+    super.key,
+    this.initialSsid,
+    this.initialPassword,
+  });
 
   @override
   State<QrScanScreen> createState() => _QrScanScreenState();
@@ -133,6 +141,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
   final _ssidController = TextEditingController();
   final _passController = TextEditingController();
   bool _isMobile = false;
+  List<SavedConnection> _savedConnections = [];
 
   @override
   void initState() {
@@ -141,6 +150,20 @@ class _QrScanScreenState extends State<QrScanScreen> {
     if (_isMobile) {
       _initScanner();
     }
+    _loadHistory();
+    // Auto-connect if credentials provided
+    if (widget.initialSsid != null && widget.initialSsid!.isNotEmpty) {
+      _ssidController.text = widget.initialSsid!;
+      _passController.text = widget.initialPassword ?? '';
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleManualConnect();
+      });
+    }
+  }
+
+  Future<void> _loadHistory() async {
+    final list = await ConnectionHistory.load();
+    if (mounted) setState(() => _savedConnections = list);
   }
 
   Future<void> _initScanner() async {
@@ -239,6 +262,14 @@ class _QrScanScreenState extends State<QrScanScreen> {
 
         if (connected) {
           await WiFiForIoTPlugin.forceWifiUsage(true);
+          await ConnectionHistory.save(SavedConnection(
+            ssid: creds.ssid,
+            password: creds.password,
+            security: creds.security,
+            btName: creds.btName,
+            btPasscode: creds.btPasscode,
+            lastConnected: DateTime.now(),
+          ));
           setState(() {
             _status = 'Connected to ${creds.ssid}!';
             _connecting = false;
@@ -254,6 +285,14 @@ class _QrScanScreenState extends State<QrScanScreen> {
           _controller?.start();
         }
       } else {
+        await ConnectionHistory.save(SavedConnection(
+          ssid: creds.ssid,
+          password: creds.password,
+          security: creds.security,
+          btName: creds.btName,
+          btPasscode: creds.btPasscode,
+          lastConnected: DateTime.now(),
+        ));
         setState(() {
           _status = 'WiFi: ${creds.ssid}\nPassword: ${creds.password}\n\n'
               'Connect manually in system settings.';
@@ -283,6 +322,121 @@ class _QrScanScreenState extends State<QrScanScreen> {
       default:
         return NetworkSecurity.WPA;
     }
+  }
+
+  void _connectFromHistory(SavedConnection conn) {
+    final creds = WifiCredentials(
+      ssid: conn.ssid,
+      password: conn.password,
+      security: conn.security,
+      btName: conn.btName,
+      btPasscode: conn.btPasscode,
+    );
+    setState(() {
+      _ssidController.text = conn.ssid;
+      _passController.text = conn.password;
+      _credentials = creds;
+      _scanned = true;
+    });
+    _controller?.stop();
+    if (_isMobile) {
+      _connectToWifi(creds);
+    } else {
+      setState(() {
+        _status = 'WiFi: ${conn.ssid}\nPassword: ${conn.password}\n\n'
+            'Connect to this network manually in Windows Settings,\n'
+            'then press "Done" below.';
+      });
+    }
+  }
+
+  Widget _buildSavedConnections() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.history, color: Color(0xFFE94560), size: 18),
+              const SizedBox(width: 8),
+              const Text(
+                'Saved cameras',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ..._savedConnections.map((conn) => Dismissible(
+                key: Key(conn.ssid),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.delete, color: Colors.red),
+                ),
+                onDismissed: (_) async {
+                  await ConnectionHistory.delete(conn.ssid);
+                  _loadHistory();
+                },
+                child: GestureDetector(
+                  onTap: () => _connectFromHistory(conn),
+                  child: Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1A2E),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF333355)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.wifi, color: Color(0xFF2ECC71), size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                conn.ssid,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                conn.cameraName.isNotEmpty
+                                    ? '${conn.cameraName} · ${conn.lastConnectedStr}'
+                                    : conn.lastConnectedStr,
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(Icons.chevron_right, color: Colors.grey[600], size: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              )),
+          const Divider(color: Color(0xFF333355), height: 24),
+        ],
+      ),
+    );
   }
 
   Widget _buildManualEntry() {
@@ -404,6 +558,9 @@ class _QrScanScreenState extends State<QrScanScreen> {
               ),
               const Divider(color: Color(0xFF333355), height: 1),
             ],
+
+            // Saved connections
+            if (_savedConnections.isNotEmpty) _buildSavedConnections(),
 
             // Manual entry (always visible)
             _buildManualEntry(),

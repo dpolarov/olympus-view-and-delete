@@ -1,0 +1,27 @@
+name: Sync Changelog to Site
+
+on:
+  push:
+    paths:
+      - 'CHANGELOG.md'
+    branches:
+      - main
+      - master
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare changelog (strip header)
+        run: tail -n +3 CHANGELOG.md > /tmp/changelog_stripped.md
+
+      - name: Trigger site repo update
+        run: |
+          CONTENT=$(base64 -w 0 /tmp/changelog_stripped.md)
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.SITE_REPO_TOKEN }}" \
+            https://api.github.com/repos/dpolarov/olympus-view-and-delete/dispatches \
+            -d "{\"event_type\":\"sync-changelog\",\"client_payload\":{\"changelog\":\"$CONTENT\"}}"

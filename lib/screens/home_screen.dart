@@ -12,6 +12,8 @@ import '../widgets/delete_progress_dialog.dart';
 import '../widgets/download_progress_dialog.dart';
 import 'qr_scan_screen.dart';
 import 'photo_preview_screen.dart';
+import '../version.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -343,6 +345,51 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       _loadFiles();
     }
+  }
+
+  void _showAbout() {
+    showAboutDialog(
+      context: context,
+      applicationName: appName,
+      applicationVersion: 'v$appVersion (build $appBuild)',
+      applicationIcon: const Icon(Icons.camera_alt, size: 48, color: Color(0xFFE94560)),
+      children: [
+        const SizedBox(height: 8),
+        const Text('WiFi Camera Manager for Olympus/OM System cameras.'),
+        const SizedBox(height: 16),
+        Text(
+          'Changelog v$appVersion:',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          '• Full-screen photo preview with swipe & zoom\n'
+          '• Download/Delete from preview screen\n'
+          '• Image preloading for smooth swiping\n'
+          '• Persistent disk cache for thumbnails & previews\n'
+          '• Auto-connect to last used camera\n'
+          '• Saved cameras quick reconnect\n'
+          '• Detailed connection status messages',
+          style: TextStyle(fontSize: 13),
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () => launchUrl(
+            Uri.parse('https://dpolarov.github.io/olympus-view-and-delete/'),
+            mode: LaunchMode.externalApplication,
+          ),
+          child: const Text(
+            'dpolarov.github.io/olympus-view-and-delete',
+            style: TextStyle(
+              color: Color(0xFF64B5F6),
+              decoration: TextDecoration.underline,
+              decorationColor: Color(0xFF64B5F6),
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _openQrScanner() async {
@@ -784,6 +831,11 @@ class _HomeScreenState extends State<HomeScreen> {
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: _loadFiles,
+            ),
+            IconButton(
+              icon: const Icon(Icons.info_outline),
+              tooltip: 'About',
+              onPressed: _showAbout,
             ),
           ],
         ],

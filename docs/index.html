@@ -429,6 +429,24 @@
         .faq-item h3 { margin-top: 0; color: var(--accent); font-size: 1.05rem; }
         .faq-item p { color: var(--text-muted); margin: 0; }
 
+        /* Changelog */
+        .changelog { margin-bottom: 40px; }
+        .changelog-version {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+        .changelog-version:hover { border-color: var(--accent); }
+        .changelog-version h3 { margin-top: 0; color: var(--accent); font-size: 1.15rem; }
+        .changelog-version h4 { color: var(--text); font-size: 0.95rem; margin: 16px 0 8px; }
+        .changelog-version ul { list-style: none; padding: 0; margin: 0; }
+        .changelog-version li { padding: 4px 0; color: var(--text-muted); font-size: 0.95rem; }
+        .changelog-version li::before { content: "→ "; color: var(--accent); font-weight: bold; }
+        .changelog-version li strong { color: var(--text); }
+
         /* Feedback form */
         .feedback-form {
             background: var(--card);
@@ -662,6 +680,44 @@
     <h3>QR Decoding</h3>
     <p style="margin-top:8px">Olympus and OM System cameras use a proprietary QR code format (OIS1, OIS3) with a substitution cipher. The app decodes them automatically and extracts WiFi SSID, password and Bluetooth info.</p>
 
+    <h2 id="changelog-en">Changelog</h2>
+    <div class="changelog">
+        <div class="changelog-version">
+            <h3>v1.1.0 — April 6, 2026</h3>
+            <h4>Added</h4>
+            <ul>
+                <li><strong>Photo Preview</strong> — full-screen viewer with swipe and pinch-to-zoom</li>
+                <li><strong>Preview Download/Delete</strong> — manage photos directly from preview</li>
+                <li><strong>Image Preloading</strong> — preload ±2 neighbors for smooth swiping</li>
+                <li><strong>Disk Image Cache</strong> — persistent LRU cache (150 images) across sessions</li>
+                <li><strong>Connection History</strong> — save and recall previously connected cameras</li>
+                <li><strong>Auto-Connect</strong> — automatically connect to last used camera on startup</li>
+                <li><strong>Status Messages</strong> — detailed connection progress on loading screen</li>
+                <li><strong>Version Info</strong> — About dialog with changelog and website link</li>
+            </ul>
+            <h4>Fixed</h4>
+            <ul>
+                <li>Error screen content centered properly</li>
+                <li>WiFi reconnection from saved cameras without extra navigation</li>
+                <li>Context-aware loading messages</li>
+            </ul>
+        </div>
+        <div class="changelog-version">
+            <h3>v1.0.0 — March 15, 2026</h3>
+            <h4>Initial Release</h4>
+            <ul>
+                <li>Connect to Olympus cameras via WiFi (QR code or manual SSID)</li>
+                <li>Browse photos in grid or list view</li>
+                <li>Filter photos by date range</li>
+                <li>Batch select, download, and delete files</li>
+                <li>RAW/ORF file toggle</li>
+                <li>Download and delete progress dialogs</li>
+                <li>Progressive file list loading</li>
+                <li>Android and Web support</li>
+            </ul>
+        </div>
+    </div>
+
     <div class="feedback-form" id="feedback-en">
         <h2>Feedback</h2>
         <p class="form-desc">Found a bug, have a question or suggestion? Let us know!</p>
@@ -809,6 +865,44 @@
     <p style="margin-top:8px">Додаток спілкується з камерою через HTTP по WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Використовується протокол OPC (Olympus OPC Communication Protocol).</p>
     <h3>Декодування QR</h3>
     <p style="margin-top:8px">Камери Olympus та OM System використовують пропрієтарний формат QR-кодів (OIS1, OIS3) з підстановочним шифром. Додаток декодує їх автоматично та витягує SSID, пароль WiFi та інформацію про Bluetooth.</p>
+
+    <h2 id="changelog-uk">Журнал змін</h2>
+    <div class="changelog">
+        <div class="changelog-version">
+            <h3>v1.1.0 — 6 квітня 2026</h3>
+            <h4>Додано</h4>
+            <ul>
+                <li><strong>Перегляд фото</strong> — повноекранний перегляд зі свайпом та масштабуванням</li>
+                <li><strong>Завантаження/Видалення з перегляду</strong> — керування фото прямо з перегляду</li>
+                <li><strong>Передзавантаження зображень</strong> — ±2 сусідніх для плавного свайпу</li>
+                <li><strong>Дисковий кеш</strong> — постійний LRU кеш (150 зображень) між сеансами</li>
+                <li><strong>Історія підключень</strong> — збереження та відновлення камер</li>
+                <li><strong>Автопідключення</strong> — автоматичне підключення до останньої камери</li>
+                <li><strong>Статусні повідомлення</strong> — детальний прогрес підключення</li>
+                <li><strong>Версія</strong> — діалог з changelog та посиланням на сайт</li>
+            </ul>
+            <h4>Виправлено</h4>
+            <ul>
+                <li>Центрування контенту на екрані помилки</li>
+                <li>Перепідключення WiFi без зайвої навігації</li>
+                <li>Контекстні повідомлення завантаження</li>
+            </ul>
+        </div>
+        <div class="changelog-version">
+            <h3>v1.0.0 — 15 березня 2026</h3>
+            <h4>Перший реліз</h4>
+            <ul>
+                <li>Підключення до камер Olympus через WiFi (QR-код або SSID)</li>
+                <li>Перегляд фото у сітці або списку</li>
+                <li>Фільтрація за датами</li>
+                <li>Масовий вибір, завантаження та видалення файлів</li>
+                <li>Фільтр RAW/ORF</li>
+                <li>Діалоги прогресу завантаження та видалення</li>
+                <li>Прогресивне завантаження списку файлів</li>
+                <li>Підтримка Android та Web</li>
+            </ul>
+        </div>
+    </div>
 
     <div class="feedback-form" id="feedback-uk">
         <h2>Зворотній зв'язок</h2>
@@ -973,6 +1067,44 @@
     <p style="margin-top:8px">Приложение общается с камерой по HTTP через WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Используется протокол OPC (Olympus OPC Communication Protocol).</p>
     <h3>Декодирование QR</h3>
     <p style="margin-top:8px">Камеры Olympus и OM System используют проприетарный формат QR-кодов (OIS1, OIS3) с подстановочным шифром. Приложение декодирует их автоматически и извлекает SSID, пароль WiFi и информацию о Bluetooth.</p>
+
+    <h2 id="changelog-ru">Журнал изменений</h2>
+    <div class="changelog">
+        <div class="changelog-version">
+            <h3>v1.1.0 — 6 апреля 2026</h3>
+            <h4>Добавлено</h4>
+            <ul>
+                <li><strong>Просмотр фото</strong> — полноэкранный просмотр со свайпом и масштабированием</li>
+                <li><strong>Скачивание/Удаление из просмотра</strong> — управление фото прямо из превью</li>
+                <li><strong>Предзагрузка изображений</strong> — ±2 соседних для плавного свайпа</li>
+                <li><strong>Дисковый кеш</strong> — постоянный LRU кеш (150 изображений) между сеансами</li>
+                <li><strong>История подключений</strong> — сохранение и восстановление камер</li>
+                <li><strong>Автоподключение</strong> — автоматическое подключение к последней камере</li>
+                <li><strong>Статусные сообщения</strong> — детальный прогресс подключения</li>
+                <li><strong>Версия</strong> — диалог с changelog и ссылкой на сайт</li>
+            </ul>
+            <h4>Исправлено</h4>
+            <ul>
+                <li>Центрирование контента на экране ошибки</li>
+                <li>Переподключение WiFi без лишней навигации</li>
+                <li>Контекстные сообщения загрузки</li>
+            </ul>
+        </div>
+        <div class="changelog-version">
+            <h3>v1.0.0 — 15 марта 2026</h3>
+            <h4>Первый релиз</h4>
+            <ul>
+                <li>Подключение к камерам Olympus через WiFi (QR-код или SSID)</li>
+                <li>Просмотр фото в сетке или списке</li>
+                <li>Фильтрация по датам</li>
+                <li>Массовый выбор, скачивание и удаление файлов</li>
+                <li>Фильтр RAW/ORF</li>
+                <li>Диалоги прогресса скачивания и удаления</li>
+                <li>Прогрессивная загрузка списка файлов</li>
+                <li>Поддержка Android и Web</li>
+            </ul>
+        </div>
+    </div>
 
     <div class="feedback-form" id="feedback-ru">
         <h2>Обратная связь</h2>

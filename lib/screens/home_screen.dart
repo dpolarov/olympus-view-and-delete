@@ -8,6 +8,7 @@ import '../widgets/date_filter_sheet.dart';
 import '../widgets/delete_progress_dialog.dart';
 import '../widgets/download_progress_dialog.dart';
 import 'qr_scan_screen.dart';
+import 'photo_preview_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -667,6 +668,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       selectedPaths: _selectedPaths,
                       onTap: _toggleSelect,
                       onLongPress: _enterSelectionMode,
+                      onPreview: (file, index) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PhotoPreviewScreen(
+                              file: file,
+                              files: _filteredFiles,
+                              initialIndex: index,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
           ),

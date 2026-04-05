@@ -10,6 +10,7 @@ class PhotoGrid extends StatefulWidget {
   final Set<String> selectedPaths;
   final void Function(CameraFile) onTap;
   final void Function(CameraFile) onLongPress;
+  final void Function(CameraFile, int)? onPreview;
 
   const PhotoGrid({
     super.key,
@@ -19,6 +20,7 @@ class PhotoGrid extends StatefulWidget {
     required this.selectedPaths,
     required this.onTap,
     required this.onLongPress,
+    this.onPreview,
   });
 
   @override
@@ -72,6 +74,7 @@ class _PhotoGridState extends State<PhotoGrid> {
         selectionMode: widget.selectionMode,
         onTap: () => widget.onTap(widget.files[i]),
         onLongPress: () => widget.onLongPress(widget.files[i]),
+        onPreview: widget.onPreview != null ? () => widget.onPreview!(widget.files[i], i) : null,
       ),
     );
   }
@@ -87,6 +90,7 @@ class _PhotoGridState extends State<PhotoGrid> {
         selectionMode: widget.selectionMode,
         onTap: () => widget.onTap(widget.files[i]),
         onLongPress: () => widget.onLongPress(widget.files[i]),
+        onPreview: widget.onPreview != null ? () => widget.onPreview!(widget.files[i], i) : null,
       ),
     );
   }
@@ -99,6 +103,7 @@ class _GridItem extends StatelessWidget {
   final bool selectionMode;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final VoidCallback? onPreview;
 
   const _GridItem({
     required this.file,
@@ -107,12 +112,13 @@ class _GridItem extends StatelessWidget {
     required this.selectionMode,
     required this.onTap,
     required this.onLongPress,
+    this.onPreview,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: selectionMode ? onTap : null,
+      onTap: selectionMode ? onTap : onPreview,
       onLongPress: onLongPress,
       child: Container(
         decoration: BoxDecoration(
@@ -186,6 +192,7 @@ class _ListItem extends StatelessWidget {
   final bool selectionMode;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final VoidCallback? onPreview;
 
   const _ListItem({
     required this.file,
@@ -194,12 +201,13 @@ class _ListItem extends StatelessWidget {
     required this.selectionMode,
     required this.onTap,
     required this.onLongPress,
+    this.onPreview,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: selectionMode ? onTap : null,
+      onTap: selectionMode ? onTap : onPreview,
       onLongPress: onLongPress,
       child: Container(
         margin: const EdgeInsets.only(bottom: 6),

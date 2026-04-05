@@ -29,6 +29,9 @@ class CameraFile {
 
   String get fullPath => '$directory/$filename';
   String get thumbnailUrl => '$baseUrl/get_thumbnail.cgi?DIR=$fullPath';
+  String get screennailUrl => '$baseUrl/get_screennail.cgi?DIR=$fullPath';
+  String resizeImgUrl([int size = 1920]) =>
+      '$baseUrl/get_resizeimg.cgi?DIR=$fullPath&size=$size';
   String get downloadUrl => '$baseUrl$fullPath';
 
   String get sizeHuman {

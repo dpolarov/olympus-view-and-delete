@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Camera favicon 1">
+  <defs>
+    <linearGradient id="body1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a2744"/>
+      <stop offset="1" stop-color="#0f1f3d"/>
+    </linearGradient>
+    <radialGradient id="lens1" cx="50%" cy="45%" r="60%">
+      <stop offset="0" stop-color="#cfe1ff"/>
+      <stop offset="0.55" stop-color="#78a7ff"/>
+      <stop offset="1" stop-color="#3e67b8"/>
+    </radialGradient>
+  </defs>
+  <rect x="6" y="14" width="52" height="38" rx="9" fill="url(#body1)"/>
+  <rect x="13" y="10" width="14" height="7" rx="3" fill="#5b8def"/>
+  <circle cx="32" cy="33" r="14" fill="#0b1324" stroke="#9dc0ff" stroke-width="2"/>
+  <circle cx="32" cy="33" r="9.5" fill="url(#lens1)"/>
+  <circle cx="36" cy="29" r="2.4" fill="#eef5ff" opacity="0.9"/>
+  <circle cx="49" cy="22" r="2.4" fill="#36d399"/>
+</svg>

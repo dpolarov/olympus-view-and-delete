@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'dart:async';
 import 'package:wifi_iot/wifi_iot.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../services/camera_api.dart';
@@ -49,6 +50,15 @@ class _HomeScreenState extends State<HomeScreen> {
   // Progressive loading generation (to cancel stale callbacks)
   int _loadGeneration = 0;
 
+  // Coalesces progressive batch updates from [CameraApi.listAllFiles] to avoid
+  // O(N²) filter+rebuild storms on large libraries.
+  Timer? _batchFlushTimer;
+  final List<CameraFile> _pendingBatch = [];
+
+  // Cached total bytes of `_allFiles`, kept in sync with mutations so the
+  // header bar doesn't recompute `fold` on every rebuild.
+  int _totalBytes = 0;
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _batchFlushTimer?.cancel();
     _api.dispose();
     super.dispose();
   }
@@ -69,11 +80,14 @@ class _HomeScreenState extends State<HomeScreen> {
       _statusMessage = 'Checking camera...';
     });
 
-    // Quick check if camera is already reachable
-    final alreadyConnected = await _api.testConnection();
+    // Quick check if camera is already reachable. Use a short timeout so the
+    // error screen appears fast when nothing responds.
+    final alreadyConnected = await _api.testConnection(
+      timeout: const Duration(milliseconds: 1500),
+    );
     if (!mounted) return;
     if (alreadyConnected) {
-      _loadFiles();
+      _loadFiles(skipConnectionTest: true);
       return;
     }
 
@@ -129,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _loadFiles() async {
+  Future<void> _loadFiles({bool skipConnectionTest = false}) async {
     _loadGeneration++;
     final generation = _loadGeneration;
 
@@ -138,18 +152,24 @@ class _HomeScreenState extends State<HomeScreen> {
       _error = null;
       _allFiles = [];
       _filteredFiles = [];
+      _totalBytes = 0;
     });
+    _batchFlushTimer?.cancel();
+    _pendingBatch.clear();
     ThumbnailManager.instance.clear();
 
     try {
-      // Retry testConnection (WiFi route may need time after switch)
-      if (mounted) setState(() => _statusMessage = 'Connecting to camera...');
-      bool ok = false;
-      for (int attempt = 0; attempt < 3; attempt++) {
-        ok = await _api.testConnection();
-        if (ok || !mounted || generation != _loadGeneration) break;
-        if (mounted) setState(() => _statusMessage = 'Retrying... (${attempt + 1}/3)');
-        if (attempt < 2) await Future.delayed(const Duration(seconds: 1));
+      // Retry testConnection (WiFi route may need time after switch).
+      // Skipped when the caller just successfully probed the camera.
+      bool ok = skipConnectionTest;
+      if (!skipConnectionTest) {
+        if (mounted) setState(() => _statusMessage = 'Connecting to camera...');
+        for (int attempt = 0; attempt < 3; attempt++) {
+          ok = await _api.testConnection();
+          if (ok || !mounted || generation != _loadGeneration) break;
+          if (mounted) setState(() => _statusMessage = 'Retrying... (${attempt + 1}/3)');
+          if (attempt < 2) await Future.delayed(const Duration(seconds: 1));
+        }
       }
       if (!mounted || generation != _loadGeneration) return;
       setState(() => _connected = ok);
@@ -188,18 +208,39 @@ class _HomeScreenState extends State<HomeScreen> {
       final files = await _api.listAllFiles(
         onBatch: (batch) {
           if (!mounted || generation != _loadGeneration) return;
-          setState(() {
-            _allFiles.addAll(batch);
-            _applyFilter();
+          // Coalesce rapid batches: accumulate and flush on a timer so we
+          // don't re-filter the growing list on every CGI response.
+          _pendingBatch.addAll(batch);
+          _batchFlushTimer ??= Timer(const Duration(milliseconds: 150), () {
+            _batchFlushTimer = null;
+            if (!mounted || generation != _loadGeneration) {
+              _pendingBatch.clear();
+              return;
+            }
+            final toApply = List<CameraFile>.from(_pendingBatch);
+            _pendingBatch.clear();
+            setState(() {
+              _allFiles.addAll(toApply);
+              for (final f in toApply) {
+                _totalBytes += f.size;
+              }
+              _applyFilter();
+            });
           });
         },
       );
 
       if (!mounted || generation != _loadGeneration) return;
 
+      // Flush any pending batch before replacing with the final sorted list.
+      _batchFlushTimer?.cancel();
+      _batchFlushTimer = null;
+      _pendingBatch.clear();
+
       // Replace with final sorted list
       setState(() {
         _allFiles = files;
+        _totalBytes = files.fold<int>(0, (s, f) => s + f.size);
         _applyFilter();
       });
     } catch (e) {
@@ -466,15 +507,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final totalSize =
         toDownload.fold<int>(0, (sum, f) => sum + f.size);
-    final sizeStr = CameraFile(
-      directory: '',
-      filename: '',
-      size: totalSize,
-      attributes: 0,
-      dateRaw: 0,
-      timeRaw: 0,
-      date: DateTime.now(),
-    ).sizeHuman;
+    final sizeStr = CameraFile.formatSize(totalSize);
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -546,15 +579,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final totalSize =
         toDelete.fold<int>(0, (sum, f) => sum + f.size);
-    final sizeStr = CameraFile(
-      directory: '',
-      filename: '',
-      size: totalSize,
-      attributes: 0,
-      dateRaw: 0,
-      timeRaw: 0,
-      date: DateTime.now(),
-    ).sizeHuman;
+    final sizeStr = CameraFile.formatSize(totalSize);
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -760,7 +785,8 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    final hasFilter = _filterDate != null || _filterFrom != null;
+    final hasFilter =
+        _filterDate != null || _filterFrom != null || _filterTo != null;
     final filterLabel = _filterDate != null
         ? 'Date: $_filterDate'
         : (_filterFrom != null && _filterTo != null)
@@ -870,7 +896,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _loading
                             ? ' · Loading... ${_allFiles.length} files'
                             : ' · ${_filteredFiles.length} files · '
-                              '${(_allFiles.fold<int>(0, (s, f) => s + f.size) / (1024 * 1024)).toStringAsFixed(1)} MB',
+                              '${CameraFile.formatSize(_totalBytes)}',
                         style:
                             TextStyle(color: Colors.grey[600], fontSize: 13),
                       ),

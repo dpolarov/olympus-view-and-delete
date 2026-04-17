@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.2.0] - 2026-04-17
+
+### Added
+- **Test Suite**: 61 unit and widget tests covering caching, deletion, paging, QR decoding and connection history
+- **Dependency Injection**: Photo preview screen accepts optional `CameraApi` and `http.Client` for testability
+
+### Changed
+- Disk cache LRU index writes are now debounced (fewer `SharedPreferences` writes while browsing)
+- Hardened filename sanitization for downloaded photos (path traversal, NUL, control chars, Windows reserved names)
+- Connection history saves are serialized to prevent race conditions under rapid writes
+
+### Fixed
+- Crash (`RangeError`) when deleting the last photo from the preview screen
+- Race condition when the disk image cache was accessed before full initialization
+- Release APK signing configuration
+
 ## [1.1.0] - 2026-04-06
 
 ### Added

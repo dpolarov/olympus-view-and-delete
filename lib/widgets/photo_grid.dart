@@ -305,9 +305,11 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
   void didUpdateWidget(_CameraThumbnail old) {
     super.didUpdateWidget(old);
     if (old.url != widget.url) {
-      _loading = true;
-      _error = false;
-      _bytes = null;
+      setState(() {
+        _loading = true;
+        _error = false;
+        _bytes = null;
+      });
       _load();
     }
   }
@@ -347,6 +349,13 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
         ),
       );
     }
-    return Image.memory(_bytes!, fit: widget.fit);
+    return Image.memory(
+      _bytes!,
+      fit: widget.fit,
+      // Decode at roughly display size so we don't keep the full JPEG
+      // decoded into RGBA bitmaps for each visible tile.
+      cacheWidth: 320,
+      gaplessPlayback: true,
+    );
   }
 }

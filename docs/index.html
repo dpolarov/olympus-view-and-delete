@@ -65,9 +65,9 @@
       "url": "https://dpolarov.github.io/olympus-view-and-delete/",
       "downloadUrl": "https://github.com/dpolarov/olympus-view-and-delete/tree/master/releases",
       "codeRepository": "https://github.com/dpolarov/olympus-view-and-delete",
-      "softwareVersion": "1.1.0",
+      "softwareVersion": "1.2.0",
       "datePublished": "2026-03-15",
-      "dateModified": "2026-04-06",
+      "dateModified": "2026-04-17",
       "license": "https://opensource.org/licenses/MIT",
       "offers": {
         "@type": "Offer",
@@ -534,17 +534,231 @@
 })(window, document);
 </script>
 
+<!-- Typography -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  /* ===== Polish overrides (v1.2.0) ===== */
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'cv02','cv03','cv04','cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4 { letter-spacing: -0.015em; }
+
+  /* Links: swap underline-on-hover for a softer color change */
+  a { transition: color .15s ease; }
+  a:hover { text-decoration: none; color: #7da8ff; }
+  .hero p a, .container p a { border-bottom: 1px solid rgba(91,141,239,0.35); }
+  .hero p a:hover, .container p a:hover { border-bottom-color: var(--accent); }
+
+  /* Eyebrow section label (small uppercase tag above h2) */
+  .eyebrow {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(91,141,239,0.10);
+    border: 1px solid rgba(91,141,239,0.25);
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+
+  /* Lang bar: add brand on the left, keep GitHub on the right */
+  .lang-bar {
+    gap: 10px;
+    backdrop-filter: saturate(140%) blur(8px);
+    background: rgba(12,21,37,0.85);
+  }
+  .lang-bar .brand {
+    position: absolute;
+    left: 20px;
+    display: flex; align-items: center; gap: 8px;
+    color: var(--text); font-weight: 700; font-size: 0.95rem;
+    text-decoration: none; letter-spacing: -0.01em;
+  }
+  .lang-bar .brand:hover { color: var(--accent); }
+  .lang-bar .brand .brand-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: linear-gradient(135deg, #7da8ff, var(--accent));
+    box-shadow: 0 0 10px rgba(91,141,239,0.55);
+  }
+  @media (max-width: 720px) {
+    .lang-bar .brand span.brand-label { display: none; }
+    .github-link span.gh-label { display: none; }
+  }
+
+  /* Feature cards: gradient background + soft glow on hover */
+  .feature-card {
+    background: linear-gradient(160deg, var(--card) 0%, #0e1a2f 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 0% 0%, rgba(91,141,239,0.18), transparent 50%);
+    opacity: 0;
+    transition: opacity .25s ease;
+    pointer-events: none;
+  }
+  .feature-card:hover::before { opacity: 1; }
+  .feature-card:hover {
+    box-shadow: 0 12px 32px -12px rgba(91,141,239,0.35);
+  }
+  .feature-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px;
+    background: rgba(91,141,239,0.12);
+    border: 1px solid rgba(91,141,239,0.25);
+    border-radius: 10px;
+    font-size: 1.4rem;
+    margin-bottom: 14px;
+  }
+
+  /* Camera tags as chips */
+  .camera-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(91,141,239,0.06);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 0.92rem;
+    color: var(--text);
+    transition: border-color .2s, background .2s, transform .15s;
+  }
+  .camera-tag:hover {
+    border-color: var(--accent);
+    background: rgba(91,141,239,0.14);
+    transform: translateY(-1px);
+  }
+  .camera-tag::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px rgba(91,141,239,0.6);
+  }
+
+  /* Screenshots: render inside a phone bezel */
+  .screenshot {
+    background: linear-gradient(180deg, #18202f, #0b1220);
+    border: 1px solid #2a3650;
+    border-radius: 32px;
+    padding: 10px 10px 0;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.04) inset,
+      0 24px 48px -24px rgba(0,0,0,0.6),
+      0 0 0 1px rgba(91,141,239,0.05);
+    max-width: 260px;
+    overflow: visible;
+    position: relative;
+  }
+  .screenshot::before {
+    /* phone notch */
+    content: "";
+    position: absolute;
+    top: 6px; left: 50%;
+    width: 72px; height: 6px;
+    background: #050910;
+    border-radius: 999px;
+    transform: translateX(-50%);
+  }
+  .screenshot img {
+    border-radius: 22px;
+    display: block;
+  }
+  .screenshot-caption {
+    background: transparent;
+    margin-top: 12px;
+    padding: 8px 4px 12px;
+  }
+
+  /* Code block: softer, mono font, copy button */
+  .code-block {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.88rem;
+    background: #060b18;
+    border-radius: 10px;
+    position: relative;
+  }
+  .code-block .copy-btn {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: var(--accent2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    font-family: inherit;
+  }
+  .code-block .copy-btn:hover { background: var(--accent); color: #fff; }
+
+  /* Changelog: collapsible <details> look */
+  .changelog-version[open] { border-color: rgba(91,141,239,0.35); }
+  .changelog-version > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0;
+  }
+  .changelog-version > summary::-webkit-details-marker { display: none; }
+  .changelog-version > summary h3 { margin: 0; }
+  .changelog-version > summary::after {
+    content: "+";
+    color: var(--accent);
+    font-size: 1.3rem;
+    font-weight: 300;
+    line-height: 1;
+    transition: transform .2s ease;
+  }
+  .changelog-version[open] > summary::after { content: "–"; }
+
+  /* Hero: subtle grid pattern behind the gradient */
+  .hero {
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(91,141,239,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(91,141,239,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero > * { position: relative; z-index: 1; }
+</style>
+
 </head>
 <body>
 
 <!-- Language switcher -->
 <nav class="lang-bar">
+    <a href="#" class="brand">
+        <span class="brand-dot"></span>
+        <span class="brand-label">Olympus View</span>
+    </a>
     <button class="active" onclick="switchLang('en')">English</button>
     <button onclick="switchLang('uk')">Українська</button>
     <button onclick="switchLang('ru')">Русский</button>
     <a href="https://github.com/dpolarov/olympus-view-and-delete" class="github-link" target="_blank" rel="noopener">
         <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-        GitHub
+        <span class="gh-label">GitHub</span>
     </a>
 </nav>
 
@@ -699,6 +913,25 @@
 
     <h2 id="changelog-en">Changelog</h2>
     <div class="changelog">
+        <div class="changelog-version">
+            <h3>v1.2.0 — April 17, 2026</h3>
+            <h4>Added</h4>
+            <ul>
+                <li><strong>Test Suite</strong> — 61 unit and widget tests covering caching, deletion and paging</li>
+            </ul>
+            <h4>Changed</h4>
+            <ul>
+                <li>Debounced disk cache index writes for smoother browsing</li>
+                <li>Hardened filename sanitization for downloaded photos</li>
+                <li>Serialized connection-history writes to prevent races</li>
+            </ul>
+            <h4>Fixed</h4>
+            <ul>
+                <li>Crash when deleting the last photo from preview</li>
+                <li>Race condition when disk cache was used before full init</li>
+                <li>Release APK signing configuration</li>
+            </ul>
+        </div>
         <div class="changelog-version">
             <h3>v1.1.0 — April 6, 2026</h3>
             <h4>Added</h4>
@@ -895,6 +1128,25 @@
 
     <h2 id="changelog-uk">Журнал змін</h2>
     <div class="changelog">
+        <div class="changelog-version">
+            <h3>v1.2.0 — 17 квітня 2026</h3>
+            <h4>Додано</h4>
+            <ul>
+                <li><strong>Набір тестів</strong> — 61 юніт- та віджет-тест на кешування, видалення та гортання</li>
+            </ul>
+            <h4>Змінено</h4>
+            <ul>
+                <li>Відкладений запис індексу дискового кешу для плавнішого перегляду</li>
+                <li>Посилена санітизація імен завантажених файлів</li>
+                <li>Серіалізований запис історії підключень для уникнення гонок</li>
+            </ul>
+            <h4>Виправлено</h4>
+            <ul>
+                <li>Збій при видаленні останнього фото з перегляду</li>
+                <li>Гонка при зверненні до дискового кешу до повної ініціалізації</li>
+                <li>Конфігурацію підпису релізного APK</li>
+            </ul>
+        </div>
         <div class="changelog-version">
             <h3>v1.1.0 — 6 квітня 2026</h3>
             <h4>Додано</h4>
@@ -1108,6 +1360,25 @@
     <h2 id="changelog-ru">Журнал изменений</h2>
     <div class="changelog">
         <div class="changelog-version">
+            <h3>v1.2.0 — 17 апреля 2026</h3>
+            <h4>Добавлено</h4>
+            <ul>
+                <li><strong>Набор тестов</strong> — 61 юнит- и виджет-тест на кеширование, удаление и листание</li>
+            </ul>
+            <h4>Изменено</h4>
+            <ul>
+                <li>Отложенная запись индекса дискового кеша для плавного просмотра</li>
+                <li>Усиленная санитизация имён скачиваемых файлов</li>
+                <li>Сериализованная запись истории подключений для предотвращения гонок</li>
+            </ul>
+            <h4>Исправлено</h4>
+            <ul>
+                <li>Падение при удалении последнего фото из просмотра</li>
+                <li>Гонка при обращении к дисковому кешу до полной инициализации</li>
+                <li>Конфигурацию подписи релизного APK</li>
+            </ul>
+        </div>
+        <div class="changelog-version">
             <h3>v1.1.0 — 6 апреля 2026</h3>
             <h4>Добавлено</h4>
             <ul>
@@ -1204,6 +1475,47 @@ function switchLang(lang) {
 (function() {
     const p = new URLSearchParams(window.location.search).get('lang');
     if (p && ['ru', 'uk'].includes(p)) { switchLang(p); }
+})();
+
+// Convert .changelog-version blocks into collapsible <details>.
+// The newest (first) stays open; older ones start collapsed.
+(function(){
+    document.querySelectorAll('.changelog').forEach(function(cl){
+        const versions = cl.querySelectorAll(':scope > .changelog-version');
+        versions.forEach(function(v, idx){
+            const details = document.createElement('details');
+            details.className = v.className;
+            if (idx === 0) details.open = true;
+            const h3 = v.querySelector('h3');
+            const summary = document.createElement('summary');
+            if (h3) summary.appendChild(h3);
+            details.appendChild(summary);
+            while (v.firstChild) details.appendChild(v.firstChild);
+            v.replaceWith(details);
+        });
+    });
+})();
+
+// Add a Copy button to every .code-block
+(function(){
+    document.querySelectorAll('.code-block').forEach(function(block){
+        if (block.querySelector('.copy-btn')) return;
+        const text = block.innerText.trim();
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'copy-btn';
+        btn.textContent = 'Copy';
+        btn.addEventListener('click', function(){
+            navigator.clipboard.writeText(text).then(function(){
+                btn.textContent = 'Copied';
+                setTimeout(function(){ btn.textContent = 'Copy'; }, 1500);
+            }).catch(function(){
+                btn.textContent = 'Error';
+                setTimeout(function(){ btn.textContent = 'Copy'; }, 1500);
+            });
+        });
+        block.appendChild(btn);
+    });
 })();
 
 // Feedback form — AJAX submit via Formspree

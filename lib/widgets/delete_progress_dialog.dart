@@ -28,21 +28,26 @@ class _DeleteProgressDialogState extends State<DeleteProgressDialog> {
   }
 
   Future<void> _startDelete() async {
-    final result = await widget.api.deleteFiles(
-      widget.files,
-      onProgress: (done, total, filename) {
-        if (mounted) {
-          setState(() {
-            _done = done;
-            _total = total;
-            _currentFile = filename;
-          });
-        }
-      },
-    );
-
-    if (mounted) {
-      Navigator.of(context).pop(result);
+    ({int success, int failed})? result;
+    try {
+      result = await widget.api.deleteFiles(
+        widget.files,
+        onProgress: (done, total, filename) {
+          if (mounted) {
+            setState(() {
+              _done = done;
+              _total = total;
+              _currentFile = filename;
+            });
+          }
+        },
+      );
+    } catch (_) {
+      // Swallow — result stays null, dialog pops in finally.
+    } finally {
+      if (mounted) {
+        Navigator.of(context).pop(result);
+      }
     }
   }
 

@@ -10,9 +10,14 @@ class ThumbnailManager {
   ThumbnailManager._();
 
   static const int _maxConcurrent = 3;
+  /// Max number of thumbnails kept in the in-memory LRU cache. Disk cache
+  /// handles persistence; this just bounds RAM for very large libraries.
+  static const int _maxMemCache = 300;
   int _active = 0;
   final List<_Request> _queue = [];
-  final Map<String, Uint8List> _cache = {};
+  // LinkedHashMap keeps insertion order — we use it for LRU by re-inserting
+  // on access (see [load]).
+  final Map<String, Uint8List> _cache = <String, Uint8List>{};
   final Map<String, Completer<Uint8List?>> _inflight = {};
   final http.Client _client = http.Client();
 
@@ -28,8 +33,11 @@ class ThumbnailManager {
   /// Request a thumbnail. Returns cached data immediately if available.
   /// [imagePath] is the camera file path (e.g. /DCIM/100OLYMP/P1010001.JPG)
   Future<Uint8List?> load(String url, int index, {String imagePath = ''}) {
-    if (_cache.containsKey(url)) {
-      return Future.value(_cache[url]);
+    final cached = _cache.remove(url);
+    if (cached != null) {
+      // Re-insert to move to MRU end.
+      _cache[url] = cached;
+      return Future.value(cached);
     }
     if (_inflight.containsKey(url)) {
       return _inflight[url]!.future;
@@ -47,10 +55,18 @@ class ThumbnailManager {
     return completer.future;
   }
 
+  void _putInMemCache(String url, Uint8List bytes) {
+    _cache[url] = bytes;
+    // Evict oldest (LRU = first inserted) until within cap.
+    while (_cache.length > _maxMemCache) {
+      _cache.remove(_cache.keys.first);
+    }
+  }
+
   Future<void> _tryDiskCache(String url, String imagePath, Completer<Uint8List?> completer) async {
     final cached = await ImageDiskCache.instance.get(imagePath, 'thumb');
     if (cached != null) {
-      _cache[url] = cached;
+      _putInMemCache(url, cached);
       if (!completer.isCompleted) completer.complete(cached);
       _queue.removeWhere((r) => r.url == url);
       _inflight.remove(url);
@@ -98,9 +114,11 @@ class ThumbnailManager {
       ).timeout(const Duration(seconds: 10));
       if (resp.statusCode == 200 && resp.bodyBytes.isNotEmpty) {
         final bytes = Uint8List.fromList(resp.bodyBytes);
-        _cache[req.url] = bytes;
+        _putInMemCache(req.url, bytes);
         if (req.imagePath.isNotEmpty) {
-          ImageDiskCache.instance.put(req.imagePath, 'thumb', bytes);
+          ImageDiskCache.instance
+              .put(req.imagePath, 'thumb', bytes)
+              .catchError((_) {});
         }
         if (!req.completer.isCompleted) req.completer.complete(bytes);
       } else {

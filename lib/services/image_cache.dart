@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,21 +18,46 @@ class ImageDiskCache {
 
   Directory? _cacheDir;
   List<String>? _lruList; // most recent first
+  Completer<void>? _initCompleter;
+  Timer? _lruSaveTimer;
 
-  Future<void> _ensureInit() async {
-    if (_cacheDir != null && _lruList != null) return;
-    final appDir = await getApplicationCacheDirectory();
-    _cacheDir = Directory('${appDir.path}/img_cache');
-    if (!await _cacheDir!.exists()) {
-      await _cacheDir!.create(recursive: true);
-    }
-    final prefs = await SharedPreferences.getInstance();
-    _lruList = prefs.getStringList(_lruKey) ?? [];
+  Future<void> _ensureInit() {
+    if (_cacheDir != null && _lruList != null) return Future.value();
+    final existing = _initCompleter;
+    if (existing != null) return existing.future;
+    final c = Completer<void>();
+    _initCompleter = c;
+    () async {
+      try {
+        final appDir = await getApplicationCacheDirectory();
+        _cacheDir = Directory('${appDir.path}/img_cache');
+        if (!await _cacheDir!.exists()) {
+          await _cacheDir!.create(recursive: true);
+        }
+        final prefs = await SharedPreferences.getInstance();
+        _lruList = prefs.getStringList(_lruKey) ?? [];
+        c.complete();
+      } catch (e, st) {
+        _initCompleter = null;
+        c.completeError(e, st);
+      }
+    }();
+    return c.future;
   }
 
   Future<void> _saveLru() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_lruKey, _lruList!);
+  }
+
+  /// Schedule a debounced LRU persistence. Used from read paths so we don't
+  /// hit SharedPreferences on every thumbnail view.
+  void _scheduleLruSave() {
+    _lruSaveTimer?.cancel();
+    _lruSaveTimer = Timer(const Duration(seconds: 2), () {
+      _lruSaveTimer = null;
+      _saveLru().catchError((_) {});
+    });
   }
 
   /// Generate a safe filename from image path + variant.
@@ -69,10 +96,11 @@ class ImageDiskCache {
     await _ensureInit();
     final file = File('${_cacheDir!.path}/${_fileName(imagePath, variant)}');
     if (await file.exists()) {
-      // Touch LRU without evicting (just move to front)
+      // Touch LRU without evicting (just move to front) and persist lazily
+      // so reads survive app kill without blocking on prefs every time.
       _lruList!.remove(imagePath);
       _lruList!.insert(0, imagePath);
-      // Save LRU occasionally (not every read for perf)
+      _scheduleLruSave();
       return await file.readAsBytes();
     }
     return null;
@@ -91,5 +119,17 @@ class ImageDiskCache {
     await _ensureInit();
     final file = File('${_cacheDir!.path}/${_fileName(imagePath, variant)}');
     return file.exists();
+  }
+
+  /// Test-only: clear cached state so the singleton re-initialises against
+  /// a fresh [getApplicationCacheDirectory] result (used in unit tests with
+  /// a mocked `PathProviderPlatform`).
+  @visibleForTesting
+  Future<void> resetForTests() async {
+    _lruSaveTimer?.cancel();
+    _lruSaveTimer = null;
+    _cacheDir = null;
+    _lruList = null;
+    _initCompleter = null;
   }
 }

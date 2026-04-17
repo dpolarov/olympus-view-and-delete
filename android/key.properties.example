@@ -1,0 +1,7 @@
+# Copy to android/key.properties and fill in. NEVER commit the real file.
+# Generate a keystore with:
+#   keytool -genkey -v -keystore olympus_release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias olympus
+storeFile=C:/path/to/olympus_release.jks
+storePassword=CHANGE_ME
+keyAlias=olympus
+keyPassword=CHANGE_ME

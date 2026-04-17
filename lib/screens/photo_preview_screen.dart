@@ -11,12 +11,18 @@ class PhotoPreviewScreen extends StatefulWidget {
   final CameraFile file;
   final List<CameraFile> files;
   final int initialIndex;
+  // Optional injection for tests — defaults to a real `CameraApi`.
+  final CameraApi? api;
+  // Optional HTTP client injection for tests. Defaults to a new client.
+  final http.Client? httpClient;
 
   const PhotoPreviewScreen({
     super.key,
     required this.file,
     required this.files,
     required this.initialIndex,
+    this.api,
+    this.httpClient,
   });
 
   @override
@@ -24,37 +30,71 @@ class PhotoPreviewScreen extends StatefulWidget {
 }
 
 class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
+  // Number of neighbor pages to keep in memory on each side.
+  static const int _keepNeighbors = 3;
+
   late PageController _pageController;
   late int _currentIndex;
-  final Map<int, Uint8List?> _imageCache = {};
-  final Map<int, bool> _loading = {};
-  final Map<int, bool> _error = {};
-  final http.Client _client = http.Client();
-  final CameraApi _api = CameraApi();
+  // Mutable local working copy so we never touch the caller's list.
+  late List<CameraFile> _files;
+  // Paths that were deleted during this session (reported back to caller).
+  final Set<String> _deletedPaths = {};
+  // Caches keyed by file path, not index — safe across deletions.
+  final Map<String, Uint8List?> _imageCache = {};
+  final Set<String> _loading = {};
+  final Set<String> _error = {};
+  late final http.Client _client;
+  late final bool _ownsClient;
+  late final CameraApi _api;
+  // Track whether we own the API and must dispose it.
+  late final bool _ownsApi;
   bool _busy = false;
 
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex;
+    _ownsApi = widget.api == null;
+    _api = widget.api ?? CameraApi();
+    _ownsClient = widget.httpClient == null;
+    _client = widget.httpClient ?? http.Client();
+    _files = List.of(widget.files);
+    _currentIndex = widget.initialIndex.clamp(0, _files.length - 1);
     _pageController = PageController(initialPage: _currentIndex);
-    _loadImage(_currentIndex);
-    for (int d = 1; d <= 2; d++) {
-      if (_currentIndex - d >= 0) _loadImage(_currentIndex - d);
-      if (_currentIndex + d < widget.files.length) _loadImage(_currentIndex + d);
-    }
+    _loadAround(_currentIndex);
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    _client.close();
-    _api.dispose();
+    if (_ownsClient) _client.close();
+    if (_ownsApi) _api.dispose();
     super.dispose();
   }
 
+  void _loadAround(int index) {
+    if (index < 0 || index >= _files.length) return;
+    _loadImage(index);
+    for (int d = 1; d <= _keepNeighbors; d++) {
+      if (index - d >= 0) _loadImage(index - d);
+      if (index + d < _files.length) _loadImage(index + d);
+    }
+    _evictFar(index);
+  }
+
+  /// Drop cached bytes for pages far from [index] to bound memory.
+  void _evictFar(int index) {
+    if (_imageCache.isEmpty) return;
+    final keep = <String>{};
+    final lo = (index - _keepNeighbors).clamp(0, _files.length - 1);
+    final hi = (index + _keepNeighbors).clamp(0, _files.length - 1);
+    for (int i = lo; i <= hi; i++) {
+      keep.add(_files[i].fullPath);
+    }
+    _imageCache.removeWhere((k, _) => !keep.contains(k));
+  }
+
   Future<void> _downloadCurrent() async {
-    final file = widget.files[_currentIndex];
+    final file = _files[_currentIndex];
     setState(() => _busy = true);
     try {
       final bytes = await _api.downloadFile(file);
@@ -75,7 +115,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   }
 
   Future<void> _deleteCurrent() async {
-    final file = widget.files[_currentIndex];
+    final file = _files[_currentIndex];
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -102,17 +142,27 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       final ok = await _api.deleteFile(file);
       if (!mounted) return;
       if (ok) {
-        widget.files.removeAt(_currentIndex);
-        if (widget.files.isEmpty) {
+        _deletedPaths.add(file.fullPath);
+        _imageCache.remove(file.fullPath);
+        _loading.remove(file.fullPath);
+        _error.remove(file.fullPath);
+        _files.removeAt(_currentIndex);
+        if (_files.isEmpty) {
           Navigator.pop(context, true);
           return;
         }
-        if (_currentIndex >= widget.files.length) {
-          _currentIndex = widget.files.length - 1;
+        final newIndex = _currentIndex >= _files.length
+            ? _files.length - 1
+            : _currentIndex;
+        setState(() {
+          _currentIndex = newIndex;
+          _busy = false;
+        });
+        // Re-sync PageView — after removeAt the controller's page is stale.
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(newIndex);
         }
-        _imageCache.remove(_currentIndex);
-        setState(() => _busy = false);
-        _loadImage(_currentIndex);
+        _loadAround(newIndex);
       } else {
         setState(() => _busy = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -130,22 +180,23 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   }
 
   Future<void> _loadImage(int index) async {
-    if (_imageCache.containsKey(index) || (_loading[index] ?? false)) return;
+    if (index < 0 || index >= _files.length) return;
+    final file = _files[index];
+    final key = file.fullPath;
+    if (_imageCache.containsKey(key) || _loading.contains(key)) return;
     setState(() {
-      _loading[index] = true;
-      _error[index] = false;
+      _loading.add(key);
+      _error.remove(key);
     });
 
     try {
-      final file = widget.files[index];
-
       // Try disk cache first
-      final cached = await ImageDiskCache.instance.get(file.fullPath, 'preview');
+      final cached = await ImageDiskCache.instance.get(key, 'preview');
+      if (!mounted) return;
       if (cached != null) {
-        if (!mounted) return;
         setState(() {
-          _imageCache[index] = cached;
-          _loading[index] = false;
+          _imageCache[key] = cached;
+          _loading.remove(key);
         });
         return;
       }
@@ -163,44 +214,56 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       if (!mounted) return;
       if (resp.statusCode == 200 && resp.bodyBytes.isNotEmpty) {
         final bytes = Uint8List.fromList(resp.bodyBytes);
-        ImageDiskCache.instance.put(file.fullPath, 'preview', bytes);
+        ImageDiskCache.instance
+            .put(key, 'preview', bytes)
+            .catchError((_) {});
         setState(() {
-          _imageCache[index] = bytes;
-          _loading[index] = false;
+          _imageCache[key] = bytes;
+          _loading.remove(key);
         });
       } else {
         setState(() {
-          _error[index] = true;
-          _loading[index] = false;
+          _error.add(key);
+          _loading.remove(key);
         });
       }
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _error[index] = true;
-        _loading[index] = false;
+        _error.add(key);
+        _loading.remove(key);
       });
     }
   }
 
   void _onPageChanged(int index) {
     setState(() => _currentIndex = index);
-    _loadImage(index);
-    // Preload ±2 neighbors for smooth swiping
-    for (int d = 1; d <= 2; d++) {
-      if (index - d >= 0) _loadImage(index - d);
-      if (index + d < widget.files.length) _loadImage(index + d);
-    }
+    _loadAround(index);
   }
 
   @override
   Widget build(BuildContext context) {
-    final file = widget.files[_currentIndex];
-    return Scaffold(
+    if (_files.isEmpty) {
+      // Last file was just deleted and Navigator.pop is pending — avoid
+      // indexing an empty list during the interim rebuild.
+      return const Scaffold(backgroundColor: Colors.black);
+    }
+    final file = _files[_currentIndex];
+    return PopScope(
+      canPop: !_busy,
+      onPopInvokedWithResult: (didPop, _) {
+        // Ensure caller gets the delete signal even if popped via system back.
+        if (didPop) return;
+      },
+      child: Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black.withOpacity(0.7),
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context, _deletedPaths.isNotEmpty),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -213,7 +276,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
         ),
         actions: [
           Text(
-            '${_currentIndex + 1}/${widget.files.length}',
+            '${_currentIndex + 1}/${_files.length}',
             style: TextStyle(color: Colors.grey[400], fontSize: 13),
           ),
           if (_busy)
@@ -241,12 +304,13 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       ),
       body: PageView.builder(
         controller: _pageController,
-        itemCount: widget.files.length,
+        itemCount: _files.length,
         onPageChanged: _onPageChanged,
         itemBuilder: (context, index) {
-          final bytes = _imageCache[index];
-          final isLoading = _loading[index] ?? false;
-          final isError = _error[index] ?? false;
+          final key = _files[index].fullPath;
+          final bytes = _imageCache[key];
+          final isLoading = _loading.contains(key);
+          final isError = _error.contains(key);
 
           if (isError && bytes == null) {
             return const Center(
@@ -291,6 +355,9 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
                 child: Image.memory(
                   bytes,
                   fit: BoxFit.contain,
+                  // Decode at display resolution to reduce decoded-image memory.
+                  cacheWidth: 1920,
+                  gaplessPlayback: true,
                 ),
               ),
             );
@@ -298,6 +365,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
 
           return const SizedBox.shrink();
         },
+      ),
       ),
     );
   }

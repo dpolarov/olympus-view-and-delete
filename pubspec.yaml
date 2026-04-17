@@ -1,7 +1,7 @@
 name: olympus_tg6_manager
 description: Olympus View - WiFi Camera Manager for Olympus cameras
 publish_to: 'none'
-version: 1.1.0+2
+version: 1.2.0+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

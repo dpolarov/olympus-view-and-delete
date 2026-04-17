@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -55,6 +56,24 @@ class SavedConnection {
 class ConnectionHistory {
   static const String _key = 'connection_history';
 
+  // Serialises concurrent read-modify-write operations on the history
+  // list so two simultaneous `save()` / `delete()` calls don't clobber
+  // each other.
+  static Future<void> _chain = Future<void>.value();
+
+  static Future<T> _serial<T>(Future<T> Function() op) {
+    final prev = _chain;
+    final completer = Completer<T>();
+    _chain = prev.then((_) async {
+      try {
+        completer.complete(await op());
+      } catch (e, st) {
+        completer.completeError(e, st);
+      }
+    });
+    return completer.future;
+  }
+
   static Future<List<SavedConnection>> load() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList(_key) ?? [];
@@ -71,32 +90,32 @@ class ConnectionHistory {
       ..sort((a, b) => b.lastConnected.compareTo(a.lastConnected));
   }
 
-  static Future<void> save(SavedConnection conn) async {
-    final prefs = await SharedPreferences.getInstance();
-    final list = await load();
+  static Future<void> save(SavedConnection conn) => _serial(() async {
+        final prefs = await SharedPreferences.getInstance();
+        final list = await load();
 
-    // Remove existing entry with same SSID
-    list.removeWhere((c) => c.ssid == conn.ssid);
+        // Remove existing entry with same SSID
+        list.removeWhere((c) => c.ssid == conn.ssid);
 
-    // Add new entry at the top
-    list.insert(0, conn);
+        // Add new entry at the top
+        list.insert(0, conn);
 
-    // Keep max 10 entries
-    final trimmed = list.take(10).toList();
+        // Keep max 10 entries
+        final trimmed = list.take(10).toList();
 
-    await prefs.setStringList(
-      _key,
-      trimmed.map((c) => jsonEncode(c.toJson())).toList(),
-    );
-  }
+        await prefs.setStringList(
+          _key,
+          trimmed.map((c) => jsonEncode(c.toJson())).toList(),
+        );
+      });
 
-  static Future<void> delete(String ssid) async {
-    final prefs = await SharedPreferences.getInstance();
-    final list = await load();
-    list.removeWhere((c) => c.ssid == ssid);
-    await prefs.setStringList(
-      _key,
-      list.map((c) => jsonEncode(c.toJson())).toList(),
-    );
-  }
+  static Future<void> delete(String ssid) => _serial(() async {
+        final prefs = await SharedPreferences.getInstance();
+        final list = await load();
+        list.removeWhere((c) => c.ssid == ssid);
+        await prefs.setStringList(
+          _key,
+          list.map((c) => jsonEncode(c.toJson())).toList(),
+        );
+      });
 }

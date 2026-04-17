@@ -30,22 +30,28 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
   }
 
   Future<void> _startDownload() async {
-    final result = await widget.api.downloadFiles(
-      widget.files,
-      widget.saveDirPath,
-      onProgress: (done, total, filename) {
-        if (mounted) {
-          setState(() {
-            _done = done;
-            _total = total;
-            _currentFile = filename;
-          });
-        }
-      },
-    );
-
-    if (mounted) {
-      Navigator.of(context).pop(result);
+    ({int success, int failed, List<String> savedPaths})? result;
+    try {
+      result = await widget.api.downloadFiles(
+        widget.files,
+        widget.saveDirPath,
+        onProgress: (done, total, filename) {
+          if (mounted) {
+            setState(() {
+              _done = done;
+              _total = total;
+              _currentFile = filename;
+            });
+          }
+        },
+      );
+    } catch (_) {
+      // Swallow — result stays null, dialog pops in finally. Caller shows
+      // a generic snackbar when result is null.
+    } finally {
+      if (mounted) {
+        Navigator.of(context).pop(result);
+      }
     }
   }
 

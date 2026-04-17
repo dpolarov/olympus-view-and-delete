@@ -1,3 +1,3 @@
-const String appVersion = '1.1.0';
-const String appBuild = '2';
+const String appVersion = '1.2.0';
+const String appBuild = '3';
 const String appName = 'Olympus View';

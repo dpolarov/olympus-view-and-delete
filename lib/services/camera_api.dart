@@ -6,6 +6,30 @@ const String baseUrl = 'http://$cameraIp';
 const Duration timeout = Duration(seconds: 10);
 const Duration downloadTimeout = Duration(seconds: 120);
 
+/// Maximum directory recursion depth in [CameraApi.listImages].
+/// Protects against cycles / malformed camera responses that could
+/// otherwise blow the stack.
+const int _maxDirDepth = 8;
+
+/// Return a filename safe to append to a local directory, stripping any
+/// path separators, `..`, NUL bytes, and control characters. Used to
+/// defend against path traversal via a hostile/corrupt camera response.
+String sanitizeFilename(String raw) {
+  // Keep only the last path segment; reject any separator chars.
+  final base = raw.split(RegExp(r'[/\\]')).last;
+  final cleaned = base
+      .replaceAll('\u0000', '')
+      .replaceAll(RegExp(r'[\x00-\x1F]'), '')
+      .replaceAll(RegExp(r'[<>:"|?*]'), '_')
+      .trim();
+  // Reject traversal and empty/dot-only names.
+  if (cleaned.isEmpty || cleaned == '.' || cleaned == '..') {
+    return 'file_${DateTime.now().millisecondsSinceEpoch}';
+  }
+  // Cap length to something sane.
+  return cleaned.length > 180 ? cleaned.substring(0, 180) : cleaned;
+}
+
 class CameraFile {
   final String directory;
   final String filename;
@@ -43,6 +67,16 @@ class CameraFile {
     return '${(size / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
   }
 
+  /// Human-readable byte count, independent of a `CameraFile` instance.
+  static String formatSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+  }
+
   String get dateStr {
     return '${date.year.toString().padLeft(4, '0')}-'
         '${date.month.toString().padLeft(2, '0')}-'
@@ -55,14 +89,19 @@ class CameraFile {
         '${date.minute.toString().padLeft(2, '0')}';
   }
 
-  /// Decode FAT packed date/time
-  static DateTime decodeFatDateTime(int dateVal, int timeVal) {
+  /// Decode FAT packed date/time. Returns `null` if the record is invalid
+  /// (zero month/day, out-of-range fields) so the caller can skip it
+  /// instead of silently materialising a wrapped date (e.g. month=0 → Dec prev year).
+  static DateTime? decodeFatDateTime(int dateVal, int timeVal) {
     final year = ((dateVal >> 9) & 0x7F) + 1980;
     final month = (dateVal >> 5) & 0x0F;
     final day = dateVal & 0x1F;
     final hours = (timeVal >> 11) & 0x1F;
     final minutes = (timeVal >> 5) & 0x3F;
     final seconds = (timeVal & 0x1F) * 2;
+    if (month < 1 || month > 12) return null;
+    if (day < 1 || day > 31) return null;
+    if (hours > 23 || minutes > 59 || seconds > 59) return null;
     return DateTime(year, month, day, hours, minutes, seconds);
   }
 }
@@ -76,12 +115,17 @@ class CameraApi {
         'Connection': 'Keep-Alive',
       };
 
-  /// Test if camera is reachable
-  Future<bool> testConnection() async {
+  /// Test if camera is reachable.
+  ///
+  /// [timeout] controls how long to wait for a reply. Use a short value
+  /// (e.g. 1.5s) for the initial startup probe so the error screen appears
+  /// quickly when no camera is on the network.
+  Future<bool> testConnection(
+      {Duration timeout = const Duration(seconds: 5)}) async {
     try {
       await _client
           .get(Uri.parse('$baseUrl/get_caminfo.cgi'), headers: _headers)
-          .timeout(const Duration(seconds: 5));
+          .timeout(timeout);
       return true;
     } catch (_) {
       return false;
@@ -114,7 +158,10 @@ class CameraApi {
   /// Uses get_imglist.cgi; directories (attrib & 16) are traversed recursively.
   /// If [onBatch] is provided, each directory's files are reported immediately
   /// so the UI can display them progressively.
-  Future<List<CameraFile>> listImages(String dir, {void Function(List<CameraFile>)? onBatch}) async {
+  /// [depth] guards against pathologically deep / cyclic responses.
+  Future<List<CameraFile>> listImages(String dir,
+      {void Function(List<CameraFile>)? onBatch, int depth = 0}) async {
+    if (depth > _maxDirDepth) return [];
     http.Response resp;
     try {
       resp = await _client
@@ -154,6 +201,8 @@ class CameraApi {
           // Directory — queue for recursive traversal
           subDirs.add('$dirName/$fileName');
         } else {
+          final date = CameraFile.decodeFatDateTime(dateRaw, timeRaw);
+          if (date == null) continue; // skip corrupt date records
           // Regular file
           final file = CameraFile(
             directory: dirName,
@@ -162,7 +211,7 @@ class CameraApi {
             attributes: attrib,
             dateRaw: dateRaw,
             timeRaw: timeRaw,
-            date: CameraFile.decodeFatDateTime(dateRaw, timeRaw),
+            date: date,
           );
           immediateFiles.add(file);
         }
@@ -179,7 +228,8 @@ class CameraApi {
 
     // Then recurse into subdirectories
     for (final subDir in subDirs) {
-      final subFiles = await listImages(subDir, onBatch: onBatch);
+      final subFiles =
+          await listImages(subDir, onBatch: onBatch, depth: depth + 1);
       files.addAll(subFiles);
     }
 
@@ -192,7 +242,11 @@ class CameraApi {
   Future<List<CameraFile>> listAllFiles({void Function(List<CameraFile>)? onBatch}) async {
     try {
       await switchMode('play');
-    } catch (_) {}
+    } catch (e) {
+      // Non-fatal: camera may already be in play mode. Log for diagnostics.
+      // ignore: avoid_print
+      print('switchMode(play) failed (continuing): $e');
+    }
 
     await Future.delayed(const Duration(milliseconds: 500));
 
@@ -203,13 +257,18 @@ class CameraApi {
     return allFiles;
   }
 
-  /// Delete a single file
+  /// Delete a single file. Returns `true` only on HTTP 200.
   Future<bool> deleteFile(CameraFile file) async {
     try {
-      await _client
+      final resp = await _client
           .get(Uri.parse('$baseUrl/exec_erase.cgi?DIR=${file.fullPath}'),
               headers: _headers)
           .timeout(timeout);
+      // Olympus returns 200 on success; 403/500 etc on failure.
+      if (resp.statusCode != 200) return false;
+      // Some firmware responds with a body containing error text — treat as failure.
+      final body = resp.body.toLowerCase();
+      if (body.contains('error') || body.contains('fail')) return false;
       return true;
     } catch (_) {
       return false;
@@ -260,8 +319,9 @@ class CameraApi {
       onProgress?.call(i + 1, files.length, files[i].filename);
       try {
         final bytes = await downloadFile(files[i]);
+        final safeName = sanitizeFilename(files[i].filename);
         final savedPath = await file_saver.saveFileToDevice(
-          files[i].filename, bytes, saveDirPath);
+          safeName, bytes, saveDirPath);
         savedPaths.add(savedPath);
         success++;
       } catch (_) {

@@ -1,3 +1,6 @@
+// TODO: Migrate this small browser adapter to package:web when the project
+// raises its minimum Dart SDK. dart:html remains supported by the current SDK.
+// ignore_for_file: deprecated_member_use
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 import 'dart:typed_data';
@@ -20,5 +23,5 @@ Future<String> getSaveDirectory() async {
 }
 
 Future<void> ensureDirectory(String path) async {
-  // No-op on web
+  // No-op on web.
 }

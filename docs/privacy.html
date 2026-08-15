@@ -1,98 +1,136 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="index, follow">
-<title>Privacy Policy — Olympus View</title>
-<link rel="canonical" href="https://dpolarov.github.io/olympus-view-and-delete/privacy.html">
-<style>
-  :root { color-scheme: dark; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-         max-width: 760px; margin: 0 auto; padding: 2rem 1.25rem;
-         background: #0d1b2a; color: #e6edf3; line-height: 1.6; }
-  h1, h2 { color: #fff; }
-  h1 { border-bottom: 1px solid #1f3a5f; padding-bottom: .5rem; }
-  h2 { margin-top: 2rem; }
-  code { background: #1b2a3f; padding: 1px 6px; border-radius: 3px; font-size: 95%; }
-  a { color: #6cb6ff; }
-  .meta { color: #8b949e; font-size: .9rem; }
-  ul { padding-left: 1.4rem; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="index, follow">
+  <title>Olympus View — Privacy Policy</title>
+  <link rel="canonical" href="https://dpolarov.github.io/olympus-view-and-delete/privacy.html">
+  <meta name="description" content="Privacy Policy for the Olympus View Android application.">
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+      background: #0c1525;
+      color: #e8eef8;
+      font: 16px/1.65 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    h1, h2 { line-height: 1.2; color: #fff; }
+    h1 { margin-bottom: 4px; }
+    h2 { margin-top: 32px; }
+    a { color: #7da8ff; }
+    code { background: #172238; padding: 2px 6px; border-radius: 5px; }
+    .muted { color: #9eabc0; }
+    .box { background: #111d31; border: 1px solid #293753; border-radius: 12px; padding: 16px 20px; }
+  </style>
 </head>
 <body>
+  <h1>Olympus View Privacy Policy</h1>
+  <p class="muted">Effective date: August 15, 2026</p>
 
-<h1>Privacy Policy</h1>
-<p class="meta">Application: <strong>Olympus View</strong> · Last updated: 2026-05-31</p>
+  <div class="box">
+    <strong>Summary:</strong> Olympus View is an unofficial, open-source camera utility.
+    It has no user accounts, advertising, developer analytics backend, or cloud photo storage.
+    Camera photos and camera Wi-Fi credentials are handled locally on the user's device.
+    The Android QR scanner uses Google ML Kit, which may send Google technical diagnostics and usage metrics as described below.
+  </div>
 
-<p>
-  <strong>Olympus View</strong> is a free, open-source application that lets you view, download,
-  and delete photos on Olympus and OM System cameras over WiFi. It is not affiliated with,
-  endorsed by, or sponsored by OM Digital Solutions, Olympus Corporation, or OM System.
-  "Olympus" and "OM System" are trademarks of their respective owners.
-</p>
+  <h2>Developer and scope</h2>
+  <p>
+    This policy applies to the Olympus View application published by the
+    <a href="https://github.com/dpolarov">dpolarov</a> project maintainer.
+    Olympus View is not affiliated with or endorsed by OM Digital Solutions, Olympus, or OM System.
+  </p>
 
-<h2>Summary</h2>
-<ul>
-  <li>We do <strong>not</strong> collect, transmit, or sell any personal data.</li>
-  <li>All communication happens directly between your device and your camera over your local WiFi.</li>
-  <li>No analytics, no tracking, no advertising SDKs inside the app.</li>
-</ul>
+  <h2>Camera connection and nearby Wi-Fi</h2>
+  <p>
+    Olympus View connects directly to a compatible camera over the camera's local Wi-Fi network.
+    On modern Android versions the app requests Nearby devices / Nearby Wi-Fi access for this purpose.
+    On Android 12L and older, Android requires location permission for the Wi-Fi APIs used by the app.
+    Olympus View does not use nearby Wi-Fi information to derive, store, or transmit the user's physical location.
+  </p>
 
-<h2>Data the app handles on your device</h2>
-<ul>
-  <li><strong>Photos and videos</strong> downloaded from your camera are saved to your device's
-      gallery (e.g. <code>DCIM/OlympusView</code> on Android) or to a folder you choose.
-      They never leave your device through this app.</li>
-  <li><strong>Connection history</strong> (camera SSID and password) is stored locally using
-      Android <code>SharedPreferences</code> so you can reconnect quickly. It never leaves your device.</li>
-  <li><strong>Thumbnail cache</strong> is stored in the app's private cache directory and can be
-      cleared from the system settings at any time.</li>
-</ul>
+  <h2>Camera and QR scanning</h2>
+  <p>
+    Camera permission is used only to scan a camera QR code containing connection information.
+    QR image input and recognized barcode contents are processed on the device and are not sent by Olympus View
+    to the developer.
+  </p>
+  <p>
+    On Android, QR recognition is provided through Google ML Kit via the Mobile Scanner library.
+    According to Google's ML Kit documentation, ML Kit processing of image input happens on-device and the image
+    and recognition output are not sent to Google. ML Kit may, however, send Google technical data such as device
+    and application information, per-installation identifiers, performance metrics, API configuration, feature events,
+    and error codes for diagnostics and usage analytics. Google states that this data is encrypted in transit and is
+    not transferred by ML Kit to third parties.
+  </p>
 
-<h2>Permissions and why they are needed</h2>
-<ul>
-  <li><strong>Camera</strong> — to scan the QR code shown on your Olympus / OM System camera screen
-      and parse the WiFi credentials. The camera stream is processed on-device and not stored or transmitted.</li>
-  <li><strong>Location (Fine / Coarse)</strong> — Android requires this permission for apps that
-      programmatically connect to or scan WiFi networks. We do <strong>not</strong> read, store, or transmit
-      your geographic location.</li>
-  <li><strong>WiFi state and change</strong> — to connect your device to the camera's WiFi access point.</li>
-  <li><strong>Internet / Network state</strong> — to talk HTTP to the camera at <code>192.168.0.10</code>
-      over the local WiFi. No other network destinations are contacted by the app.</li>
-  <li><strong>Storage (legacy, Android 9 and older)</strong> — to write downloaded photos to the
-      shared gallery on older Android versions.</li>
-</ul>
+  <h2>Saved camera credentials</h2>
+  <p>
+    If the user saves or reconnects to a camera, Olympus View can store the camera SSID, Wi-Fi password,
+    security type, optional Bluetooth metadata, camera name, and last connection time in the app's local storage.
+    This information is used only to reconnect to the camera and is not sent to the Olympus View developer.
+    Android application backup is disabled to reduce the chance of camera credentials being copied to cloud backup.
+  </p>
+  <p>
+    Saved camera entries can be removed from the connection screen. Uninstalling the application removes its app-local data.
+  </p>
 
-<h2>Network access</h2>
-<p>
-  The app makes plain HTTP requests only to the fixed local address <code>192.168.0.10</code>
-  (the camera's WiFi access point), enforced by an Android
-  <a href="https://developer.android.com/training/articles/security-config">Network Security Configuration</a>.
-  No remote servers are contacted.
-</p>
+  <h2>Photos and files</h2>
+  <p>
+    Photos, thumbnails, previews, and file metadata are transferred directly between the camera and the user's device
+    over the camera's local network. Olympus View does not upload them to a developer-operated server or cloud service.
+    Downloaded files are saved to user-accessible device storage. Temporary previews and thumbnails may be cached locally
+    to improve performance.
+  </p>
 
-<h2>Third-party services</h2>
-<p>The application does not embed analytics, crash reporting, or advertising SDKs.</p>
+  <h2>Network communication</h2>
+  <p>
+    Compatible cameras expose a local HTTP interface, normally at <code>192.168.0.10</code>.
+    The Android app permits cleartext HTTP only for that local camera address; unrelated network traffic is not granted
+    a general cleartext exception.
+  </p>
 
-<h2>Children's privacy</h2>
-<p>The app is suitable for general audiences and does not knowingly process any personal data of children.</p>
+  <h2>Advertising and accounts</h2>
+  <p>
+    Olympus View contains no advertising SDK and does not require or provide a user account.
+  </p>
 
-<h2>Open source</h2>
-<p>
-  Source code is publicly available, so anyone can verify the claims above:
-  <a href="https://github.com/dpolarov/olympus-view-and-delete">github.com/dpolarov/olympus-view-and-delete</a>.
-</p>
+  <h2>Project website and feedback form</h2>
+  <p>
+    This policy also explains a separate data flow on the Olympus View project website. If a visitor voluntarily submits
+    the website feedback form, the supplied name, email address, and message are transmitted to Formspree so that the
+    maintainer can receive and respond to the message. This website feedback form is not embedded in the Android app and
+    is not required to use Olympus View.
+  </p>
 
-<h2>Changes to this policy</h2>
-<p>
-  If the policy changes, the new version will be published at this URL with an updated "Last updated" date.
-</p>
+  <h2>Retention and deletion</h2>
+  <p>
+    App-local camera history and caches remain on the device until the user removes them, clears application data,
+    or uninstalls the application. Olympus View does not maintain a server-side account database.
+    To request deletion of information previously sent through the project website feedback form, use the feedback form
+    and identify the request as a privacy/deletion request.
+  </p>
 
-<h2>Contact</h2>
-<p>
-  Questions or requests: please open an issue at the project's GitHub repository linked above.
-</p>
+  <h2>Children</h2>
+  <p>
+    Olympus View is a general-purpose camera utility and is not specifically directed to children.
+  </p>
 
+  <h2>Changes to this policy</h2>
+  <p>
+    This policy may be updated when application functionality, third-party SDK behavior, or legal requirements change.
+    The effective date at the top of this page indicates the current version.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Privacy questions and deletion requests can be sent using the
+    <a href="./#feedback-en">Olympus View project feedback form</a>.
+    The application source code and issue tracker are available on
+    <a href="https://github.com/dpolarov/olympus-view-and-delete">GitHub</a>.
+  </p>
 </body>
 </html>

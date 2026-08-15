@@ -26,11 +26,11 @@ class OlympusApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             brightness: Brightness.dark,
-            colorScheme: ColorScheme.dark(
-              primary: const Color(0xFFE94560),
-              secondary: const Color(0xFF0F3460),
-              surface: const Color(0xFF1A1A2E),
-              error: const Color(0xFFE74C3C),
+            colorScheme: const ColorScheme.dark(
+              primary: Color(0xFFE94560),
+              secondary: Color(0xFF0F3460),
+              surface: Color(0xFF1A1A2E),
+              error: Color(0xFFE74C3C),
             ),
             scaffoldBackgroundColor: const Color(0xFF0F0F1A),
             appBarTheme: const AppBarTheme(

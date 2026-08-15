@@ -23,15 +23,18 @@ if [[ -z "$OBJDUMP" ]]; then
   exit 1
 fi
 
-echo "Checking ELF LOAD alignment with: $OBJDUMP"
+echo "Checking 64-bit ELF LOAD alignment with: $OBJDUMP"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-unzip -q "$APK_PATH" 'lib/*/*.so' -d "$TMP_DIR" || true
+unzip -q "$APK_PATH" 'lib/arm64-v8a/*.so' 'lib/x86_64/*.so' -d "$TMP_DIR" || true
 
-mapfile -t LIBS < <(find "$TMP_DIR/lib" -type f -name '*.so' 2>/dev/null | sort)
+mapfile -t LIBS < <(
+  find "$TMP_DIR/lib/arm64-v8a" "$TMP_DIR/lib/x86_64" \
+    -type f -name '*.so' 2>/dev/null | sort
+)
 if [[ ${#LIBS[@]} -eq 0 ]]; then
-  echo "No native shared libraries found in APK."
+  echo "No arm64-v8a or x86_64 shared libraries found in APK."
   exit 0
 fi
 
@@ -56,8 +59,8 @@ for LIB in "${LIBS[@]}"; do
 done
 
 if [[ $FAILED -ne 0 ]]; then
-  echo "One or more native libraries are not 16 KB page-size compatible." >&2
+  echo "One or more 64-bit native libraries are not 16 KB page-size compatible." >&2
   exit 1
 fi
 
-echo "Android 16 KB page-size checks passed."
+echo "Android 16 KB page-size checks passed for arm64-v8a and x86_64."

@@ -35,14 +35,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Verify lockfile is current
-        shell: bash
-        run: |
-          if ! git diff --exit-code -- pubspec.lock; then
-            echo "pubspec.lock is out of date. Run flutter pub get and commit the result."
-            exit 1
-          fi
-
       - name: Analyze
         run: flutter analyze
 

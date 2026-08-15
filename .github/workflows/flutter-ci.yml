@@ -71,22 +71,22 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build release APK
-        run: flutter build apk --release
+      - name: Build GitHub release APK
+        run: flutter build apk --flavor github --release
 
       - name: Verify Android 16 KB page-size compatibility
         shell: bash
-        run: bash scripts/check_android_16kb.sh
+        run: bash scripts/check_android_16kb.sh build/app/outputs/flutter-apk/app-github-release.apk
 
-      - name: Build release AAB
-        run: flutter build appbundle --release
+      - name: Build GitHub release AAB
+        run: flutter build appbundle --flavor github --release
 
       - name: Upload Android outputs
         uses: actions/upload-artifact@v6
         with:
           name: OlympusView-Android
           path: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/bundle/release/app-release.aab
+            build/app/outputs/flutter-apk/app-github-release.apk
+            build/app/outputs/bundle/githubRelease/app-github-release.aab
           if-no-files-found: error
           retention-days: 14

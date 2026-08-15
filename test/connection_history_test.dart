@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:olympus_tg6_manager/services/connection_history.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 SavedConnection _conn(
   String ssid, {
@@ -69,7 +69,6 @@ void main() {
     }
     final list = await ConnectionHistory.load();
     expect(list.length, 10);
-    // Newest first → SSID_14, SSID_13, ..., SSID_5
     expect(list.first.ssid, 'SSID_14');
     expect(list.last.ssid, 'SSID_5');
   });
@@ -90,7 +89,6 @@ void main() {
   });
 
   test('concurrent saves are serialized — no entries are lost', () async {
-    // Fire 20 saves in parallel without awaiting each; all SSIDs unique.
     final futures = <Future<void>>[];
     for (int i = 0; i < 20; i++) {
       futures.add(ConnectionHistory.save(
@@ -99,9 +97,7 @@ void main() {
     }
     await Future.wait(futures);
     final list = await ConnectionHistory.load();
-    // Capped at 10 — but we verify no read-modify-write race dropped the tail.
     expect(list.length, 10);
-    // Top 10 newest: C_19..C_10
     expect(list.first.ssid, 'C_19');
     expect(list.last.ssid, 'C_10');
   });

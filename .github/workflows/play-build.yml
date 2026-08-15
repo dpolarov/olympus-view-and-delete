@@ -77,19 +77,19 @@ jobs:
       - name: Test
         run: flutter test
 
-      - name: Build release APK for compatibility checks
-        run: flutter build apk --release
+      - name: Build Play release APK for compatibility checks
+        run: flutter build apk --flavor play --release
 
       - name: Verify Android 16 KB page-size compatibility
         shell: bash
-        run: bash scripts/check_android_16kb.sh
+        run: bash scripts/check_android_16kb.sh build/app/outputs/flutter-apk/app-play-release.apk
 
       - name: Build Play app bundle
-        run: flutter build appbundle --release
+        run: flutter build appbundle --flavor play --release
 
       - name: Stage Play bundle
         shell: bash
-        run: cp build/app/outputs/bundle/release/app-release.aab OlympusView-GooglePlay.aab
+        run: cp build/app/outputs/bundle/playRelease/app-play-release.aab OlympusView-GooglePlay.aab
 
       - name: Upload Play bundle artifact
         uses: actions/upload-artifact@v6

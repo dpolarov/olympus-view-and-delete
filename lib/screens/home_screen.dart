@@ -418,9 +418,9 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 8),
         const Text('WiFi Camera Manager for Olympus/OM System cameras.'),
         const SizedBox(height: 16),
-        Text(
+        const Text(
           'Changelog v$appVersion:',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         const SizedBox(height: 8),
         const Text(

@@ -22,12 +22,8 @@ CameraFile _file({
 void main() {
   group('CameraFile.decodeFatDateTime', () {
     test('decodes valid FAT datetime', () {
-      // 2024-06-15 14:30:20
-      // year offset 2024-1980=44 → 44<<9 = 22528
-      // month 6 <<5 = 192; day 15 = 15 → date = 22528|192|15 = 22735
-      final date = 22735;
-      // hour 14 <<11 = 28672; minute 30 <<5 = 960; sec 10 (20/2) = 10 → 29642
-      final time = 29642;
+      const date = 22735;
+      const time = 29642;
       final dt = CameraFile.decodeFatDateTime(date, time);
       expect(dt, isNotNull);
       expect(dt!.year, 2024);
@@ -39,27 +35,24 @@ void main() {
     });
 
     test('returns null when month is 0', () {
-      // date with month bits zero, day=1
-      final date = (44 << 9) | 1; // year 2024, month 0, day 1
-      final time = 0;
+      const date = (44 << 9) | 1;
+      const time = 0;
       expect(CameraFile.decodeFatDateTime(date, time), isNull);
     });
 
     test('returns null when day is 0', () {
-      final date = (44 << 9) | (6 << 5); // year 2024, month 6, day 0
+      const date = (44 << 9) | (6 << 5);
       expect(CameraFile.decodeFatDateTime(date, 0), isNull);
     });
 
     test('returns null when hour out of range', () {
-      final date = (44 << 9) | (6 << 5) | 15;
-      final time = (24 <<
-          11); // hour 24 invalid — actually 24 is 5 bits wraps to 24; 24>23
-      // Since `>> 11 & 0x1F` max is 31; 24 > 23
+      const date = (44 << 9) | (6 << 5) | 15;
+      const time = (24 << 11);
       expect(CameraFile.decodeFatDateTime(date, time), isNull);
     });
 
     test('returns null when month 13+', () {
-      final date = (44 << 9) | (13 << 5) | 1;
+      const date = (44 << 9) | (13 << 5) | 1;
       expect(CameraFile.decodeFatDateTime(date, 0), isNull);
     });
   });

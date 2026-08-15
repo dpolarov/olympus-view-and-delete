@@ -120,21 +120,21 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build signed APK
-        run: flutter build apk --release
+      - name: Build signed GitHub APK
+        run: flutter build apk --flavor github --release
 
       - name: Verify Android 16 KB page-size compatibility
         shell: bash
-        run: bash scripts/check_android_16kb.sh
+        run: bash scripts/check_android_16kb.sh build/app/outputs/flutter-apk/app-github-release.apk
 
-      - name: Build signed AAB
-        run: flutter build appbundle --release
+      - name: Build signed GitHub AAB
+        run: flutter build appbundle --flavor github --release
 
       - name: Stage Android files
         shell: bash
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk OlympusView-Android.apk
-          cp build/app/outputs/bundle/release/app-release.aab OlympusView-Android.aab
+          cp build/app/outputs/flutter-apk/app-github-release.apk OlympusView-Android.apk
+          cp build/app/outputs/bundle/githubRelease/app-github-release.aab OlympusView-Android.aab
 
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v6

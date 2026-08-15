@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants.dart';
 import '../services/app_logger.dart';
 import '../services/camera_api.dart';
+import '../services/download_history.dart';
 
 class DownloadProgressDialog extends StatefulWidget {
   final CameraApi api;
@@ -38,6 +39,8 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
       result = await widget.api.downloadFiles(
         widget.files,
         widget.saveDirPath,
+        onFileSaved: (file, _) =>
+            DownloadHistory.mark(file.downloadHistoryKey),
         onProgress: (done, total, filename) {
           if (mounted) {
             setState(() {

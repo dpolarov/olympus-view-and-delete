@@ -6,13 +6,26 @@ import '../constants.dart';
 import '../services/camera_api.dart';
 import '../services/thumbnail_manager.dart';
 
-BoxDecoration _itemDecoration(
-    {required bool selected, required double borderWidth}) {
+BoxDecoration _itemDecoration({
+  required bool selected,
+  required bool downloaded,
+  required double borderWidth,
+}) {
+  final borderColor = selected
+      ? kPrimaryColor
+      : downloaded
+          ? const Color(0xFF2ECC71)
+          : null;
   return BoxDecoration(
     borderRadius: BorderRadius.circular(8),
-    border:
-        selected ? Border.all(color: kPrimaryColor, width: borderWidth) : null,
-    color: selected ? kPrimaryColor.withValues(alpha: 0.15) : kBackgroundColor,
+    border: borderColor == null
+        ? null
+        : Border.all(color: borderColor, width: borderWidth),
+    color: selected
+        ? kPrimaryColor.withValues(alpha: 0.15)
+        : downloaded
+            ? const Color(0xFF2ECC71).withValues(alpha: 0.07)
+            : kBackgroundColor,
   );
 }
 
@@ -21,6 +34,7 @@ class PhotoGrid extends StatefulWidget {
   final bool gridView;
   final bool selectionMode;
   final Set<String> selectedPaths;
+  final Set<String> downloadedKeys;
   final void Function(CameraFile) onTap;
   final void Function(CameraFile) onLongPress;
   final void Function(CameraFile, int)? onPreview;
@@ -31,6 +45,7 @@ class PhotoGrid extends StatefulWidget {
     required this.gridView,
     required this.selectionMode,
     required this.selectedPaths,
+    required this.downloadedKeys,
     required this.onTap,
     required this.onLongPress,
     this.onPreview,
@@ -83,6 +98,9 @@ class _PhotoGridState extends State<PhotoGrid> {
         file: widget.files[i],
         index: i,
         selected: widget.selectedPaths.contains(widget.files[i].fullPath),
+        downloaded: widget.downloadedKeys.contains(
+          widget.files[i].downloadHistoryKey,
+        ),
         selectionMode: widget.selectionMode,
         onTap: () => widget.onTap(widget.files[i]),
         onLongPress: () => widget.onLongPress(widget.files[i]),
@@ -101,6 +119,9 @@ class _PhotoGridState extends State<PhotoGrid> {
         file: widget.files[i],
         index: i,
         selected: widget.selectedPaths.contains(widget.files[i].fullPath),
+        downloaded: widget.downloadedKeys.contains(
+          widget.files[i].downloadHistoryKey,
+        ),
         selectionMode: widget.selectionMode,
         onTap: () => widget.onTap(widget.files[i]),
         onLongPress: () => widget.onLongPress(widget.files[i]),
@@ -116,6 +137,7 @@ class _GridItem extends StatelessWidget {
   final CameraFile file;
   final int index;
   final bool selected;
+  final bool downloaded;
   final bool selectionMode;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
@@ -125,6 +147,7 @@ class _GridItem extends StatelessWidget {
     required this.file,
     required this.index,
     required this.selected,
+    required this.downloaded,
     required this.selectionMode,
     required this.onTap,
     required this.onLongPress,
@@ -137,7 +160,11 @@ class _GridItem extends StatelessWidget {
       onTap: selectionMode ? onTap : onPreview,
       onLongPress: onLongPress,
       child: Container(
-        decoration: _itemDecoration(selected: selected, borderWidth: 2),
+        decoration: _itemDecoration(
+          selected: selected,
+          downloaded: downloaded,
+          borderWidth: 2,
+        ),
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -164,6 +191,24 @@ class _GridItem extends StatelessWidget {
                         ),
                         child: const Icon(Icons.check,
                             color: Colors.white, size: 16),
+                      ),
+                    ),
+                  if (downloaded)
+                    Positioned(
+                      bottom: 4,
+                      right: 4,
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFF2ECC71),
+                        ),
+                        child: const Icon(
+                          Icons.download_done,
+                          color: Colors.white,
+                          size: 15,
+                        ),
                       ),
                     ),
                 ],
@@ -198,6 +243,7 @@ class _ListItem extends StatelessWidget {
   final CameraFile file;
   final int index;
   final bool selected;
+  final bool downloaded;
   final bool selectionMode;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
@@ -207,6 +253,7 @@ class _ListItem extends StatelessWidget {
     required this.file,
     required this.index,
     required this.selected,
+    required this.downloaded,
     required this.selectionMode,
     required this.onTap,
     required this.onLongPress,
@@ -220,7 +267,11 @@ class _ListItem extends StatelessWidget {
       onLongPress: onLongPress,
       child: Container(
         margin: const EdgeInsets.only(bottom: 6),
-        decoration: _itemDecoration(selected: selected, borderWidth: 1),
+        decoration: _itemDecoration(
+          selected: selected,
+          downloaded: downloaded,
+          borderWidth: 1,
+        ),
         clipBehavior: Clip.antiAlias,
         child: Row(
           children: [
@@ -264,6 +315,14 @@ class _ListItem extends StatelessWidget {
                 height: 72,
                 color: kPrimaryColor,
                 child: const Icon(Icons.check, color: Colors.white),
+              ),
+            if (!selected && downloaded)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Icon(
+                  Icons.download_done,
+                  color: Color(0xFF2ECC71),
+                ),
               ),
           ],
         ),

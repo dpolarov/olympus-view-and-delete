@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wifi_iot/wifi_iot.dart';
@@ -11,8 +12,11 @@ import '../constants.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/l10n.dart';
 import '../services/app_logger.dart';
+import '../services/app_update_service.dart';
+import '../services/background_download_service.dart';
 import '../services/camera_api.dart';
 import '../services/connection_history.dart';
+import '../services/download_history.dart';
 import '../services/file_saver.dart' as file_saver;
 import '../services/locale_controller.dart';
 import '../services/thumbnail_manager.dart';
@@ -33,7 +37,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver {
   final CameraApi _api = CameraApi();
 
   List<CameraFile> _allFiles = [];
@@ -58,18 +63,157 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _batchFlushTimer;
   final List<CameraFile> _pendingBatch = [];
   int _totalBytes = 0;
+  Set<String> _downloadedKeys = <String>{};
+  Timer? _downloadPollTimer;
+  AppReleaseInfo? _pendingUpdateAfterPermission;
 
   @override
   void initState() {
     super.initState();
-    _initLoad();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_startApp());
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _downloadPollTimer?.cancel();
     _batchFlushTimer?.cancel();
     _api.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_refreshDownloadedHistory());
+      unawaited(_resumePendingUpdate());
+      unawaited(_resumeBackgroundMonitor());
+    }
+  }
+
+  Future<void> _startApp() async {
+    await _refreshDownloadedHistory();
+    await _checkForAppUpdate();
+    if (mounted) unawaited(_initLoad());
+  }
+
+  Future<void> _refreshDownloadedHistory() async {
+    final keys = await DownloadHistory.load();
+    if (!mounted) return;
+    setState(() => _downloadedKeys = keys);
+  }
+
+  String _localizedText({
+    required String en,
+    required String ru,
+    required String uk,
+  }) {
+    switch (Localizations.localeOf(context).languageCode) {
+      case 'ru':
+        return ru;
+      case 'uk':
+        return uk;
+      default:
+        return en;
+    }
+  }
+
+  Future<void> _checkForAppUpdate() async {
+    final release = await AppUpdateService.checkForUpdate();
+    if (release == null || !mounted) return;
+    final install = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: kBackgroundColor,
+        title: Text(_localizedText(
+          en: 'Update available',
+          ru: 'Доступно обновление',
+          uk: 'Доступне оновлення',
+        )),
+        content: Text(_localizedText(
+          en: 'Olympus View ${release.version} is available. Download it in the background?',
+          ru: 'Доступна версия Olympus View ${release.version}. Скачать обновление в фоне?',
+          uk: 'Доступна версія Olympus View ${release.version}. Завантажити оновлення у фоні?',
+        )),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(_localizedText(
+              en: 'Later', ru: 'Позже', uk: 'Пізніше')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(_localizedText(
+              en: 'Update', ru: 'Обновить', uk: 'Оновити')),
+          ),
+        ],
+      ),
+    );
+    if (install == true && mounted) await _beginUpdate(release);
+  }
+
+  Future<void> _beginUpdate(AppReleaseInfo release) async {
+    final allowed = await AppUpdateService.canInstallUnknownApps();
+    if (!mounted) return;
+    if (!allowed) {
+      _pendingUpdateAfterPermission = release;
+      _showSnack(_localizedText(
+        en: 'Allow Olympus View to install updates, then return to the app.',
+        ru: 'Разрешите Olympus View устанавливать обновления и вернитесь в приложение.',
+        uk: 'Дозвольте Olympus View встановлювати оновлення та поверніться до застосунку.',
+      ));
+      await AppUpdateService.openInstallSettings();
+      return;
+    }
+    await AppUpdateService.startUpdateDownload(release);
+    if (!mounted) return;
+    _pendingUpdateAfterPermission = null;
+    _showSnack(_localizedText(
+      en: 'Update is downloading in the background. Tap the notification when it is ready to install.',
+      ru: 'Обновление скачивается в фоне. Когда оно будет готово, нажмите уведомление для установки.',
+      uk: 'Оновлення завантажується у фоні. Коли воно буде готове, натисніть сповіщення для встановлення.',
+    ));
+  }
+
+  Future<void> _resumePendingUpdate() async {
+    final release = _pendingUpdateAfterPermission;
+    if (release == null || !AppUpdateService.supportsExternalUpdates) return;
+    if (await AppUpdateService.canInstallUnknownApps()) {
+      await _beginUpdate(release);
+    }
+  }
+
+  void _startBackgroundDownloadMonitor() {
+    _downloadPollTimer?.cancel();
+    _downloadPollTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      unawaited(_pollBackgroundDownload());
+    });
+  }
+
+  Future<void> _pollBackgroundDownload() async {
+    await _refreshDownloadedHistory();
+    final running = await BackgroundDownloadService.isRunning();
+    if (!running) {
+      _downloadPollTimer?.cancel();
+      _downloadPollTimer = null;
+      if (mounted) {
+        _showSnack(_localizedText(
+          en: 'Background download finished.',
+          ru: 'Фоновое скачивание завершено.',
+          uk: 'Фонове завантаження завершено.',
+        ));
+      }
+    }
+  }
+
+  Future<void> _resumeBackgroundMonitor() async {
+    if (!BackgroundDownloadService.isSupported) return;
+    if (await BackgroundDownloadService.isRunning()) {
+      _startBackgroundDownloadMonitor();
+    }
   }
 
   Future<void> _initLoad() async {
@@ -604,6 +748,72 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (!confirmed || !mounted) return;
 
+    if (BackgroundDownloadService.isSupported) {
+      final background = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: kBackgroundColor,
+          title: Text(_localizedText(
+            en: 'Download mode',
+            ru: 'Режим скачивания',
+            uk: 'Режим завантаження',
+          )),
+          content: Text(_localizedText(
+            en: 'Background mode keeps downloading if you switch to another app or turn the screen off.',
+            ru: 'Фоновый режим продолжит скачивание, если открыть другое приложение или выключить экран.',
+            uk: 'Фоновий режим продовжить завантаження, якщо відкрити інший застосунок або вимкнути екран.',
+          )),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text(AppStrings.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(_localizedText(
+                en: 'On screen', ru: 'На экране', uk: 'На екрані')),
+            ),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(ctx, true),
+              icon: const Icon(Icons.downloading),
+              label: Text(_localizedText(
+                en: 'Background', ru: 'В фоне', uk: 'У фоні')),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || background == null) return;
+      if (background) {
+        await Permission.notification.request();
+        try {
+          await BackgroundDownloadService.start(toDownload);
+        } on PlatformException catch (error) {
+          if (error.code == 'storage_permission_required') {
+            final storage = await Permission.storage.request();
+            if (!storage.isGranted) {
+              if (mounted) _showSnack('Storage permission is required.');
+              return;
+            }
+            await BackgroundDownloadService.start(toDownload);
+          } else {
+            if (mounted) {
+              _showSnack(error.message ?? 'Could not start background download.');
+            }
+            return;
+          }
+        }
+        if (!mounted) return;
+        _exitSelectionMode();
+        _showSnack(_localizedText(
+          en: 'Background download started. Progress is shown in notifications.',
+          ru: 'Фоновое скачивание запущено. Прогресс виден в уведомлении.',
+          uk: 'Фонове завантаження запущено. Прогрес видно у сповіщенні.',
+        ));
+        _startBackgroundDownloadMonitor();
+        return;
+      }
+    }
+
     final saveDirPath = await file_saver.getSaveDirectory();
     await file_saver.ensureDirectory(saveDirPath);
     if (!mounted) return;
@@ -623,6 +833,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _exitSelectionMode();
 
     if (result != null) {
+      await _refreshDownloadedHistory();
+      if (!mounted) return;
       _showSnack(
         'Downloaded: ${result.success}, Failed: ${result.failed}'
         '${kIsWeb ? '' : '\nSaved to: $saveDirPath'}',
@@ -1052,6 +1264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       gridView: _gridView,
                       selectionMode: _selectionMode,
                       selectedPaths: _selectedPaths,
+                      downloadedKeys: _downloadedKeys,
                       onTap: _toggleSelect,
                       onLongPress: _enterSelectionMode,
                       onPreview: (file, index) async {

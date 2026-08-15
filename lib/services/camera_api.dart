@@ -43,6 +43,8 @@ class CameraFile {
   String resizeImgUrl([int size = kPreviewImageSize]) =>
       '$baseUrl/get_resizeimg.cgi?DIR=$fullPath&size=$size';
   String get downloadUrl => '$baseUrl$fullPath';
+  String get downloadHistoryKey =>
+      '$fullPath|$size|$dateRaw|$timeRaw';
 
   String get sizeHuman {
     if (size < 1024) return '$size B';
@@ -308,6 +310,7 @@ class CameraApi {
     List<CameraFile> files,
     String saveDirPath, {
     void Function(int done, int total, String filename)? onProgress,
+    Future<void> Function(CameraFile file, String savedPath)? onFileSaved,
   }) async {
     int success = 0;
     int failed = 0;
@@ -320,6 +323,18 @@ class CameraApi {
         final savedPath =
             await file_saver.saveFileToDevice(safeName, bytes, saveDirPath);
         savedPaths.add(savedPath);
+        if (onFileSaved != null) {
+          try {
+            await onFileSaved(files[i], savedPath);
+          } catch (e, st) {
+            AppLogger.warning(
+              'download history update failed for ${files[i].filename}',
+              name: 'camera_api',
+              error: e,
+              stackTrace: st,
+            );
+          }
+        }
         success++;
       } catch (e, st) {
         AppLogger.warning('download/save failed for ${files[i].filename}',

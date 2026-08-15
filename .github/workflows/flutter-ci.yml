@@ -45,7 +45,7 @@ jobs:
     name: Android APK and AAB
     needs: quality
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     env:
       # CI artifacts are never published. Real release builds restore
       # the persistent Android signing key from repository secrets.
@@ -71,6 +71,10 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Verify lock file is synchronized
+        shell: bash
+        run: git diff --exit-code -- pubspec.lock
+
       - name: Build GitHub release APK
         run: flutter build apk --flavor github --release
 
@@ -80,6 +84,23 @@ jobs:
 
       - name: Build GitHub release AAB
         run: flutter build appbundle --flavor github --release
+
+      - name: Build Play flavor APK for policy validation
+        run: flutter build apk --flavor play --release
+
+      - name: Verify Play flavor cannot install external APKs
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-play-release.apk"
+          aapt="$(find "${ANDROID_HOME:?ANDROID_HOME is not set}/build-tools" -type f -name aapt -print | sort -V | tail -n 1)"
+          [[ -n "$aapt" ]] || { echo "aapt not found"; exit 1; }
+          permissions="$($aapt dump permissions "$apk")"
+          if grep -q 'android.permission.REQUEST_INSTALL_PACKAGES' <<<"$permissions"; then
+            echo "ERROR: Google Play flavor contains REQUEST_INSTALL_PACKAGES" >&2
+            exit 1
+          fi
+          echo "Play flavor does not request REQUEST_INSTALL_PACKAGES."
 
       - name: Upload Android outputs
         uses: actions/upload-artifact@v6

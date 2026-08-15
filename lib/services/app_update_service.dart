@@ -12,11 +12,13 @@ class AppReleaseInfo {
     required this.version,
     required this.apkUrl,
     required this.releaseUrl,
+    required this.releaseNotes,
   });
 
   final String version;
   final String apkUrl;
   final String releaseUrl;
+  final String releaseNotes;
 }
 
 class AppUpdateService {
@@ -90,6 +92,7 @@ class AppUpdateService {
         apkUrl: apkUrl,
         releaseUrl: json['html_url']?.toString() ??
             'https://github.com/dpolarov/olympus-view-and-delete/releases/latest',
+        releaseNotes: _cleanReleaseNotes(json['body']?.toString() ?? ''),
       );
     } catch (error) {
       AppLogger.debug(
@@ -116,6 +119,39 @@ class AppUpdateService {
       'url': release.apkUrl,
       'version': release.version,
     });
+  }
+
+  static String _cleanReleaseNotes(String raw) {
+    if (raw.trim().isEmpty) return '';
+
+    final result = <String>[];
+    for (final sourceLine in raw.replaceAll('\r\n', '\n').split('\n')) {
+      var line = sourceLine.trimRight();
+      if (line.startsWith('### ')) {
+        line = line.substring(4);
+      } else if (line.startsWith('## ')) {
+        line = line.substring(3);
+      } else if (line.startsWith('# ')) {
+        line = line.substring(2);
+      }
+      if (line.startsWith('- ')) {
+        line = '• ${line.substring(2)}';
+      }
+      line = line.replaceAllMapped(
+        RegExp(r'\*\*([^*]+)\*\*'),
+        (match) => match.group(1) ?? '',
+      );
+      line = line.replaceAll('`', '');
+      result.add(line);
+    }
+
+    while (result.isNotEmpty && result.first.trim().isEmpty) {
+      result.removeAt(0);
+    }
+    while (result.isNotEmpty && result.last.trim().isEmpty) {
+      result.removeLast();
+    }
+    return result.join('\n');
   }
 
   static bool _isNewerVersion(String candidate, String current) {

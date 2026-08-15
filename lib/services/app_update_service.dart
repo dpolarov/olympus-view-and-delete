@@ -45,11 +45,10 @@ class AppUpdateService {
         if (nativeVersion != null && nativeVersion.isNotEmpty) {
           currentVersion = nativeVersion;
         }
-      } on PlatformException catch (error, st) {
+      } on PlatformException catch (error) {
         AppLogger.debug(
           'native version lookup failed; using appVersion: $error',
           name: 'app_update',
-          stackTrace: st,
         );
       }
 
@@ -92,11 +91,10 @@ class AppUpdateService {
         releaseUrl: json['html_url']?.toString() ??
             'https://github.com/dpolarov/olympus-view-and-delete/releases/latest',
       );
-    } catch (error, st) {
+    } catch (error) {
       AppLogger.debug(
         'update check failed: $error',
         name: 'app_update',
-        stackTrace: st,
       );
       return null;
     }

@@ -1,14 +1,8 @@
-import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart';
 
 import 'service_config.dart';
 
 /// Browser-safe in-memory image cache.
-///
-/// Native builds keep the persistent disk cache. On Web we deliberately avoid
-/// `dart:io`; the browser cache lives for the lifetime of the page and is
-/// bounded with the same LRU limit as native builds.
 class ImageDiskCache {
   static final ImageDiskCache instance = ImageDiskCache._();
   ImageDiskCache._();

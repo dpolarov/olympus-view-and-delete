@@ -47,7 +47,12 @@ class _QrScanScreenState extends State<QrScanScreen> {
   }
 
   Future<void> _initScanner() async {
-    await Permission.camera.request();
+    final cameraPermission = await Permission.camera.request();
+    if (!cameraPermission.isGranted) {
+      if (mounted) setState(() => _scannerFailed = true);
+      return;
+    }
+
     try {
       _scanner = MobileScannerController(
         detectionSpeed: DetectionSpeed.normal,
@@ -58,6 +63,17 @@ class _QrScanScreenState extends State<QrScanScreen> {
       AppLogger.warning('scanner init failed',
           name: 'qr_scan', error: e, stackTrace: st);
       if (mounted) setState(() => _scannerFailed = true);
+    }
+  }
+
+  Future<void> _ensureAndroidWifiPermission() async {
+    final nearby = await Permission.nearbyWifiDevices.request();
+    if (nearby.isGranted) return;
+
+    // On Android 12L and older the WiFi APIs use location permission instead.
+    final legacyLocation = await Permission.location.request();
+    if (!legacyLocation.isGranted) {
+      throw StateError('Nearby WiFi permission was not granted');
     }
   }
 
@@ -97,7 +113,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
 
     try {
       if (Platform.isAndroid) {
-        await Permission.location.request();
+        await _ensureAndroidWifiPermission();
         final connected = await WiFiForIoTPlugin.connect(
           credentials.ssid,
           password: credentials.password,
@@ -131,7 +147,8 @@ class _QrScanScreenState extends State<QrScanScreen> {
       } else {
         setState(() {
           _busy = false;
-          _status = 'Connect to ${credentials.ssid} manually in system WiFi settings, then press Done.';
+          _status =
+              'Connect to ${credentials.ssid} manually in system WiFi settings, then press Done.';
         });
       }
     } catch (e, st) {
@@ -223,7 +240,8 @@ class _QrScanScreenState extends State<QrScanScreen> {
           const SizedBox(height: 16),
           FilledButton(
             onPressed: _busy ? null : _connectManual,
-            child: Text(_isMobile ? 'Connect' : 'Show connection instructions'),
+            child:
+                Text(_isMobile ? 'Connect' : 'Show connection instructions'),
           ),
           if (_busy) ...[
             const SizedBox(height: 16),

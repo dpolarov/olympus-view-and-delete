@@ -1,0 +1,105 @@
+name: Google Play AAB
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.44.7"
+
+jobs:
+  play-bundle:
+    name: Build Play-ready AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Validate Play upload-key secrets
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          [[ -n "$KEYSTORE_B64" ]] || { echo "Missing PLAY_UPLOAD_KEYSTORE_BASE64"; exit 1; }
+          [[ -n "$STORE_PASSWORD" ]] || { echo "Missing PLAY_UPLOAD_KEYSTORE_PASSWORD"; exit 1; }
+          [[ -n "$KEY_ALIAS" ]] || { echo "Missing PLAY_UPLOAD_KEY_ALIAS"; exit 1; }
+          [[ -n "$KEY_PASSWORD" ]] || { echo "Missing PLAY_UPLOAD_KEY_PASSWORD"; exit 1; }
+
+      - name: Restore Play upload key
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > android/app/play-upload.jks
+          keytool -list \
+            -keystore android/app/play-upload.jks \
+            -storepass "$STORE_PASSWORD" \
+            -alias "$KEY_ALIAS" >/dev/null
+
+          cat > android/key.properties <<EOF
+          storeFile=${GITHUB_WORKSPACE}/android/app/play-upload.jks
+          storePassword=${STORE_PASSWORD}
+          keyAlias=${KEY_ALIAS}
+          keyPassword=${KEY_PASSWORD}
+          EOF
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build release APK for compatibility checks
+        run: flutter build apk --release
+
+      - name: Verify Android 16 KB page-size compatibility
+        shell: bash
+        run: bash scripts/check_android_16kb.sh
+
+      - name: Build Play app bundle
+        run: flutter build appbundle --release
+
+      - name: Stage Play bundle
+        shell: bash
+        run: cp build/app/outputs/bundle/release/app-release.aab OlympusView-GooglePlay.aab
+
+      - name: Upload Play bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OlympusView-GooglePlay-AAB
+          path: OlympusView-GooglePlay.aab
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove Play signing material
+        if: always()
+        shell: bash
+        run: rm -f android/app/play-upload.jks android/key.properties

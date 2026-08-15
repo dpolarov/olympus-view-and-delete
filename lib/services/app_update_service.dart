@@ -1,0 +1,141 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+
+import '../version.dart';
+import 'app_logger.dart';
+
+class AppReleaseInfo {
+  const AppReleaseInfo({
+    required this.version,
+    required this.apkUrl,
+    required this.releaseUrl,
+  });
+
+  final String version;
+  final String apkUrl;
+  final String releaseUrl;
+}
+
+class AppUpdateService {
+  AppUpdateService._();
+
+  static const MethodChannel _channel =
+      MethodChannel('com.flynew.photomanager/app_update');
+  static const String latestReleaseEndpoint =
+      'https://api.github.com/repos/dpolarov/olympus-view-and-delete/releases/latest';
+
+  static bool get supportsExternalUpdates =>
+      !kIsWeb &&
+      defaultTargetPlatform == TargetPlatform.android &&
+      appFlavor == 'github';
+
+  static Future<AppReleaseInfo?> checkForUpdate() async {
+    if (!supportsExternalUpdates) return null;
+
+    try {
+      String currentVersion = appVersion;
+      try {
+        final current = await _channel.invokeMapMethod<String, dynamic>(
+          'getCurrentVersion',
+        );
+        final nativeVersion = current?['versionName']?.toString();
+        if (nativeVersion != null && nativeVersion.isNotEmpty) {
+          currentVersion = nativeVersion;
+        }
+      } on PlatformException catch (error, st) {
+        AppLogger.debug(
+          'native version lookup failed; using appVersion: $error',
+          name: 'app_update',
+          stackTrace: st,
+        );
+      }
+
+      final response = await http.get(
+        Uri.parse(latestReleaseEndpoint),
+        headers: <String, String>{
+          'Accept': 'application/vnd.github+json',
+          'User-Agent': 'OlympusView/$currentVersion',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      ).timeout(const Duration(seconds: 3));
+
+      if (response.statusCode != 200) return null;
+      final json = jsonDecode(response.body);
+      if (json is! Map<String, dynamic>) return null;
+
+      final tag = json['tag_name']?.toString() ?? '';
+      final latestVersion = tag.startsWith('v') ? tag.substring(1) : tag;
+      if (latestVersion.isEmpty ||
+          !_isNewerVersion(latestVersion, currentVersion)) {
+        return null;
+      }
+
+      String? apkUrl;
+      final assets = json['assets'];
+      if (assets is List) {
+        for (final asset in assets) {
+          if (asset is Map<String, dynamic> &&
+              asset['name'] == 'OlympusView-Android.apk') {
+            apkUrl = asset['browser_download_url']?.toString();
+            break;
+          }
+        }
+      }
+      if (apkUrl == null || apkUrl.isEmpty) return null;
+
+      return AppReleaseInfo(
+        version: latestVersion,
+        apkUrl: apkUrl,
+        releaseUrl: json['html_url']?.toString() ??
+            'https://github.com/dpolarov/olympus-view-and-delete/releases/latest',
+      );
+    } catch (error, st) {
+      AppLogger.debug(
+        'update check failed: $error',
+        name: 'app_update',
+        stackTrace: st,
+      );
+      return null;
+    }
+  }
+
+  static Future<bool> canInstallUnknownApps() async {
+    if (!supportsExternalUpdates) return false;
+    return await _channel.invokeMethod<bool>('canInstallUnknownApps') ?? false;
+  }
+
+  static Future<void> openInstallSettings() async {
+    if (!supportsExternalUpdates) return;
+    await _channel.invokeMethod<void>('openInstallSettings');
+  }
+
+  static Future<void> startUpdateDownload(AppReleaseInfo release) async {
+    if (!supportsExternalUpdates) return;
+    await _channel.invokeMethod<void>('startUpdateDownload', <String, Object>{
+      'url': release.apkUrl,
+      'version': release.version,
+    });
+  }
+
+  static bool _isNewerVersion(String candidate, String current) {
+    final a = _versionParts(candidate);
+    final b = _versionParts(current);
+    for (var i = 0; i < 3; i++) {
+      if (a[i] != b[i]) return a[i] > b[i];
+    }
+    return false;
+  }
+
+  static List<int> _versionParts(String value) {
+    final matches = RegExp(r'\d+').allMatches(value).take(3).toList();
+    return List<int>.generate(
+      3,
+      (index) => index < matches.length
+          ? int.tryParse(matches[index].group(0) ?? '') ?? 0
+          : 0,
+    );
+  }
+}

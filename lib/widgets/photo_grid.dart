@@ -6,15 +6,13 @@ import '../constants.dart';
 import '../services/camera_api.dart';
 import '../services/thumbnail_manager.dart';
 
-/// Shared decoration for grid/list items: rounded corners, a selection
-/// border (width differs per layout) and a tinted background when selected.
 BoxDecoration _itemDecoration(
     {required bool selected, required double borderWidth}) {
   return BoxDecoration(
     borderRadius: BorderRadius.circular(8),
     border:
         selected ? Border.all(color: kPrimaryColor, width: borderWidth) : null,
-    color: selected ? kPrimaryColor.withOpacity(0.15) : kBackgroundColor,
+    color: selected ? kPrimaryColor.withValues(alpha: 0.15) : kBackgroundColor,
   );
 }
 
@@ -59,10 +57,9 @@ class _PhotoGridState extends State<PhotoGrid> {
 
   void _updateVisibleRange(ScrollNotification notification) {
     final metrics = notification.metrics;
-    // Approximate row height for grid (3 columns, aspect 0.8)
-    final width = MediaQuery.of(context).size.width - 16; // padding
-    final itemWidth = (width - 12) / 3; // 3 cols, 2 gaps of 6
-    final itemHeight = itemWidth / 0.8 + 6; // aspect + spacing
+    final width = MediaQuery.of(context).size.width - 16;
+    final itemWidth = (width - 12) / 3;
+    final itemHeight = itemWidth / 0.8 + 6;
     const columns = 3;
     final firstRow = (metrics.pixels / itemHeight).floor();
     final lastRow =
@@ -275,7 +272,6 @@ class _ListItem extends StatelessWidget {
   }
 }
 
-/// Thumbnail widget that loads via ThumbnailManager (throttled, prioritized).
 class _CameraThumbnail extends StatefulWidget {
   final String url;
   final int index;
@@ -354,8 +350,6 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
     return Image.memory(
       _bytes!,
       fit: widget.fit,
-      // Decode at roughly display size so we don't keep the full JPEG
-      // decoded into RGBA bitmaps for each visible tile.
       cacheWidth: 320,
       gaplessPlayback: true,
     );

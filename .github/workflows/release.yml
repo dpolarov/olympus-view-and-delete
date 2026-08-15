@@ -59,7 +59,7 @@ jobs:
           [[ -n "$KEY_ALIAS" ]] || { echo "Missing ANDROID_KEY_ALIAS"; exit 1; }
           [[ -n "$KEY_PASSWORD" ]] || { echo "Missing ANDROID_KEY_PASSWORD"; exit 1; }
 
-      - name: Restore Android signing key
+      - name: Restore and verify Android signing key
         shell: bash
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -69,6 +69,10 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s' "$KEYSTORE_B64" | base64 --decode > android/app/olympus-release.jks
+          keytool -list \
+            -keystore android/app/olympus-release.jks \
+            -storepass "$STORE_PASSWORD" \
+            -alias "$KEY_ALIAS" >/dev/null
           cat > android/key.properties <<EOF
           storeFile=${GITHUB_WORKSPACE}/android/app/olympus-release.jks
           storePassword=${STORE_PASSWORD}
@@ -93,6 +97,11 @@ jobs:
             OlympusView-Android.apk
             OlympusView-Android.aab
           if-no-files-found: error
+
+      - name: Remove signing material
+        if: always()
+        shell: bash
+        run: rm -f android/app/olympus-release.jks android/key.properties
 
   web:
     name: Web ZIP

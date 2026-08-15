@@ -1,0 +1,151 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.44.7"
+
+concurrency:
+  group: flutter-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+  android:
+    name: Android APK
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: flutter build apk --release
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: OlympusView-Android
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  web:
+    name: Web
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Ensure Web platform scaffold
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f web/index.html ]]; then
+            flutter create --platforms=web --project-name olympus_tg6_manager .
+          fi
+
+      - run: flutter pub get
+      - run: flutter build web --release
+
+      - name: Package Web
+        shell: bash
+        run: |
+          cd build/web
+          zip -qr "$GITHUB_WORKSPACE/OlympusView-Web.zip" .
+
+      - name: Upload Web ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: OlympusView-Web
+          path: OlympusView-Web.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  windows:
+    name: Windows x64
+    needs: quality
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter config --enable-windows-desktop
+      - run: flutter pub get
+      - run: flutter build windows --release
+
+      - name: Package complete Windows runtime
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path "build/windows" -Recurse -Filter "*.exe" |
+            Where-Object { $_.FullName -match '[\\/]runner[\\/]Release[\\/]' } |
+            Select-Object -First 1
+          if (-not $exe) { throw "Could not find Flutter Windows release executable." }
+          Compress-Archive -Path "$($exe.Directory.FullName)\*" -DestinationPath "OlympusView-Windows-x64.zip" -Force
+
+      - name: Upload Windows ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: OlympusView-Windows-x64
+          path: OlympusView-Windows-x64.zip
+          if-no-files-found: error
+          retention-days: 14

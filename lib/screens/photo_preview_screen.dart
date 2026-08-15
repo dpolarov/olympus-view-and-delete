@@ -17,9 +17,7 @@ class PhotoPreviewScreen extends StatefulWidget {
   final CameraFile file;
   final List<CameraFile> files;
   final int initialIndex;
-  // Optional injection for tests — defaults to a real `CameraApi`.
   final CameraApi? api;
-  // Optional HTTP client injection for tests. Defaults to a new client.
   final http.Client? httpClient;
 
   const PhotoPreviewScreen({
@@ -36,23 +34,18 @@ class PhotoPreviewScreen extends StatefulWidget {
 }
 
 class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
-  // Number of neighbor pages to keep in memory on each side.
   static const int _keepNeighbors = kPreviewKeepNeighbors;
 
   late PageController _pageController;
   late int _currentIndex;
-  // Mutable local working copy so we never touch the caller's list.
   late List<CameraFile> _files;
-  // Paths that were deleted during this session (reported back to caller).
   final Set<String> _deletedPaths = {};
-  // Caches keyed by file path, not index — safe across deletions.
   final Map<String, Uint8List?> _imageCache = {};
   final Set<String> _loading = {};
   final Set<String> _error = {};
   late final http.Client _client;
   late final bool _ownsClient;
   late final CameraApi _api;
-  // Track whether we own the API and must dispose it.
   late final bool _ownsApi;
   bool _busy = false;
 
@@ -87,7 +80,6 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
     _evictFar(index);
   }
 
-  /// Drop cached bytes for pages far from [index] to bound memory.
   void _evictFar(int index) {
     if (_imageCache.isEmpty) return;
     final keep = <String>{};
@@ -128,7 +120,8 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
         backgroundColor: kBackgroundColor,
         title: const Text(AppStrings.deleteFiles),
         content: Text(
-            '${AppStrings.delete} ${file.filename} (${file.sizeHuman})?\n\nThis cannot be undone!'),
+          '${AppStrings.delete} ${file.filename} (${file.sizeHuman})?\n\nThis cannot be undone!',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -164,7 +157,6 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
           _currentIndex = newIndex;
           _busy = false;
         });
-        // Re-sync PageView — after removeAt the controller's page is stale.
         if (_pageController.hasClients) {
           _pageController.jumpToPage(newIndex);
         }
@@ -172,7 +164,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       } else {
         setState(() => _busy = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.delete} failed')),
+          const SnackBar(content: Text('${AppStrings.delete} failed')),
         );
       }
     } catch (e) {
@@ -196,7 +188,6 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
     });
 
     try {
-      // Try disk cache first
       final cached = await ImageDiskCache.instance.get(key, 'preview');
       if (!mounted) return;
       if (cached != null) {
@@ -221,8 +212,10 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       if (resp.statusCode == 200 && resp.bodyBytes.isNotEmpty) {
         final bytes = Uint8List.fromList(resp.bodyBytes);
         unawaited(ImageDiskCache.instance.put(key, 'preview', bytes).catchError(
-              (Object e) => AppLogger.debug('preview disk cache put failed: $e',
-                  name: 'photo_preview'),
+              (Object e) => AppLogger.debug(
+                'preview disk cache put failed: $e',
+                name: 'photo_preview',
+              ),
             ));
         setState(() {
           _imageCache[key] = bytes;
@@ -251,21 +244,18 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   @override
   Widget build(BuildContext context) {
     if (_files.isEmpty) {
-      // Last file was just deleted and Navigator.pop is pending — avoid
-      // indexing an empty list during the interim rebuild.
       return const Scaffold(backgroundColor: Colors.black);
     }
     final file = _files[_currentIndex];
     return PopScope(
       canPop: !_busy,
       onPopInvokedWithResult: (didPop, _) {
-        // Ensure caller gets the delete signal even if popped via system back.
         if (didPop) return;
       },
       child: Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          backgroundColor: Colors.black.withOpacity(0.7),
+          backgroundColor: Colors.black.withValues(alpha: 0.7),
           foregroundColor: Colors.white,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -293,17 +283,19 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Colors.white),
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
                 ),
               )
             else ...[
               IconButton(
-                icon: Icon(Icons.download, color: kAccentColor),
+                icon: const Icon(Icons.download, color: kAccentColor),
                 tooltip: AppStrings.downloadTooltip,
                 onPressed: _downloadCurrent,
               ),
               IconButton(
-                icon: Icon(Icons.delete, color: kErrorColor),
+                icon: const Icon(Icons.delete, color: kErrorColor),
                 tooltip: AppStrings.deleteTooltip,
                 onPressed: _deleteCurrent,
               ),
@@ -364,7 +356,6 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
                   child: Image.memory(
                     bytes,
                     fit: BoxFit.contain,
-                    // Decode at display resolution to reduce decoded-image memory.
                     cacheWidth: kPreviewImageSize,
                     gaplessPlayback: true,
                   ),

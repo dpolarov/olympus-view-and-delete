@@ -221,14 +221,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.0"
-  media_scanner:
-    dependency: "direct main"
-    description:
-      name: media_scanner
-      sha256: "491b5eb792e836d63b13662dae9fe1c998b5a8b258fa72e78cf5aa692eec4a6c"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.1"
   meta:
     dependency: transitive
     description:
@@ -302,7 +294,7 @@ packages:
     source: hosted
     version: "2.2.1"
   path_provider_platform_interface:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: path_provider_platform_interface
       sha256: "88f5779f72ba699763fa3a3b06aa4bf6de76c8e5de842cf6f29e2e06476c2334"
@@ -374,7 +366,7 @@ packages:
     source: hosted
     version: "3.1.6"
   plugin_platform_interface:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: plugin_platform_interface
       sha256: "4820fbfdb9478b1ebae27888254d445073732dae3d6ea81f0b7e06d5dedc3f02"
@@ -542,7 +534,7 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_linux
-      sha256: d5e14138b3bc193a0f63c10a53c94b91d399df0512b1f29b94a043db7482384a
+      sha256: d5e14138b3bc193a0f63c10a53c94b91d399df0512b1f29b94a043db7482384
       url: "https://pub.dev"
     source: hosted
     version: "3.2.2"

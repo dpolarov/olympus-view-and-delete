@@ -30,19 +30,24 @@ class BackgroundDownloadService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val itemsJson = intent?.getStringExtra(EXTRA_ITEMS_JSON)
-        if (itemsJson.isNullOrBlank()) {
+        val queuePath = intent?.getStringExtra(EXTRA_QUEUE_PATH)
+        if (queuePath.isNullOrBlank()) {
             stopSelf(startId)
             return START_NOT_STICKY
         }
 
-        if (isRunning) {
+        if (isRunning) return START_NOT_STICKY
+
+        val queueFile = File(queuePath)
+        val items = try {
+            JSONArray(queueFile.readText())
+        } catch (_: Exception) {
+            queueFile.delete()
             stopSelf(startId)
             return START_NOT_STICKY
         }
-
-        val items = JSONArray(itemsJson)
         if (items.length() == 0) {
+            queueFile.delete()
             stopSelf(startId)
             return START_NOT_STICKY
         }
@@ -75,6 +80,7 @@ class BackgroundDownloadService : Service() {
                     updateProgress(index + 1, items.length(), filename)
                 }
             } finally {
+                queueFile.delete()
                 isRunning = false
                 stopForegroundCompat()
                 showCompletionNotification(success, failed)
@@ -82,7 +88,7 @@ class BackgroundDownloadService : Service() {
             }
         }.start()
 
-        return START_NOT_STICKY
+        return START_REDELIVER_INTENT
     }
 
     override fun onDestroy() {
@@ -299,7 +305,7 @@ class BackgroundDownloadService : Service() {
         }
 
     companion object {
-        const val EXTRA_ITEMS_JSON = "items_json"
+        const val EXTRA_QUEUE_PATH = "queue_path"
         private const val CHANNEL_PROGRESS = "olympus_camera_downloads"
         private const val CHANNEL_COMPLETE = "olympus_camera_download_complete"
         private const val PROGRESS_NOTIFICATION_ID = 3101

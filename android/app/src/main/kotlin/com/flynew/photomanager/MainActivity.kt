@@ -110,8 +110,13 @@ class MainActivity : FlutterActivity() {
                             return@setMethodCallHandler
                         }
 
+                        val queueFile = File(cacheDir, "background_download_queue.json")
+                        queueFile.writeText(itemsJson)
                         val serviceIntent = Intent(this, BackgroundDownloadService::class.java)
-                            .putExtra(BackgroundDownloadService.EXTRA_ITEMS_JSON, itemsJson)
+                            .putExtra(
+                                BackgroundDownloadService.EXTRA_QUEUE_PATH,
+                                queueFile.absolutePath,
+                            )
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             startForegroundService(serviceIntent)
                         } else {
@@ -293,7 +298,7 @@ class MainActivity : FlutterActivity() {
             "gif" -> "image/gif"
             "webp" -> "image/webp"
             "heic", "heif" -> "image/heic"
-            "orf" -> "image/x-olymus-orf"
+            "orf" -> "image/x-olympus-orf"
             "dng" -> "image/x-adobe-dng"
             "raw" -> "image/x-raw"
             else -> "application/octet-stream"

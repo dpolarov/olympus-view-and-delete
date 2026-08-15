@@ -168,6 +168,17 @@ class _HomeScreenState extends State<HomeScreen>
       await AppUpdateService.openInstallSettings();
       return;
     }
+    final notifications = await Permission.notification.request();
+    if (!notifications.isGranted) {
+      if (mounted) {
+        _showSnack(_localizedText(
+          en: 'Notifications are required so Olympus View can tell you when the update is ready to install.',
+          ru: 'Разрешите уведомления, чтобы Olympus View сообщил, когда обновление будет готово к установке.',
+          uk: 'Дозвольте сповіщення, щоб Olympus View повідомив, коли оновлення буде готове до встановлення.',
+        ));
+      }
+      return;
+    }
     await AppUpdateService.startUpdateDownload(release);
     if (!mounted) return;
     _pendingUpdateAfterPermission = null;

@@ -71,6 +71,26 @@ android {
         versionName flutterVersionName
     }
 
+    // The GitHub APK may self-update from GitHub Releases. Google Play policy
+    // forbids Play-distributed apps from replacing themselves outside Play, so
+    // the Play flavor disables the updater and does not request install-package
+    // permission (that permission lives only in src/github/AndroidManifest.xml).
+    flavorDimensions "distribution"
+    productFlavors {
+        github {
+            dimension "distribution"
+            buildConfigField "boolean", "ALLOW_EXTERNAL_UPDATE", "true"
+        }
+        play {
+            dimension "distribution"
+            buildConfigField "boolean", "ALLOW_EXTERNAL_UPDATE", "false"
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
     signingConfigs {
         if (keystorePropertiesFile.exists()) {
             release {

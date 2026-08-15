@@ -1,4 +1,4 @@
-name: Flutter CI
+name: Flutter Android CI
 
 on:
   push:
@@ -13,7 +13,7 @@ env:
   FLUTTER_VERSION: "3.44.7"
 
 concurrency:
-  group: flutter-ci-${{ github.workflow }}-${{ github.ref }}
+  group: flutter-android-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -55,11 +55,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
-      # The CI artifact is never published. Real Release/Play workflows restore
-      # their signing keys and do not set this escape hatch.
+      # CI artifacts are never published. Real release builds restore
+      # the persistent Android signing key from repository secrets.
       ORG_GRADLE_PROJECT_allowDebugReleaseSigning: "true"
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -75,14 +76,18 @@ jobs:
           channel: stable
           cache: true
 
-      - run: flutter pub get
-      - run: flutter build apk --release
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build release APK
+        run: flutter build apk --release
 
       - name: Verify Android 16 KB page-size compatibility
         shell: bash
         run: bash scripts/check_android_16kb.sh
 
-      - run: flutter build appbundle --release
+      - name: Build release AAB
+        run: flutter build appbundle --release
 
       - name: Upload Android outputs
         uses: actions/upload-artifact@v6
@@ -91,81 +96,5 @@ jobs:
           path: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
-          retention-days: 14
-
-  web:
-    name: Web
-    needs: quality
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Ensure Web platform scaffold
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ ! -f web/index.html ]]; then
-            flutter create --platforms=web --project-name olympus_tg6_manager .
-          fi
-
-      - run: flutter pub get
-      - run: flutter build web --release
-
-      - name: Package Web
-        shell: bash
-        run: |
-          cd build/web
-          zip -qr "$GITHUB_WORKSPACE/OlympusView-Web.zip" .
-
-      - name: Upload Web ZIP
-        uses: actions/upload-artifact@v6
-        with:
-          name: OlympusView-Web
-          path: OlympusView-Web.zip
-          if-no-files-found: error
-          retention-days: 14
-
-  windows:
-    name: Windows x64
-    needs: quality
-    runs-on: windows-2022
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - run: flutter config --enable-windows-desktop
-      - run: flutter pub get
-      - run: flutter build windows --release
-
-      - name: Package complete Windows runtime
-        shell: pwsh
-        run: |
-          $exe = Get-ChildItem -Path "build/windows" -Recurse -Filter "*.exe" |
-            Where-Object { $_.FullName -match '[\\/]runner[\\/]Release[\\/]' } |
-            Select-Object -First 1
-          if (-not $exe) { throw "Could not find Flutter Windows release executable." }
-          Compress-Archive -Path "$($exe.Directory.FullName)\*" -DestinationPath "OlympusView-Windows-x64.zip" -Force
-
-      - name: Upload Windows ZIP
-        uses: actions/upload-artifact@v6
-        with:
-          name: OlympusView-Windows-x64
-          path: OlympusView-Windows-x64.zip
           if-no-files-found: error
           retention-days: 14

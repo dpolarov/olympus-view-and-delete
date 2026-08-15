@@ -2,14 +2,12 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:olympus_tg6_manager/services/image_cache.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:olympus_tg6_manager/services/image_cache.dart';
 
 import 'helpers/test_helpers.dart';
 
-/// [ImageDiskCache] is a singleton — we can't instantiate fresh instances
-/// between tests. Use unique keys per test to keep them isolated.
 String _uniqueKey(String tag) =>
     '/test/${tag}_${DateTime.now().microsecondsSinceEpoch}.JPG';
 
@@ -70,18 +68,14 @@ void main() {
   });
 
   test('exceeding maxImages evicts oldest key and deletes files', () async {
-    // Seed exactly maxImages entries, then add one more and verify the first
-    // one is gone from disk.
     final firstKey = _uniqueKey('evict_first');
     await ImageDiskCache.instance.put(firstKey, 'thumb', _bytes(8));
 
-    // Fill up to the cap minus what we just inserted.
     for (int i = 0; i < ImageDiskCache.maxImages; i++) {
       final k = _uniqueKey('evict_fill_$i');
       await ImageDiskCache.instance.put(k, 'thumb', _bytes(8));
     }
 
-    // After one more insert beyond the cap, the first (oldest) must be gone.
     expect(await ImageDiskCache.instance.get(firstKey, 'thumb'), isNull);
   });
 
@@ -89,17 +83,14 @@ void main() {
     final target = _uniqueKey('touched');
     await ImageDiskCache.instance.put(target, 'thumb', _bytes(8));
 
-    // Fill past the cap, but touch `target` after the first few writes so it
-    // moves to the MRU end.
     for (int i = 0; i < ImageDiskCache.maxImages + 5; i++) {
       if (i == 10) {
-        await ImageDiskCache.instance.get(target, 'thumb'); // touch
+        await ImageDiskCache.instance.get(target, 'thumb');
       }
       final k = _uniqueKey('touch_fill_$i');
       await ImageDiskCache.instance.put(k, 'thumb', _bytes(8));
     }
 
-    // With the touch at i=10, `target` should no longer be the oldest.
     expect(await ImageDiskCache.instance.get(target, 'thumb'), isNotNull);
   });
 }

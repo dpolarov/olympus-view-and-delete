@@ -1,0 +1,30 @@
+name: Patch update changelog dialog
+
+on:
+  push:
+    branches: [agent/update-dialog-changelog]
+    paths:
+      - ".github/workflows/patch-update-changelog-dialog.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/update-dialog-changelog
+      - name: Patch dialog
+        run: python3 .github/scripts/patch_update_changelog_dialog.py
+      - name: Commit dialog update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/screens/home_screen.dart
+          git diff --cached --quiet && exit 0
+          git commit -m "Show release changelog in update dialog"
+          git push

@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APK_PATH="${1:-build/app/outputs/flutter-apk/app-release.apk}"
+
+if [[ ! -f "$APK_PATH" ]]; then
+  echo "APK not found: $APK_PATH" >&2
+  exit 1
+fi
+
+ZIPALIGN="$(find "${ANDROID_HOME:?ANDROID_HOME is not set}/build-tools" -type f -name zipalign -print | sort -V | tail -n 1)"
+if [[ -z "$ZIPALIGN" ]]; then
+  echo "zipalign not found in Android SDK" >&2
+  exit 1
+fi
+
+echo "Checking APK ZIP alignment with: $ZIPALIGN"
+"$ZIPALIGN" -c -P 16 -v 4 "$APK_PATH"
+
+OBJDUMP="$(find "$ANDROID_HOME/ndk" -type f -name llvm-objdump -print | sort -V | tail -n 1)"
+if [[ -z "$OBJDUMP" ]]; then
+  echo "llvm-objdump not found in Android NDK" >&2
+  exit 1
+fi
+
+echo "Checking ELF LOAD alignment with: $OBJDUMP"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+unzip -q "$APK_PATH" 'lib/*/*.so' -d "$TMP_DIR" || true
+
+mapfile -t LIBS < <(find "$TMP_DIR/lib" -type f -name '*.so' 2>/dev/null | sort)
+if [[ ${#LIBS[@]} -eq 0 ]]; then
+  echo "No native shared libraries found in APK."
+  exit 0
+fi
+
+FAILED=0
+for LIB in "${LIBS[@]}"; do
+  if "$OBJDUMP" -p "$LIB" | grep -E 'LOAD.*align 2\*\*([0-9]|1[0-3])' >/dev/null; then
+    echo "ERROR: $(basename "$LIB") contains a LOAD segment aligned below 16 KB" >&2
+    "$OBJDUMP" -p "$LIB" | grep 'LOAD' >&2 || true
+    FAILED=1
+  else
+    echo "OK: ${LIB#"$TMP_DIR/"}"
+  fi
+done
+
+if [[ $FAILED -ne 0 ]]; then
+  echo "One or more native libraries are not 16 KB page-size compatible." >&2
+  exit 1
+fi
+
+echo "Android 16 KB page-size checks passed."

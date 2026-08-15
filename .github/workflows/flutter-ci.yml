@@ -42,10 +42,10 @@ jobs:
         run: flutter test
 
   android:
-    name: Android APK
+    name: Android APK and AAB
     needs: quality
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
 
@@ -66,11 +66,19 @@ jobs:
       - run: flutter pub get
       - run: flutter build apk --release
 
-      - name: Upload Android APK
+      - name: Verify Android 16 KB page-size compatibility
+        shell: bash
+        run: bash scripts/check_android_16kb.sh
+
+      - run: flutter build appbundle --release
+
+      - name: Upload Android outputs
         uses: actions/upload-artifact@v4
         with:
           name: OlympusView-Android
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 14
 

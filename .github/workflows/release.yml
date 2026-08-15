@@ -1,0 +1,180 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_VERSION: "3.44.7"
+
+jobs:
+  quality:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  android:
+    name: Android APK and AAB
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Validate signing secrets
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          [[ -n "$KEYSTORE_B64" ]] || { echo "Missing ANDROID_KEYSTORE_BASE64"; exit 1; }
+          [[ -n "$STORE_PASSWORD" ]] || { echo "Missing ANDROID_KEYSTORE_PASSWORD"; exit 1; }
+          [[ -n "$KEY_ALIAS" ]] || { echo "Missing ANDROID_KEY_ALIAS"; exit 1; }
+          [[ -n "$KEY_PASSWORD" ]] || { echo "Missing ANDROID_KEY_PASSWORD"; exit 1; }
+
+      - name: Restore Android signing key
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > android/app/olympus-release.jks
+          cat > android/key.properties <<EOF
+          storeFile=${GITHUB_WORKSPACE}/android/app/olympus-release.jks
+          storePassword=${STORE_PASSWORD}
+          keyAlias=${KEY_ALIAS}
+          keyPassword=${KEY_PASSWORD}
+          EOF
+
+      - run: flutter pub get
+      - run: flutter build apk --release
+      - run: flutter build appbundle --release
+
+      - name: Stage Android files
+        shell: bash
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk OlympusView-Android.apk
+          cp build/app/outputs/bundle/release/app-release.aab OlympusView-Android.aab
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-android
+          path: |
+            OlympusView-Android.apk
+            OlympusView-Android.aab
+          if-no-files-found: error
+
+  web:
+    name: Web ZIP
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Ensure Web platform scaffold
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f web/index.html ]]; then
+            flutter create --platforms=web --project-name olympus_tg6_manager .
+          fi
+      - run: flutter pub get
+      - run: flutter build web --release
+      - name: Package Web
+        shell: bash
+        run: |
+          cd build/web
+          zip -qr "$GITHUB_WORKSPACE/OlympusView-Web.zip" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-web
+          path: OlympusView-Web.zip
+          if-no-files-found: error
+
+  windows:
+    name: Windows ZIP
+    needs: quality
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter config --enable-windows-desktop
+      - run: flutter pub get
+      - run: flutter build windows --release
+      - name: Package complete Windows runtime
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path "build/windows" -Recurse -Filter "*.exe" |
+            Where-Object { $_.FullName -match '[\\/]runner[\\/]Release[\\/]' } |
+            Select-Object -First 1
+          if (-not $exe) { throw "Could not find Flutter Windows release executable." }
+          Compress-Archive -Path "$($exe.Directory.FullName)\*" -DestinationPath "OlympusView-Windows-x64.zip" -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: OlympusView-Windows-x64.zip
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release
+    needs: [android, web, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create "$GITHUB_REF_NAME" \
+            dist/OlympusView-Android.apk \
+            dist/OlympusView-Android.aab \
+            dist/OlympusView-Windows-x64.zip \
+            dist/OlympusView-Web.zip \
+            --title "Olympus View $GITHUB_REF_NAME" \
+            --generate-notes

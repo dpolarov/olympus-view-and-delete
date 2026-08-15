@@ -1,4 +1,4 @@
-name: Apply Flutter background feature integration
+name: Apply Android background queue hardening
 
 on:
   push:
@@ -17,23 +17,22 @@ jobs:
         with:
           ref: agent/android-background-update-downloads
 
-      - name: Patch Flutter sources
-        run: python3 .github/scripts/apply_background_features.py
+      - name: Harden Android background queue
+        run: python3 .github/scripts/fix_android_background.py
 
-      - name: Validate source patch
+      - name: Validate Android patch
         run: |
-          grep -q 'downloadHistoryKey' lib/services/camera_api.dart
-          grep -q 'onFileSaved' lib/services/camera_api.dart
-          grep -q 'downloadedKeys: _downloadedKeys' lib/screens/home_screen.dart
-          grep -q 'Download mode' lib/screens/home_screen.dart
-          grep -q 'Icons.download_done' lib/widgets/photo_grid.dart
+          grep -q 'EXTRA_QUEUE_PATH' android/app/src/main/kotlin/com/flynew/photomanager/BackgroundDownloadService.kt
+          grep -q 'START_REDELIVER_INTENT' android/app/src/main/kotlin/com/flynew/photomanager/BackgroundDownloadService.kt
+          grep -q 'background_download_queue.json' android/app/src/main/kotlin/com/flynew/photomanager/MainActivity.kt
+          grep -q 'image/x-olympus-orf' android/app/src/main/kotlin/com/flynew/photomanager/MainActivity.kt
 
-      - name: Commit source integration
+      - name: Commit Android hardening
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add lib
+          git add android
           git diff --cached --quiet && exit 0
-          git commit -m "Integrate background downloads and update UI"
+          git commit -m "Harden Android background download queue"
           git push

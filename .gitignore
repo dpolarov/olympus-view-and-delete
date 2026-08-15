@@ -41,6 +41,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/local.properties
 
 # Gradle cache (should never be committed)
 /android/.gradle/
@@ -53,11 +54,8 @@ app.*.map.json
 # Local working notes (not part of the release)
 /plan.md
 
-# Windows build
+# Generated platform intermediates
 /windows/flutter/ephemeral/
-
-# Web build
-/web/
 
 # External projects
 /olympus-wifi/

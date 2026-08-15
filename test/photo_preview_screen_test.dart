@@ -3,15 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:olympus_tg6_manager/screens/photo_preview_screen.dart';
 import 'package:olympus_tg6_manager/services/camera_api.dart';
 import 'package:olympus_tg6_manager/services/image_cache.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'helpers/test_helpers.dart';
 
-/// Stub API — short-circuits delete/download so tests never hit the network.
 class _FakeApi extends CameraApi {
   bool shouldSucceed = true;
   final List<String> deletedPaths = [];
@@ -31,14 +30,9 @@ class _FakeApi extends CameraApi {
   Future<List<int>> downloadFile(CameraFile file) async => const <int>[];
 
   @override
-  void dispose() {
-    // Owned by the test, not the widget.
-  }
+  void dispose() {}
 }
 
-/// Client that returns an empty body for every request, causing
-/// `_loadImage` to mark the page as error and resolve immediately —
-/// avoiding any real network I/O during tests.
 http.Client _makeMockClient() => fixedResponseClient(status: 204);
 
 CameraFile _file(String name) => CameraFile(
@@ -66,16 +60,11 @@ Future<void> _pumpPreview(
       httpClient: _makeMockClient(),
     ),
   ));
-  // Drain the stubbed HTTP responses and their setState follow-ups.
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 10));
   await tester.pump();
 }
 
-/// Replacement for `pumpAndSettle` for screens that always show an animating
-/// progress indicator. We can't wait for "no frames scheduled" so instead
-/// pump a few synthetic frames with small time deltas to let async work
-/// (futures, microtasks, page animation) complete.
 Future<void> _settle(WidgetTester tester, {int frames = 8}) async {
   for (int i = 0; i < frames; i++) {
     await tester.pump(const Duration(milliseconds: 50));
@@ -121,13 +110,11 @@ void main() {
     final api = _FakeApi();
     await _pumpPreview(tester, files: files, initialIndex: 1, api: api);
 
-    // Tap delete → confirm.
     await tester.tap(find.byTooltip('Delete'));
     await _settle(tester);
     await tester.tap(find.text('DELETE'));
     await _settle(tester);
 
-    // Caller's list stays intact; only the screen's internal copy changes.
     expect(files.map((f) => f.filename), ['A.JPG', 'B.JPG', 'C.JPG']);
     expect(api.deletedPaths, ['/DCIM/100OLYMP/B.JPG']);
   });
@@ -144,10 +131,8 @@ void main() {
     await tester.tap(find.text('DELETE'));
     await _settle(tester);
 
-    // After B is gone: list is [A, C], current index stays 1 → shows C.
     expect(find.text('C.JPG'), findsOneWidget);
     expect(find.text('2/2'), findsOneWidget);
-    // B must NOT be visible anywhere in the header.
     expect(find.text('B.JPG'), findsNothing);
   });
 
@@ -162,7 +147,6 @@ void main() {
     await tester.tap(find.text('DELETE'));
     await _settle(tester);
 
-    // C deleted → list is [A, B]; current index clamps to 1 → shows B.
     expect(find.text('B.JPG'), findsOneWidget);
     expect(find.text('2/2'), findsOneWidget);
   });
@@ -217,7 +201,6 @@ void main() {
     await tester.tap(find.text('DELETE'));
     await _settle(tester);
 
-    // B is still the current page; count is still 3.
     expect(find.text('B.JPG'), findsOneWidget);
     expect(find.text('2/3'), findsOneWidget);
   });
@@ -232,7 +215,6 @@ void main() {
     );
     expect(find.text('A.JPG'), findsOneWidget);
 
-    // Swipe left (go to next page).
     await tester.drag(find.byType(PageView), const Offset(-500, 0));
     await _settle(tester);
 

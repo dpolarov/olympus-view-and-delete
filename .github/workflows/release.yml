@@ -10,6 +10,7 @@ permissions:
 
 env:
   FLUTTER_VERSION: "3.44.7"
+  EXPECTED_ANDROID_CERT_SHA256: "3786a41c932c63183fc36dd388cb6be397775392d3bf6e7f4fb16dc28cae841e"
 
 jobs:
   quality:
@@ -69,10 +70,31 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s' "$KEYSTORE_B64" | base64 --decode > android/app/olympus-release.jks
+
           keytool -list \
             -keystore android/app/olympus-release.jks \
             -storepass "$STORE_PASSWORD" \
             -alias "$KEY_ALIAS" >/dev/null
+
+          actual_cert_sha256="$(
+            keytool -list -v \
+              -keystore android/app/olympus-release.jks \
+              -storepass "$STORE_PASSWORD" \
+              -alias "$KEY_ALIAS" \
+            | sed -n 's/.*SHA256: //p' \
+            | head -n 1 \
+            | tr -d ':' \
+            | tr '[:upper:]' '[:lower:]'
+          )"
+
+          echo "Signing certificate SHA-256: $actual_cert_sha256"
+          if [[ "$actual_cert_sha256" != "$EXPECTED_ANDROID_CERT_SHA256" ]]; then
+            echo "ERROR: wrong Android signing certificate."
+            echo "Expected: $EXPECTED_ANDROID_CERT_SHA256"
+            echo "Actual:   $actual_cert_sha256"
+            exit 1
+          fi
+
           cat > android/key.properties <<EOF
           storeFile=${GITHUB_WORKSPACE}/android/app/olympus-release.jks
           storePassword=${STORE_PASSWORD}

@@ -37,8 +37,17 @@ fi
 
 FAILED=0
 for LIB in "${LIBS[@]}"; do
-  if "$OBJDUMP" -p "$LIB" | grep -E 'LOAD.*align 2\*\*([0-9]|1[0-3])' >/dev/null; then
-    echo "ERROR: $(basename "$LIB") contains a LOAD segment aligned below 16 KB" >&2
+  LIB_FAILED=0
+  while IFS= read -r LINE; do
+    EXPONENT="$(sed -n 's/.*align 2\*\*\([0-9][0-9]*\).*/\1/p' <<<"$LINE")"
+    if [[ -n "$EXPONENT" ]] && (( EXPONENT < 14 )); then
+      LIB_FAILED=1
+      break
+    fi
+  done < <("$OBJDUMP" -p "$LIB" | grep 'LOAD' || true)
+
+  if [[ $LIB_FAILED -ne 0 ]]; then
+    echo "ERROR: ${LIB#"$TMP_DIR/"} contains a LOAD segment aligned below 16 KB" >&2
     "$OBJDUMP" -p "$LIB" | grep 'LOAD' >&2 || true
     FAILED=1
   else

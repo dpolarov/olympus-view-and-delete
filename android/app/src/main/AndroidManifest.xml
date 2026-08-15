@@ -6,6 +6,11 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
 
+    <!-- User-initiated camera transfers continue while the app is backgrounded. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <!-- Android 13+: camera WiFi connection is a Nearby Devices capability,
          not a location feature. Olympus View never derives physical location
          from nearby WiFi information. -->
@@ -53,6 +58,13 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".BackgroundDownloadService"
+            android:exported="false"
+            android:stopWithTask="false"
+            android:foregroundServiceType="connectedDevice"/>
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

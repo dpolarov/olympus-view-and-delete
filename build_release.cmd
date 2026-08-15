@@ -19,13 +19,13 @@ if not exist "%FLUTTER%" (
 if not exist "%RELEASES%" mkdir "%RELEASES%"
 
 echo ========================================
-echo  Olympus View - Android Release Build
+echo  Olympus View - GitHub Android Release
 echo ========================================
 echo.
 
-rem Prefer an explicitly configured android\key.properties. If it is absent,
-rem use the legacy Android debug keystore only when its certificate exactly
-rem matches the certificate used by the already-published Olympus View APKs.
+rem Local GitHub APK updates must use the same certificate as the APKs that
+rem are already installed by users. Prefer an explicit android\key.properties.
+rem If it is absent, use the known legacy key only after verifying its SHA-256.
 if exist "%KEY_PROPERTIES%" (
   echo [signing] Using existing android\key.properties
 ) else (
@@ -71,41 +71,30 @@ if exist "%KEY_PROPERTIES%" (
 )
 
 echo.
-echo [1/6] Resolving dependencies...
+echo [1/4] Resolving dependencies...
 call "%FLUTTER%" pub get
 if errorlevel 1 goto :failed
 
 echo.
-echo [2/6] Building signed GitHub APK...
+echo [2/4] Building signed GitHub APK...
 call "%FLUTTER%" build apk --flavor github --release --obfuscate --split-debug-info=build/symbols
 if errorlevel 1 goto :failed
 
 echo.
-echo [3/6] Copying GitHub APK...
+echo [3/4] Copying APK...
 copy /Y "%PROJECT%\build\app\outputs\flutter-apk\app-github-release.apk" "%RELEASES%\OlympusView-Android.apk" >nul
 if errorlevel 1 goto :failed
 
 echo.
-echo [4/6] Building signed Google Play AAB...
-call "%FLUTTER%" build appbundle --flavor play --release --obfuscate --split-debug-info=build/symbols
-if errorlevel 1 goto :failed
-
-echo.
-echo [5/6] Copying Google Play AAB...
-copy /Y "%PROJECT%\build\app\outputs\bundle\playRelease\app-play-release.aab" "%RELEASES%\OlympusView-Android.aab" >nul
-if errorlevel 1 goto :failed
-
-echo.
-echo [6/6] Done.
+echo [4/4] Done.
 echo ========================================
-echo  Android release files
+echo  Android release file
 echo ========================================
-dir /B "%RELEASES%\OlympusView-Android.apk"
-dir /B "%RELEASES%\OlympusView-Android.aab"
-echo.
 echo APK: %RELEASES%\OlympusView-Android.apk
-echo AAB: %RELEASES%\OlympusView-Android.aab
 echo Symbols: %PROJECT%\build\symbols
+echo.
+echo NOTE: Google Play AAB is intentionally not built by this script.
+echo       It must use the separate Play upload key via the "Google Play AAB" workflow.
 set "EXIT_CODE=0"
 goto :cleanup
 

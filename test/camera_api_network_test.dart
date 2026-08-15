@@ -35,7 +35,6 @@ void main() {
     test('timeout yields empty list', () async {
       final api = CameraApi(
         client: MockClient((_) async {
-          // Never completes within the request timeout window.
           await Future<void>.delayed(const Duration(seconds: 30));
           return http.Response('', 200);
         }),
@@ -46,16 +45,14 @@ void main() {
 
   group('CameraApi.listImages — parsing', () {
     test('parses valid records and skips malformed/short lines', () async {
-      // Valid FAT date: 2024-06-15 → ((44<<9)|(6<<5)|15) = 22735, time 0 invalid
-      // (seconds ok, hour 0). Use a known-good encoding.
-      const date = (44 << 9) | (6 << 5) | 15; // 2024-06-15
-      const time = (12 << 11); // 12:00:00
+      const date = (44 << 9) | (6 << 5) | 15;
+      const time = (12 << 11);
       final body = [
-        'VER,100', // header line, skipped
+        'VER,100',
         '/DCIM/100OLYMP,P1.JPG,2048,0,$date,$time',
-        'too,few,fields', // < 6 parts, skipped
-        '/DCIM/100OLYMP,BAD.JPG,notanumber,0,$date,$time', // parse error, skipped
-        '/DCIM/100OLYMP,HID.JPG,100,2,$date,$time', // hidden attr, skipped
+        'too,few,fields',
+        '/DCIM/100OLYMP,BAD.JPG,notanumber,0,$date,$time',
+        '/DCIM/100OLYMP,HID.JPG,100,2,$date,$time',
       ].join('\r\n');
 
       final api = _apiReturning((_) => http.Response(body, 200));
@@ -65,9 +62,8 @@ void main() {
     });
 
     test('skips records with corrupt FAT dates', () async {
-      // month 0 → decodeFatDateTime returns null → record skipped.
-      const badDate = (44 << 9) | 1; // month 0, day 1
-      final body = '/DCIM/100OLYMP,X.JPG,100,0,$badDate,0';
+      const badDate = (44 << 9) | 1;
+      const body = '/DCIM/100OLYMP,X.JPG,100,0,$badDate,0';
       final api = _apiReturning((_) => http.Response(body, 200));
       expect(await api.listImages('/DCIM'), isEmpty);
     });
@@ -97,7 +93,6 @@ void main() {
 
   group('CameraApi.deleteFiles', () {
     test('aggregates success and failure counts', () async {
-      // Fail any request for P2.JPG, succeed otherwise.
       final api = _apiReturning((req) {
         if (req.url.toString().contains('P2.JPG')) {
           return http.Response('', 500);
@@ -113,7 +108,6 @@ void main() {
   });
 }
 
-/// A simple throwable to simulate a network failure without importing dart:io.
 class SocketExceptionLike implements Exception {
   const SocketExceptionLike();
   @override

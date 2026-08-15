@@ -92,7 +92,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
           ),
           const SizedBox(height: 16),
           const Text(
-            'Filter by Date', // TODO: локализация
+            'Filter by Date',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
@@ -101,7 +101,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
               shrinkWrap: true,
               children: [
                 _DateTile(
-                  label: 'All dates', // TODO: локализация
+                  label: 'All dates',
                   count: widget.files.length,
                   active: widget.selectedDate == null && _from == null,
                   onTap: () => widget.onDateSelected(null),
@@ -119,7 +119,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                 const Divider(color: kBorderColor),
                 const SizedBox(height: 8),
                 Text(
-                  'Date Range', // TODO: локализация
+                  'Date Range',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -139,7 +139,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                         child: Text(
                           _from != null
                               ? _from.toString().substring(0, 10)
-                              : 'From...', // TODO: локализация
+                              : 'From...',
                           style: const TextStyle(fontSize: 14),
                         ),
                       ),
@@ -159,7 +159,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                         child: Text(
                           _to != null
                               ? _to.toString().substring(0, 10)
-                              : 'To...', // TODO: локализация
+                              : 'To...',
                           style: const TextStyle(fontSize: 14),
                         ),
                       ),
@@ -175,7 +175,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     child: Text(
-                      'Apply Range' // TODO: локализация
+                      'Apply Range'
                       '${(_from != null && _to != null) ? ' (${CameraApi.filterByDateRange(widget.files, _from, _to).length} files)' : ''}',
                       style: const TextStyle(color: Colors.white),
                     ),
@@ -213,14 +213,16 @@ class _DateTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: active ? kPrimaryColor.withOpacity(0.15) : null,
+          color: active ? kPrimaryColor.withValues(alpha: 0.15) : null,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label, style: const TextStyle(fontSize: 15)),
-            Text('$count files', // TODO: локализация
-                style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+            Text(
+              '$count files',
+              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+            ),
           ],
         ),
       ),

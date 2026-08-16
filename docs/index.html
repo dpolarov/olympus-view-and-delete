@@ -785,7 +785,7 @@
             <li><strong>Downloaded-file markers</strong> <span class="vs">— see what was already copied even after restarting</span></li>
             <li><strong>RAW/ORF filter</strong> <span class="vs">— OI.Share shows all duplicates</span></li>
             <li><strong>Works on Windows and in browser</strong> <span class="vs">— OI.Share is mobile only</span></li>
-            <li><strong>Open source</strong> <span class="vs">— OI.Share is closed and no longer updated</span></li>
+            <li><strong>Open source</strong> <span class="vs">— OI.Share is proprietary</span></li>
         </ul>
     </div>
 
@@ -1070,7 +1070,7 @@
             <li><strong>Позначки вже завантажених файлів</strong> <span class="vs">— видно навіть після перезапуску</span></li>
             <li><strong>Фільтр RAW/ORF файлів</strong> <span class="vs">— OI.Share показує всі дублі</span></li>
             <li><strong>Працює на Windows та у браузері</strong> <span class="vs">— OI.Share лише мобільний</span></li>
-            <li><strong>Відкритий вихідний код</strong> <span class="vs">— OI.Share закритий і більше не оновлюється</span></li>
+            <li><strong>Відкритий вихідний код</strong> <span class="vs">— OI.Share має закритий вихідний код</span></li>
         </ul>
     </div>
 
@@ -1339,7 +1339,7 @@
             <li><strong>Метки уже скачанных файлов</strong> <span class="vs">— видны даже после перезапуска</span></li>
             <li><strong>Фильтр RAW/ORF файлов</strong> <span class="vs">— OI.Share показывает все дубли</span></li>
             <li><strong>Работает на Windows и в браузере</strong> <span class="vs">— OI.Share только мобильное</span></li>
-            <li><strong>Открытый исходный код</strong> <span class="vs">— OI.Share закрытый и больше не обновляется</span></li>
+            <li><strong>Открытый исходный код</strong> <span class="vs">— у OI.Share закрытый исходный код</span></li>
         </ul>
     </div>
 
@@ -1616,9 +1616,14 @@ const langMeta = {
 
 function switchLang(lang) {
     document.querySelectorAll('.lang-section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.lang-bar button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.lang-bar button').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+    });
     document.getElementById('lang-' + lang).classList.add('active');
-    document.querySelector('.lang-bar button[onclick*="\'' + lang + '\'"]').classList.add('active');
+    const activeButton = document.querySelector('.lang-bar button[onclick*="\'' + lang + '\'"]');
+    activeButton.classList.add('active');
+    activeButton.setAttribute('aria-pressed', 'true');
 
     // Update html lang attribute for accessibility & SEO crawlers
     document.documentElement.lang = langMeta[lang].htmlLang;

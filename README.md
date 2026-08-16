@@ -116,8 +116,9 @@ flutter build web --release
 5. **Long press** — enter file selection mode
 6. **Date button** — select all files for the same dates
 7. **RAW button** — show/hide ORF files
-8. **Download button** — download selected files
-9. **Delete button** — delete selected files from the camera
+8. **Download button** — download selected files; on Android choose **On screen** or **Background**
+9. Successfully downloaded files remain marked in green after restarting the app
+10. **Delete button** — delete selected files from the camera
 
 ## Camera Protocol (OPC)
 
@@ -261,8 +262,9 @@ flutter build web --release
 5. **Довге натискання** — режим вибору файлів
 6. **Кнопка дати** — виділити усі файли за ті самі дати
 7. **Кнопка RAW** — показати/приховати ORF файли
-8. **Кнопка завантаження** — завантажити вибрані файли
-9. **Кнопка видалення** — видалити вибрані файли з камери
+8. **Кнопка завантаження** — завантажити вибрані файли; на Android виберіть **На екрані** або **У фоні**
+9. Успішно завантажені файли залишаються позначеними зеленим після перезапуску
+10. **Кнопка видалення** — видалити вибрані файли з камери
 
 ## Ліцензія
 
@@ -377,8 +379,9 @@ flutter build web --release
 5. **Долгое нажатие** — режим выбора файлов
 6. **Кнопка 📅** — выделить все файлы за те же даты
 7. **Кнопка RAW** — показать/скрыть ORF файлы
-8. **Кнопка ⬇️** — скачать выбранные файлы
-9. **Кнопка 🗑️** — удалить выбранные файлы с камеры
+8. **Кнопка ⬇️** — скачать выбранные файлы; на Android выберите **На экране** или **В фоне**
+9. Успешно скачанные файлы остаются отмеченными зелёным после перезапуска
+10. **Кнопка 🗑️** — удалить выбранные файлы с камеры
 
 ## Протокол камеры (OPC)
 

@@ -140,17 +140,23 @@ if exist "%KEY_PROPERTIES%" (
 )
 
 echo.
-echo [1/5] Resolving dependencies...
+echo [1/6] Cleaning Flutter build cache...
+rem This is intentional for release builds. A stale incremental AOT artifact can
+rem otherwise produce a new Android manifest around an older libapp.so.
+call "%FLUTTER%" clean
+if errorlevel 1 goto :failed
+
+echo.
+echo [2/6] Resolving dependencies...
 call "%FLUTTER%" pub get
 if errorlevel 1 goto :failed
 
 echo.
-echo [2/5] Removing stale APK outputs...
-if exist "%BUILT_APK%" del /Q "%BUILT_APK%"
+echo [3/6] Removing stale release copy...
 if exist "%RELEASE_APK%" del /Q "%RELEASE_APK%"
 
 echo.
-echo [3/5] Building signed GitHub APK !BUILD_NAME! build !BUILD_NUMBER!...
+echo [4/6] Building signed GitHub APK !BUILD_NAME! build !BUILD_NUMBER!...
 call "%FLUTTER%" build apk --flavor github --release --build-name !BUILD_NAME! --build-number !BUILD_NUMBER! --dart-define=OLYMPUS_BUILD_TIME_UTC=!BUILD_TIME_UTC! --dart-define=OLYMPUS_GIT_COMMIT=!GIT_COMMIT! --dart-define=OLYMPUS_FLUTTER_VERSION=!BUILD_FLUTTER_VERSION! --obfuscate --split-debug-info=build/symbols
 if errorlevel 1 goto :failed
 if not exist "%BUILT_APK%" (
@@ -160,7 +166,7 @@ if not exist "%BUILT_APK%" (
 )
 
 echo.
-echo [4/5] Verifying APK version...
+echo [5/6] Verifying APK manifest version...
 set "AAPT="
 where aapt >nul 2>nul
 if not errorlevel 1 (
@@ -211,7 +217,7 @@ if defined AAPT (
 )
 
 echo.
-echo [5/5] Copying APK...
+echo [6/6] Copying APK...
 copy /Y "%BUILT_APK%" "%RELEASE_APK%" >nul
 if errorlevel 1 goto :failed
 

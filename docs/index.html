@@ -17,7 +17,8 @@
 
     <!-- ===== PRIMARY SEO ===== -->
     <title>Olympus View — WiFi File Manager for Olympus &amp; OM System | Delete Photos, OI.Share Alternative</title>
-    <meta name="description" content="Free open-source app to manage Olympus and OM System cameras via WiFi. Delete photos directly from your camera, batch download by date, filter RAW files. Works on Android, Windows and browser. Best OI.Share alternative.">
+    <meta name="description" content="Free open-source app to manage Olympus and OM System cameras via WiFi. Delete photos, background-download on Android, remember downloaded files, batch by date and filter RAW.">
+    <meta name="theme-color" content="#060d1b">
     <meta name="keywords" content="Olympus WiFi app, delete photos from Olympus camera, OI.Share alternative, OM System file manager, Olympus camera WiFi, delete files from camera, Olympus TG-6 WiFi, OM-1 WiFi app, batch download Olympus, RAW filter camera">
     <meta name="robots" content="index, follow">
     <meta name="author" content="Olympus View">
@@ -67,7 +68,7 @@
       "codeRepository": "https://github.com/dpolarov/olympus-view-and-delete",
       "softwareVersion": "1.3.2",
       "datePublished": "2026-03-15",
-      "dateModified": "2026-08-15",
+      "dateModified": "2026-08-16",
       "license": "https://opensource.org/licenses/MIT",
       "offers": {
         "@type": "Offer",
@@ -81,6 +82,8 @@
       "featureList": [
         "Delete files directly from Olympus camera via WiFi",
         "Batch download photos by date",
+        "Background downloads on Android with completion notifications",
+        "Persistent markers for files already downloaded",
         "RAW/ORF file filter",
         "QR code WiFi connection (OIS1, OIS3)",
         "Multi-platform: Android, Windows, Web browser"
@@ -519,18 +522,10 @@
             .screenshot { max-width: 260px; }
             .feedback-form { padding: 20px; }
         }
-    </style>
-
-
-<!-- Typography -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-<style>
+    
   /* ===== Polish overrides (v1.2.0) ===== */
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
     font-feature-settings: 'cv02','cv03','cv04','cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -669,7 +664,7 @@
 
   /* Code block: softer, mono font, copy button */
   .code-block {
-    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.88rem;
     background: #060b18;
     border-radius: 10px;
@@ -730,20 +725,35 @@
     pointer-events: none;
   }
   .hero > * { position: relative; z-index: 1; }
+
+
+  :root { color-scheme: dark; }
+  @media (max-width: 520px) {
+    .lang-bar { padding-left: 48px; padding-right: 48px; gap: 4px; }
+    .lang-bar button { padding: 6px 9px; font-size: 0.78rem; }
+    .lang-bar .brand { left: 14px; }
+    .github-link { right: 14px; }
+    .hero { padding: 72px 16px 56px; }
+    .hero-badges .badge { width: 100%; max-width: 320px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  }
+
 </style>
 
 </head>
 <body>
 
 <!-- Language switcher -->
-<nav class="lang-bar">
+<nav class="lang-bar" aria-label="Language and project navigation">
     <a href="#" class="brand">
         <span class="brand-dot"></span>
         <span class="brand-label">Olympus View</span>
     </a>
-    <button class="active" onclick="switchLang('en')">English</button>
-    <button onclick="switchLang('uk')">Українська</button>
-    <button onclick="switchLang('ru')">Русский</button>
+    <button type="button" class="active" aria-pressed="true" onclick="switchLang('en')">English</button>
+    <button type="button" aria-pressed="false" onclick="switchLang('uk')">Українська</button>
+    <button type="button" aria-pressed="false" onclick="switchLang('ru')">Русский</button>
     <a href="https://github.com/dpolarov/olympus-view-and-delete" class="github-link" target="_blank" rel="noopener">
         <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         <span class="gh-label">GitHub</span>
@@ -771,6 +781,8 @@
         <ul>
             <li><strong>Delete files from camera</strong> <span class="vs">— OI.Share cannot delete photos</span></li>
             <li><strong>Batch download by date</strong> <span class="vs">— OI.Share only allows one by one</span></li>
+            <li><strong>Background downloads on Android</strong> <span class="vs">— keep transferring with the app minimized or screen off</span></li>
+            <li><strong>Downloaded-file markers</strong> <span class="vs">— see what was already copied even after restarting</span></li>
             <li><strong>RAW/ORF filter</strong> <span class="vs">— OI.Share shows all duplicates</span></li>
             <li><strong>Works on Windows and in browser</strong> <span class="vs">— OI.Share is mobile only</span></li>
             <li><strong>Open source</strong> <span class="vs">— OI.Share is closed and no longer updated</span></li>
@@ -821,6 +833,16 @@
             <p>Download groups of files with progress. On Android photos appear in gallery immediately.</p>
         </div>
         <div class="feature-card">
+            <div class="feature-icon">⏬</div>
+            <h3>Background Download</h3>
+            <p>On Android, transfers keep running while Olympus View is minimized or the screen is off. Progress and completion are shown in system notifications.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">✅</div>
+            <h3>Already Downloaded</h3>
+            <p>Successfully transferred files get a persistent green marker, so you can reconnect days later and immediately see what was already copied.</p>
+        </div>
+        <div class="feature-card">
             <div class="feature-icon">💻</div>
             <h3>Multi-platform</h3>
             <p>Works on Android, Windows and in any browser. Unified interface across all platforms.</p>
@@ -846,7 +868,7 @@
         <li>On <strong>Windows</strong>: connect to the camera WiFi, then open the app</li>
         <li>The photo list loads automatically with thumbnails</li>
         <li><strong>Long press</strong> on a photo — enter file selection mode</li>
-        <li>Use buttons for batch selection, download and deletion</li>
+        <li>Use buttons for batch selection, download and deletion. On Android choose <strong>Background</strong> to keep transfers running outside the app; downloaded files stay marked in green.</li>
     </ol>
 
     <h2 id="dl-en">Download</h2>
@@ -854,7 +876,7 @@
         <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="download-card">
             <div class="download-icon">🤖</div>
             <h3>Android</h3>
-            <p>v1.3.2 APK<br>Direct download</p>
+            <p>Latest release APK<br>Direct download</p>
         </a>
         <a href="https://github.com/dpolarov/olympus-view-and-delete/tree/master/releases" class="download-card" target="_blank" rel="noopener">
             <div class="download-icon">🪟</div>
@@ -901,6 +923,15 @@
 
     <h2 id="changelog-en">Changelog</h2>
     <div class="changelog">
+        <div class="changelog-version">
+            <h3>v1.3.4 — next release</h3>
+            <h4>Android downloads &amp; gallery reliability</h4>
+            <ul>
+                <li><strong>Background downloads</strong> continue while the app is minimized or the screen is off, with progress and completion notifications</li>
+                <li><strong>Persistent downloaded markers</strong> show files already transferred across app restarts</li>
+                <li><strong>More reliable thumbnails and previews</strong> with JPEG completeness checks, retries and fallback loading</li>
+            </ul>
+        </div>
         <div class="changelog-version">
             <h3>v1.3.2 — August 15, 2026</h3>
             <h4>Android / Google Play preparation</h4>
@@ -1035,6 +1066,8 @@
         <ul>
             <li><strong>Видалення файлів з камери</strong> <span class="vs">— OI.Share не вміє видаляти фото</span></li>
             <li><strong>Масове завантаження за датами</strong> <span class="vs">— OI.Share дозволяє лише по одному</span></li>
+            <li><strong>Фонове завантаження на Android</strong> <span class="vs">— працює після згортання застосунку або вимкнення екрана</span></li>
+            <li><strong>Позначки вже завантажених файлів</strong> <span class="vs">— видно навіть після перезапуску</span></li>
             <li><strong>Фільтр RAW/ORF файлів</strong> <span class="vs">— OI.Share показує всі дублі</span></li>
             <li><strong>Працює на Windows та у браузері</strong> <span class="vs">— OI.Share лише мобільний</span></li>
             <li><strong>Відкритий вихідний код</strong> <span class="vs">— OI.Share закритий і більше не оновлюється</span></li>
@@ -1085,6 +1118,16 @@
             <p>Завантажуйте групи файлів з прогресом. На Android фото одразу з'являються у галереї.</p>
         </div>
         <div class="feature-card">
+            <div class="feature-icon">⏬</div>
+            <h3>Фонове завантаження</h3>
+            <p>На Android передача продовжується після згортання Olympus View або вимкнення екрана. Прогрес і завершення показуються у системних сповіщеннях.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">✅</div>
+            <h3>Вже завантажено</h3>
+            <p>Успішно перенесені файли отримують постійну зелену позначку, тому навіть через кілька днів видно, що вже було скопійовано.</p>
+        </div>
+        <div class="feature-card">
             <div class="feature-icon">💻</div>
             <h3>Мультиплатформа</h3>
             <p>Працює на Android, Windows та у будь-якому браузері. Єдиний інтерфейс на всіх платформах.</p>
@@ -1110,7 +1153,7 @@
         <li>На <strong>Windows</strong>: підключіться до WiFi камери, потім відкрийте додаток</li>
         <li>Список фотографій завантажиться автоматично з мініатюрами</li>
         <li><strong>Довге натискання</strong> на фото — режим вибору файлів</li>
-        <li>Використовуйте кнопки для масового вибору, завантаження та видалення</li>
+        <li>Використовуйте кнопки для масового вибору, завантаження та видалення. На Android виберіть <strong>У фоні</strong>; завантажені файли залишаються позначеними зеленим.</li>
     </ol>
 
     <h2 id="dl-uk">Завантажити</h2>
@@ -1118,7 +1161,7 @@
         <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="download-card">
             <div class="download-icon">🤖</div>
             <h3>Android</h3>
-            <p>v1.3.2 APK<br>Пряме завантаження</p>
+            <p>Останній реліз APK<br>Пряме завантаження</p>
         </a>
         <a href="https://github.com/dpolarov/olympus-view-and-delete/tree/master/releases" class="download-card" target="_blank" rel="noopener">
             <div class="download-icon">🪟</div>
@@ -1149,6 +1192,15 @@
 
     <h2 id="changelog-uk">Журнал змін</h2>
     <div class="changelog">
+        <div class="changelog-version">
+            <h3>v1.3.4 — наступний реліз</h3>
+            <h4>Завантаження Android та надійність галереї</h4>
+            <ul>
+                <li><strong>Фонове завантаження</strong> продовжується після згортання застосунку або вимкнення екрана</li>
+                <li><strong>Постійні позначки завантажених файлів</strong> зберігаються між запусками</li>
+                <li><strong>Надійніші мініатюри та прев'ю</strong> завдяки перевірці JPEG, повторним спробам і резервному завантаженню</li>
+            </ul>
+        </div>
         <div class="changelog-version">
             <h3>v1.3.2 — 15 серпня 2026</h3>
             <h4>Android / підготовка до Google Play</h4>
@@ -1283,6 +1335,8 @@
         <ul>
             <li><strong>Удаление файлов с камеры</strong> <span class="vs">— OI.Share не умеет удалять фото</span></li>
             <li><strong>Массовое скачивание по датам</strong> <span class="vs">— OI.Share позволяет только по одному</span></li>
+            <li><strong>Фоновое скачивание на Android</strong> <span class="vs">— работает после сворачивания приложения или выключения экрана</span></li>
+            <li><strong>Метки уже скачанных файлов</strong> <span class="vs">— видны даже после перезапуска</span></li>
             <li><strong>Фильтр RAW/ORF файлов</strong> <span class="vs">— OI.Share показывает все дубли</span></li>
             <li><strong>Работает на Windows и в браузере</strong> <span class="vs">— OI.Share только мобильное</span></li>
             <li><strong>Открытый исходный код</strong> <span class="vs">— OI.Share закрытый и больше не обновляется</span></li>
@@ -1333,6 +1387,16 @@
             <p>Скачивайте группы файлов с прогрессом. На Android фото сразу появляются в галерее.</p>
         </div>
         <div class="feature-card">
+            <div class="feature-icon">⏬</div>
+            <h3>Фоновое скачивание</h3>
+            <p>На Android передача продолжается после сворачивания Olympus View или выключения экрана. Прогресс и завершение показываются в системных уведомлениях.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">✅</div>
+            <h3>Уже скачано</h3>
+            <p>Успешно перенесённые файлы получают постоянную зелёную отметку, поэтому даже через несколько дней видно, что уже было скопировано.</p>
+        </div>
+        <div class="feature-card">
             <div class="feature-icon">💻</div>
             <h3>Мультиплатформа</h3>
             <p>Работает на Android, Windows и в любом браузере. Единый интерфейс на всех платформах.</p>
@@ -1358,7 +1422,7 @@
         <li>На <strong>Windows</strong>: подключитесь к WiFi камеры, затем откройте приложение</li>
         <li>Список фотографий загрузится автоматически с превью</li>
         <li><strong>Долгое нажатие</strong> на фото — режим выбора файлов</li>
-        <li>Используйте кнопки для массового выбора, скачивания и удаления</li>
+        <li>Используйте кнопки для массового выбора, скачивания и удаления. На Android выберите <strong>В фоне</strong>; скачанные файлы остаются отмеченными зелёным.</li>
     </ol>
 
     <h2 id="dl-ru">Скачать</h2>
@@ -1366,7 +1430,7 @@
         <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="download-card">
             <div class="download-icon">🤖</div>
             <h3>Android</h3>
-            <p>v1.3.2 APK<br>Прямая загрузка</p>
+            <p>Последний релиз APK<br>Прямая загрузка</p>
         </a>
         <a href="https://github.com/dpolarov/olympus-view-and-delete/tree/master/releases" class="download-card" target="_blank" rel="noopener">
             <div class="download-icon">🪟</div>
@@ -1413,6 +1477,15 @@
 
     <h2 id="changelog-ru">Журнал изменений</h2>
     <div class="changelog">
+        <div class="changelog-version">
+            <h3>v1.3.4 — следующий релиз</h3>
+            <h4>Загрузки Android и надёжность галереи</h4>
+            <ul>
+                <li><strong>Фоновое скачивание</strong> продолжается после сворачивания приложения или выключения экрана</li>
+                <li><strong>Постоянные метки скачанных файлов</strong> сохраняются между запусками</li>
+                <li><strong>Более надёжные миниатюры и превью</strong> благодаря проверке JPEG, повторным попыткам и резервной загрузке</li>
+            </ul>
+        </div>
         <div class="changelog-version">
             <h3>v1.3.2 — 15 августа 2026</h3>
             <h4>Android / подготовка к Google Play</h4>

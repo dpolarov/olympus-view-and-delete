@@ -175,8 +175,11 @@ class _GridItem extends StatelessWidget {
                 children: [
                   _CameraThumbnail(
                     url: file.thumbnailUrl,
+                    fallbackUrl: file.resizeImgUrl(480),
                     index: index,
-                    imagePath: file.fullPath,
+                    // Include size + FAT timestamp so a camera filename reused
+                    // after deletion/format cannot inherit an old cached image.
+                    imagePath: file.downloadHistoryKey,
                   ),
                   if (selected)
                     Positioned(
@@ -280,8 +283,9 @@ class _ListItem extends StatelessWidget {
               height: 72,
               child: _CameraThumbnail(
                 url: file.thumbnailUrl,
+                fallbackUrl: file.resizeImgUrl(480),
                 index: index,
-                imagePath: file.fullPath,
+                imagePath: file.downloadHistoryKey,
                 fit: BoxFit.cover,
               ),
             ),
@@ -333,12 +337,14 @@ class _ListItem extends StatelessWidget {
 
 class _CameraThumbnail extends StatefulWidget {
   final String url;
+  final String fallbackUrl;
   final int index;
   final String imagePath;
   final BoxFit fit;
 
   const _CameraThumbnail({
     required this.url,
+    required this.fallbackUrl,
     required this.index,
     this.imagePath = '',
     this.fit = BoxFit.cover,
@@ -352,6 +358,7 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
   Uint8List? _bytes;
   bool _loading = true;
   bool _error = false;
+  int _loadToken = 0;
 
   @override
   void initState() {
@@ -362,7 +369,9 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
   @override
   void didUpdateWidget(_CameraThumbnail old) {
     super.didUpdateWidget(old);
-    if (old.url != widget.url) {
+    if (old.url != widget.url ||
+        old.fallbackUrl != widget.fallbackUrl ||
+        old.imagePath != widget.imagePath) {
       setState(() {
         _loading = true;
         _error = false;
@@ -373,9 +382,22 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
   }
 
   Future<void> _load() async {
-    final bytes = await ThumbnailManager.instance
+    final token = ++_loadToken;
+    var bytes = await ThumbnailManager.instance
         .load(widget.url, widget.index, imagePath: widget.imagePath);
-    if (!mounted) return;
+
+    // Some camera firmwares occasionally fail get_thumbnail.cgi for a single
+    // file. Fall back to the resize endpoint instead of leaving a permanent
+    // broken tile.
+    if (bytes == null && widget.fallbackUrl != widget.url) {
+      bytes = await ThumbnailManager.instance.load(
+        widget.fallbackUrl,
+        widget.index,
+        imagePath: widget.imagePath,
+      );
+    }
+
+    if (!mounted || token != _loadToken) return;
     setState(() {
       _bytes = bytes;
       _loading = false;
@@ -383,14 +405,16 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
     });
   }
 
+  Widget _brokenImage() {
+    return Container(
+      color: const Color(0xFF252540),
+      child: const Icon(Icons.broken_image, color: Colors.grey, size: 32),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_error) {
-      return Container(
-        color: const Color(0xFF252540),
-        child: const Icon(Icons.broken_image, color: Colors.grey, size: 32),
-      );
-    }
+    if (_error) return _brokenImage();
     if (_loading || _bytes == null) {
       return Container(
         color: const Color(0xFF252540),
@@ -409,8 +433,10 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
     return Image.memory(
       _bytes!,
       fit: widget.fit,
-      cacheWidth: 320,
+      cacheWidth: 480,
       gaplessPlayback: true,
+      filterQuality: FilterQuality.medium,
+      errorBuilder: (_, __, ___) => _brokenImage(),
     );
   }
 }

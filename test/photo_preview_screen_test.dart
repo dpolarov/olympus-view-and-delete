@@ -258,21 +258,25 @@ void main() {
   testWidgets('downloaded file shows download-done marker in preview',
       (tester) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-    final file = _file('DONE.JPG');
-    SharedPreferences.setMockInitialValues({
-      'download_history_v1': <String>[file.downloadHistoryKey],
-    });
+    try {
+      final file = _file('DONE.JPG');
+      SharedPreferences.setMockInitialValues({
+        'download_history_v1': <String>[file.downloadHistoryKey],
+      });
 
-    expect(await DownloadHistory.load(), contains(file.downloadHistoryKey));
+      expect(await DownloadHistory.load(), contains(file.downloadHistoryKey));
 
-    await _pumpPreview(
-      tester,
-      files: [file],
-      initialIndex: 0,
-      api: _FakeApi(),
-    );
-    await _settle(tester);
+      await _pumpPreview(
+        tester,
+        files: [file],
+        initialIndex: 0,
+        api: _FakeApi(),
+      );
+      await _settle(tester);
 
-    expect(find.byIcon(Icons.download_done), findsOneWidget);
+      expect(find.byIcon(Icons.download_done), findsOneWidget);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 }

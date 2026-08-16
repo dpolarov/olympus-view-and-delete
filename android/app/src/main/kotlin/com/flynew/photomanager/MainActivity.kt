@@ -1,13 +1,24 @@
 package com.flynew.photomanager
 
 import android.Manifest
+import android.app.ActivityManager
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.media.MediaScannerConnection
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
+import android.os.PowerManager
+import android.os.Process
+import android.os.StatFs
+import android.os.SystemClock
 import android.provider.MediaStore
 import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
@@ -15,12 +26,15 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
 import java.io.FileOutputStream
+import java.util.TimeZone
 
 class MainActivity : FlutterActivity() {
     companion object {
         private const val MEDIA_CHANNEL = "com.flynew.photomanager/media_store"
         private const val BACKGROUND_CHANNEL = "com.flynew.photomanager/background_download"
         private const val UPDATE_CHANNEL = "com.flynew.photomanager/app_update"
+        private const val DEBUG_CHANNEL = "com.flynew.photomanager/debug_info"
+        private val PROCESS_STARTED_AT_MS = System.currentTimeMillis()
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -28,6 +42,7 @@ class MainActivity : FlutterActivity() {
         registerMediaStoreChannel(flutterEngine)
         registerBackgroundDownloadChannel(flutterEngine)
         registerUpdateChannel(flutterEngine)
+        registerDebugInfoChannel(flutterEngine)
     }
 
     private fun registerMediaStoreChannel(flutterEngine: FlutterEngine) {
@@ -134,18 +149,11 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "getCurrentVersion" -> {
-                        @Suppress("DEPRECATION")
-                        val info = packageManager.getPackageInfo(packageName, 0)
-                        val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                            info.longVersionCode
-                        } else {
-                            @Suppress("DEPRECATION")
-                            info.versionCode.toLong()
-                        }
+                        val info = currentPackageInfo()
                         result.success(
                             mapOf(
                                 "versionName" to (info.versionName ?: "0.0.0"),
-                                "versionCode" to versionCode,
+                                "versionCode" to versionCodeOf(info),
                             ),
                         )
                     }
@@ -183,6 +191,143 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    private fun registerDebugInfoChannel(flutterEngine: FlutterEngine) {
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DEBUG_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                if (call.method != "getDebugInfo") {
+                    result.notImplemented()
+                    return@setMethodCallHandler
+                }
+
+                try {
+                    result.success(buildDebugInfo())
+                } catch (error: Exception) {
+                    result.error(
+                        "debug_info_error",
+                        error.message ?: "Unable to collect debug information",
+                        null,
+                    )
+                }
+            }
+    }
+
+    private fun buildDebugInfo(): Map<String, Any?> {
+        val packageInfo = currentPackageInfo(includePermissions = true)
+        val appInfo = applicationInfo
+        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val memoryInfo = ActivityManager.MemoryInfo().also(activityManager::getMemoryInfo)
+        val storage = StatFs(filesDir.absolutePath)
+        val connectivity = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork = connectivity.activeNetwork
+        val capabilities = activeNetwork?.let(connectivity::getNetworkCapabilities)
+        val batteryManager = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        val metrics = resources.displayMetrics
+        val permissions = requestedPermissions(packageInfo)
+        val installer = installerPackageName()
+        val transports = networkTransports(capabilities)
+
+        val processStartedAtMs = PROCESS_STARTED_AT_MS
+        val lastUpdateTimeMs = packageInfo.lastUpdateTime
+        val staleProcess = processStartedAtMs + 1000L < lastUpdateTimeMs
+
+        return mapOf(
+            "packageName" to packageName,
+            "versionName" to (packageInfo.versionName ?: "0.0.0"),
+            "versionCode" to versionCodeOf(packageInfo),
+            "firstInstallTimeMs" to packageInfo.firstInstallTime,
+            "lastUpdateTimeMs" to lastUpdateTimeMs,
+            "processStartedAtMs" to processStartedAtMs,
+            "staleProcess" to staleProcess,
+            "installerPackage" to installer,
+            "buildType" to BuildConfig.BUILD_TYPE,
+            "flavor" to BuildConfig.FLAVOR,
+            "externalUpdaterEnabled" to BuildConfig.ALLOW_EXTERNAL_UPDATE,
+            "debuggable" to ((appInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0),
+            "compileSdk" to BuildConfig.COMPILE_SDK_VERSION,
+            "targetSdk" to appInfo.targetSdkVersion,
+            "minSdk" to appInfo.minSdkVersion,
+            "manufacturer" to Build.MANUFACTURER,
+            "brand" to Build.BRAND,
+            "model" to Build.MODEL,
+            "device" to Build.DEVICE,
+            "product" to Build.PRODUCT,
+            "hardware" to Build.HARDWARE,
+            "androidRelease" to Build.VERSION.RELEASE,
+            "sdkInt" to Build.VERSION.SDK_INT,
+            "securityPatch" to Build.VERSION.SECURITY_PATCH,
+            "androidBuildId" to Build.ID,
+            "supportedAbis" to Build.SUPPORTED_ABIS.toList(),
+            "is64BitProcess" to Process.is64Bit(),
+            "locale" to resources.configuration.locales[0].toLanguageTag(),
+            "timeZone" to TimeZone.getDefault().id,
+            "displayWidthPx" to metrics.widthPixels,
+            "displayHeightPx" to metrics.heightPixels,
+            "density" to metrics.density,
+            "densityDpi" to metrics.densityDpi,
+            "memoryAvailableBytes" to memoryInfo.availMem,
+            "memoryTotalBytes" to memoryInfo.totalMem,
+            "lowMemory" to memoryInfo.lowMemory,
+            "storageAvailableBytes" to storage.availableBytes,
+            "storageTotalBytes" to storage.totalBytes,
+            "batteryPercent" to batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY),
+            "ignoringBatteryOptimizations" to powerManager.isIgnoringBatteryOptimizations(packageName),
+            "networkTransports" to transports,
+            "networkValidated" to (capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true),
+            "networkMetered" to connectivity.isActiveNetworkMetered,
+            "permissions" to permissions,
+            "processId" to Process.myPid(),
+            "deviceUptimeMs" to SystemClock.elapsedRealtime(),
+            "nativeLibraryDir" to appInfo.nativeLibraryDir,
+            "javaVmVersion" to System.getProperty("java.vm.version"),
+        )
+    }
+
+    private fun currentPackageInfo(includePermissions: Boolean = false): PackageInfo {
+        val flags = if (includePermissions) PackageManager.GET_PERMISSIONS else 0
+        @Suppress("DEPRECATION")
+        return packageManager.getPackageInfo(packageName, flags)
+    }
+
+    private fun versionCodeOf(info: PackageInfo): Long {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            info.longVersionCode
+        } else {
+            @Suppress("DEPRECATION")
+            info.versionCode.toLong()
+        }
+    }
+
+    private fun requestedPermissions(info: PackageInfo): List<Map<String, Any>> {
+        val names = info.requestedPermissions ?: return emptyList()
+        return names.map { name ->
+            mapOf(
+                "name" to name,
+                "granted" to (checkSelfPermission(name) == PackageManager.PERMISSION_GRANTED),
+            )
+        }
+    }
+
+    private fun installerPackageName(): String? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            packageManager.getInstallSourceInfo(packageName).installingPackageName
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getInstallerPackageName(packageName)
+        }
+    }
+
+    private fun networkTransports(capabilities: NetworkCapabilities?): List<String> {
+        if (capabilities == null) return emptyList()
+        val transports = mutableListOf<String>()
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) transports += "Wi-Fi"
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) transports += "Cellular"
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) transports += "Ethernet"
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) transports += "VPN"
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)) transports += "Bluetooth"
+        return transports
     }
 
     private fun canInstallUnknownApps(): Boolean {

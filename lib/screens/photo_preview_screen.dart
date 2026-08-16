@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import '../constants.dart';
 import '../services/app_logger.dart';
 import '../services/camera_api.dart';
+import '../services/camera_image_validator.dart';
+import '../services/download_history.dart';
 import '../services/file_saver.dart' as file_saver;
 import '../services/image_cache.dart';
 import '../services/service_config.dart';
@@ -35,6 +37,7 @@ class PhotoPreviewScreen extends StatefulWidget {
 
 class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   static const int _keepNeighbors = kPreviewKeepNeighbors;
+  static const int _maxPreviewAttempts = 3;
 
   late PageController _pageController;
   late int _currentIndex;
@@ -70,6 +73,8 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
     super.dispose();
   }
 
+  String _cacheKey(CameraFile file) => file.downloadHistoryKey;
+
   void _loadAround(int index) {
     if (index < 0 || index >= _files.length) return;
     _loadImage(index);
@@ -86,7 +91,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
     final lo = (index - _keepNeighbors).clamp(0, _files.length - 1);
     final hi = (index + _keepNeighbors).clamp(0, _files.length - 1);
     for (int i = lo; i <= hi; i++) {
-      keep.add(_files[i].fullPath);
+      keep.add(_cacheKey(_files[i]));
     }
     _imageCache.removeWhere((k, _) => !keep.contains(k));
   }
@@ -98,6 +103,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       final bytes = await _api.downloadFile(file);
       final saveDirPath = kIsWeb ? null : await file_saver.getSaveDirectory();
       await file_saver.saveFileToDevice(file.filename, bytes, saveDirPath);
+      await DownloadHistory.mark(file.downloadHistoryKey);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${AppStrings.download}: ${file.filename}')),
@@ -143,9 +149,10 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       if (!mounted) return;
       if (ok) {
         _deletedPaths.add(file.fullPath);
-        _imageCache.remove(file.fullPath);
-        _loading.remove(file.fullPath);
-        _error.remove(file.fullPath);
+        final key = _cacheKey(file);
+        _imageCache.remove(key);
+        _loading.remove(key);
+        _error.remove(key);
         _files.removeAt(_currentIndex);
         if (_files.isEmpty) {
           Navigator.pop(context, true);
@@ -177,10 +184,58 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
     }
   }
 
+  Future<Uint8List?> _fetchPreview(CameraFile file) async {
+    final url = file.resizeImgUrl(kPreviewImageSize);
+    for (var attempt = 1; attempt <= _maxPreviewAttempts; attempt++) {
+      try {
+        final resp = await _client.get(
+          Uri.parse(url),
+          headers: {
+            'User-Agent': 'OI.Share v2',
+            'Host': cameraIp,
+            'Connection': 'Keep-Alive',
+          },
+        ).timeout(kPreviewLoadTimeout);
+
+        if (resp.statusCode == 200 && resp.bodyBytes.isNotEmpty) {
+          final bytes = Uint8List.fromList(resp.bodyBytes);
+          if (isCompleteCameraJpeg(
+            bytes,
+            expectedLength: resp.contentLength,
+          )) {
+            return bytes;
+          }
+          AppLogger.debug(
+            'incomplete preview for ${file.fullPath} '
+            '(${bytes.lengthInBytes} bytes, attempt $attempt)',
+            name: 'photo_preview',
+          );
+        } else {
+          AppLogger.debug(
+            'preview HTTP ${resp.statusCode} for ${file.fullPath} '
+            '(attempt $attempt)',
+            name: 'photo_preview',
+          );
+        }
+      } catch (e) {
+        AppLogger.debug(
+          'preview fetch failed for ${file.fullPath} '
+          '(attempt $attempt): $e',
+          name: 'photo_preview',
+        );
+      }
+
+      if (attempt < _maxPreviewAttempts) {
+        await Future.delayed(Duration(milliseconds: 200 * attempt));
+      }
+    }
+    return null;
+  }
+
   Future<void> _loadImage(int index) async {
     if (index < 0 || index >= _files.length) return;
     final file = _files[index];
-    final key = file.fullPath;
+    final key = _cacheKey(file);
     if (_imageCache.containsKey(key) || _loading.contains(key)) return;
     setState(() {
       _loading.add(key);
@@ -190,27 +245,23 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
     try {
       final cached = await ImageDiskCache.instance.get(key, 'preview');
       if (!mounted) return;
-      if (cached != null) {
+      if (cached != null && isCompleteCameraJpeg(cached)) {
         setState(() {
           _imageCache[key] = cached;
           _loading.remove(key);
         });
         return;
       }
+      if (cached != null) {
+        AppLogger.debug(
+          'discarding incomplete cached preview for ${file.fullPath}',
+          name: 'photo_preview',
+        );
+      }
 
-      final url = file.resizeImgUrl(kPreviewImageSize);
-      final resp = await _client.get(
-        Uri.parse(url),
-        headers: {
-          'User-Agent': 'OI.Share v2',
-          'Host': cameraIp,
-          'Connection': 'Keep-Alive',
-        },
-      ).timeout(kPreviewLoadTimeout);
-
+      final bytes = await _fetchPreview(file);
       if (!mounted) return;
-      if (resp.statusCode == 200 && resp.bodyBytes.isNotEmpty) {
-        final bytes = Uint8List.fromList(resp.bodyBytes);
+      if (bytes != null) {
         unawaited(ImageDiskCache.instance.put(key, 'preview', bytes).catchError(
               (Object e) => AppLogger.debug(
                 'preview disk cache put failed: $e',
@@ -227,7 +278,11 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
           _loading.remove(key);
         });
       }
-    } catch (_) {
+    } catch (e) {
+      AppLogger.debug(
+        'preview load failed for ${file.fullPath}: $e',
+        name: 'photo_preview',
+      );
       if (!mounted) return;
       setState(() {
         _error.add(key);
@@ -308,7 +363,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
           itemCount: _files.length,
           onPageChanged: _onPageChanged,
           itemBuilder: (context, index) {
-            final key = _files[index].fullPath;
+            final key = _cacheKey(_files[index]);
             final bytes = _imageCache[key];
             final isLoading = _loading.contains(key);
             final isError = _error.contains(key);
@@ -358,6 +413,14 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
                     fit: BoxFit.contain,
                     cacheWidth: kPreviewImageSize,
                     gaplessPlayback: true,
+                    filterQuality: FilterQuality.high,
+                    errorBuilder: (_, __, ___) => const Center(
+                      child: Icon(
+                        Icons.broken_image,
+                        color: Colors.grey,
+                        size: 64,
+                      ),
+                    ),
                   ),
                 ),
               );

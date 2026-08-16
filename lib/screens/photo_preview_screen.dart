@@ -96,8 +96,22 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   }
 
   void _loadAround(int index) {
+    unawaited(_loadAroundPrioritized(index));
+  }
+
+  Future<void> _loadAroundPrioritized(int index) async {
     if (index < 0 || index >= _files.length) return;
-    unawaited(_loadImage(index, priority: _priorityVisiblePreview));
+
+    // Do not even enqueue neighbor network work until the visible frame has
+    // finished (or failed). This makes the user's current screen deterministic.
+    await _loadImage(index, priority: _priorityVisiblePreview);
+    if (!mounted || index != _currentIndex) return;
+
+    // Give an immediately requested Download a short chance to enter the queue
+    // before low-priority neighbor preloads begin.
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    if (!mounted || index != _currentIndex || _busy) return;
+
     for (int d = 1; d <= _keepNeighbors; d++) {
       if (index - d >= 0) {
         unawaited(_loadImage(

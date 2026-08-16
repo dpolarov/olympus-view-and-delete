@@ -1347,6 +1347,8 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ),
                         );
+                        if (!mounted) return;
+                        await _refreshDownloadedHistory();
                         if (deleted == true && mounted) {
                           unawaited(_loadFiles());
                         }

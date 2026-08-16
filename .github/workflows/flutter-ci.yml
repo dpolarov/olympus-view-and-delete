@@ -81,8 +81,18 @@ jobs:
         shell: bash
         run: git diff --exit-code -- pubspec.lock
 
+      - name: Prepare build metadata
+        shell: bash
+        run: |
+          echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+          echo "BUILD_GIT_COMMIT=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_ENV"
+
       - name: Build GitHub release APK
-        run: flutter build apk --flavor github --release
+        run: >-
+          flutter build apk --flavor github --release
+          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
+          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
+          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
 
       - name: Verify GitHub APK version matches pubspec
         shell: bash
@@ -111,10 +121,18 @@ jobs:
         run: bash scripts/check_android_16kb.sh build/app/outputs/flutter-apk/app-github-release.apk
 
       - name: Build GitHub release AAB
-        run: flutter build appbundle --flavor github --release
+        run: >-
+          flutter build appbundle --flavor github --release
+          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
+          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
+          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
 
       - name: Build Play flavor APK for policy validation
-        run: flutter build apk --flavor play --release
+        run: >-
+          flutter build apk --flavor play --release
+          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
+          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
+          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
 
       - name: Verify Play flavor cannot install external APKs
         shell: bash

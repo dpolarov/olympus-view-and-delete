@@ -84,6 +84,28 @@ jobs:
       - name: Build GitHub release APK
         run: flutter build apk --flavor github --release
 
+      - name: Verify GitHub APK version matches pubspec
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-github-release.apk"
+          version="$(awk '/^version:/ {print $2; exit}' pubspec.yaml)"
+          expected_name="${version%%+*}"
+          expected_code="${version##*+}"
+          aapt="$(find "${ANDROID_HOME:?ANDROID_HOME is not set}/build-tools" -type f -name aapt -print | sort -V | tail -n 1)"
+          [[ -n "$aapt" ]] || { echo "aapt not found"; exit 1; }
+          badging="$($aapt dump badging "$apk" | head -n 1)"
+          echo "$badging"
+          grep -Fq "versionName='$expected_name'" <<<"$badging" || {
+            echo "ERROR: APK versionName does not match pubspec ($expected_name)" >&2
+            exit 1
+          }
+          grep -Fq "versionCode='$expected_code'" <<<"$badging" || {
+            echo "ERROR: APK versionCode does not match pubspec ($expected_code)" >&2
+            exit 1
+          }
+          echo "APK version matches pubspec: $expected_name ($expected_code)"
+
       - name: Verify Android 16 KB page-size compatibility
         shell: bash
         run: bash scripts/check_android_16kb.sh build/app/outputs/flutter-apk/app-github-release.apk

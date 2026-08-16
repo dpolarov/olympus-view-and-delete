@@ -618,13 +618,13 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         const SizedBox(height: 8),
         const Text(
-          '• Full-screen photo preview with swipe & zoom\n'
-          '• Download/Delete from preview screen\n'
-          '• Image preloading for smooth swiping\n'
-          '• Persistent disk cache for thumbnails & previews\n'
-          '• Auto-connect to last used camera\n'
-          '• Saved cameras quick reconnect\n'
-          '• Detailed connection status messages',
+          '• Background downloads with Android notifications\n'
+          '• Persistent green markers for downloaded files\n'
+          '• GitHub APK auto-update with release notes\n'
+          '• More reliable thumbnails with validation and retries\n'
+          '• Full-screen preview with swipe & zoom\n'
+          '• Batch download and delete directly from the camera\n'
+          '• Auto-connect and saved-camera quick reconnect',
           style: TextStyle(fontSize: 13),
         ),
         const SizedBox(height: 16),

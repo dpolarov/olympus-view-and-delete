@@ -9,6 +9,10 @@
 
 ### Changed
 - Android distribution is split into `github` and `play` flavors so the GitHub APK can request package installation while the Play bundle does not request `REQUEST_INSTALL_PACKAGES`.
+- Android `versionName` and `versionCode` now come directly from the Flutter Gradle plugin instead of potentially stale values in `android/local.properties`.
+- `build_release.cmd` now requires the `master` branch, prints the source commit/version, passes explicit build-name/build-number values and verifies the finished APK manifest when `aapt` is available.
+- `install.cmd` now prints the actually installed Android `versionName`/`versionCode` after `adb install -r`.
+- The in-app About changelog now highlights the current 1.3.4 Android features instead of the older preview-only list.
 
 ## [1.3.2] - 2026-08-15
 

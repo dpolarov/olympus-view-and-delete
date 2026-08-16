@@ -48,7 +48,7 @@ jobs:
           readme = Path('README.md').read_text(encoding='utf-8')
           html = Path('docs/index.html').read_text(encoding='utf-8')
           assert 'Download in the background on Android' in readme
-          assert 'Фоновое скачивание на Android' in readme
+          assert '**фоновое скачивание**' in readme
           assert 'Background Download' in html
           assert 'Фонове завантаження' in html
           assert 'Фоновое скачивание' in html

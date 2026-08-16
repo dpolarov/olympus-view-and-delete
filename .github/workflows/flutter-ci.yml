@@ -3,7 +3,13 @@ name: Flutter Android CI
 on:
   push:
     branches: [master, main]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
   pull_request:
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
   workflow_dispatch:
 
 permissions:

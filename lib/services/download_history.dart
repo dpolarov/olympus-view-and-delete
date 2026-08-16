@@ -19,6 +19,8 @@ class DownloadHistory {
         return (keys ?? const <String>[]).toSet();
       } on PlatformException {
         // Fall through for tests / unsupported embeddings.
+      } on MissingPluginException {
+        // Fall through for tests / unsupported embeddings.
       }
     }
 
@@ -34,6 +36,8 @@ class DownloadHistory {
         });
         return;
       } on PlatformException {
+        // Fall through for tests / unsupported embeddings.
+      } on MissingPluginException {
         // Fall through for tests / unsupported embeddings.
       }
     }

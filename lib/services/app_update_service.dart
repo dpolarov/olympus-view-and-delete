@@ -95,33 +95,7 @@ class AppUpdateService {
       final json = jsonDecode(response.body);
       if (json is! Map<String, dynamic>) return null;
 
-      final tag = json['tag_name']?.toString() ?? '';
-      final latestVersion = tag.startsWith('v') ? tag.substring(1) : tag;
-      if (latestVersion.isEmpty ||
-          !_isNewerVersion(latestVersion, currentVersion)) {
-        return null;
-      }
-
-      String? apkUrl;
-      final assets = json['assets'];
-      if (assets is List) {
-        for (final asset in assets) {
-          if (asset is Map<String, dynamic> &&
-              asset['name'] == 'OlympusView-Android.apk') {
-            apkUrl = asset['browser_download_url']?.toString();
-            break;
-          }
-        }
-      }
-      if (apkUrl == null || apkUrl.isEmpty) return null;
-
-      return AppReleaseInfo(
-        version: latestVersion,
-        apkUrl: apkUrl,
-        releaseUrl: json['html_url']?.toString() ??
-            'https://github.com/dpolarov/olympus-view-and-delete/releases/latest',
-        releaseNotes: _cleanReleaseNotes(json['body']?.toString() ?? ''),
-      );
+      return releaseFromGitHubJson(json, currentVersion);
     } catch (error) {
       AppLogger.debug(
         'update check failed: $error',
@@ -129,6 +103,40 @@ class AppUpdateService {
       );
       return null;
     }
+  }
+
+  @visibleForTesting
+  static AppReleaseInfo? releaseFromGitHubJson(
+    Map<String, dynamic> json,
+    String currentVersion,
+  ) {
+    final tag = json['tag_name']?.toString() ?? '';
+    final latestVersion = tag.startsWith('v') ? tag.substring(1) : tag;
+    if (latestVersion.isEmpty ||
+        !isNewerVersion(latestVersion, currentVersion)) {
+      return null;
+    }
+
+    String? apkUrl;
+    final assets = json['assets'];
+    if (assets is List) {
+      for (final asset in assets) {
+        if (asset is Map<String, dynamic> &&
+            asset['name'] == 'OlympusView-Android.apk') {
+          apkUrl = asset['browser_download_url']?.toString();
+          break;
+        }
+      }
+    }
+    if (apkUrl == null || apkUrl.isEmpty) return null;
+
+    return AppReleaseInfo(
+      version: latestVersion,
+      apkUrl: apkUrl,
+      releaseUrl: json['html_url']?.toString() ??
+          'https://github.com/dpolarov/olympus-view-and-delete/releases/latest',
+      releaseNotes: _cleanReleaseNotes(json['body']?.toString() ?? ''),
+    );
   }
 
   static Future<bool> canInstallUnknownApps() async {
@@ -182,7 +190,8 @@ class AppUpdateService {
     return result.join('\n');
   }
 
-  static bool _isNewerVersion(String candidate, String current) {
+  @visibleForTesting
+  static bool isNewerVersion(String candidate, String current) {
     final a = _versionParts(candidate);
     final b = _versionParts(current);
     for (var i = 0; i < 3; i++) {

@@ -49,6 +49,13 @@ if /I not "!GIT_BRANCH!"=="master" (
 set "GIT_COMMIT="
 for /f "delims=" %%A in ('git rev-parse --short HEAD 2^>nul') do set "GIT_COMMIT=%%A"
 
+set "BUILD_TIME_UTC="
+for /f "delims=" %%A in ('powershell -NoProfile -Command "[DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')" 2^>nul') do set "BUILD_TIME_UTC=%%A"
+if not defined BUILD_TIME_UTC set "BUILD_TIME_UTC=unknown"
+
+set "BUILD_FLUTTER_VERSION=unknown"
+for /f "tokens=2" %%A in ('call "%FLUTTER%" --version 2^>nul ^| findstr /B /C:"Flutter "') do set "BUILD_FLUTTER_VERSION=%%A"
+
 set "PUBSPEC_VERSION="
 for /f "tokens=2" %%A in ('findstr /B /C:"version:" "%PROJECT%\pubspec.yaml"') do set "PUBSPEC_VERSION=%%A"
 if not defined PUBSPEC_VERSION (
@@ -81,6 +88,8 @@ echo ========================================
 echo Source branch : !GIT_BRANCH!
 echo Source commit : !GIT_COMMIT!
 echo App version   : !BUILD_NAME! (build !BUILD_NUMBER!)
+echo Build time UTC: !BUILD_TIME_UTC!
+echo Flutter       : !BUILD_FLUTTER_VERSION!
 echo.
 
 rem Local GitHub APK updates must use the same certificate as the APKs that
@@ -142,7 +151,7 @@ if exist "%RELEASE_APK%" del /Q "%RELEASE_APK%"
 
 echo.
 echo [3/5] Building signed GitHub APK !BUILD_NAME! build !BUILD_NUMBER!...
-call "%FLUTTER%" build apk --flavor github --release --build-name !BUILD_NAME! --build-number !BUILD_NUMBER! --obfuscate --split-debug-info=build/symbols
+call "%FLUTTER%" build apk --flavor github --release --build-name !BUILD_NAME! --build-number !BUILD_NUMBER! --dart-define=OLYMPUS_BUILD_TIME_UTC=!BUILD_TIME_UTC! --dart-define=OLYMPUS_GIT_COMMIT=!GIT_COMMIT! --dart-define=OLYMPUS_FLUTTER_VERSION=!BUILD_FLUTTER_VERSION! --obfuscate --split-debug-info=build/symbols
 if errorlevel 1 goto :failed
 if not exist "%BUILT_APK%" (
   echo ERROR: Flutter reported success but the expected APK was not created:
@@ -211,6 +220,9 @@ echo ========================================
 echo  Android release file
 echo ========================================
 echo Version: !BUILD_NAME! (build !BUILD_NUMBER!)
+echo Build UTC: !BUILD_TIME_UTC!
+echo Commit: !GIT_COMMIT!
+echo Flutter: !BUILD_FLUTTER_VERSION!
 echo APK: %RELEASE_APK%
 echo Symbols: %PROJECT%\build\symbols
 echo.

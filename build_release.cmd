@@ -140,23 +140,23 @@ if exist "%KEY_PROPERTIES%" (
 )
 
 echo.
-echo [1/6] Cleaning Flutter build cache...
+echo [1/7] Cleaning Flutter build cache...
 rem This is intentional for release builds. A stale incremental AOT artifact can
 rem otherwise produce a new Android manifest around an older libapp.so.
 call "%FLUTTER%" clean
 if errorlevel 1 goto :failed
 
 echo.
-echo [2/6] Resolving dependencies...
+echo [2/7] Resolving dependencies...
 call "%FLUTTER%" pub get
 if errorlevel 1 goto :failed
 
 echo.
-echo [3/6] Removing stale release copy...
+echo [3/7] Removing stale release copy...
 if exist "%RELEASE_APK%" del /Q "%RELEASE_APK%"
 
 echo.
-echo [4/6] Building signed GitHub APK !BUILD_NAME! build !BUILD_NUMBER!...
+echo [4/7] Building signed GitHub APK !BUILD_NAME! build !BUILD_NUMBER!...
 call "%FLUTTER%" build apk --flavor github --release --build-name !BUILD_NAME! --build-number !BUILD_NUMBER! --dart-define=OLYMPUS_BUILD_TIME_UTC=!BUILD_TIME_UTC! --dart-define=OLYMPUS_GIT_COMMIT=!GIT_COMMIT! --dart-define=OLYMPUS_FLUTTER_VERSION=!BUILD_FLUTTER_VERSION! --obfuscate --split-debug-info=build/symbols
 if errorlevel 1 goto :failed
 if not exist "%BUILT_APK%" (
@@ -166,7 +166,16 @@ if not exist "%BUILT_APK%" (
 )
 
 echo.
-echo [5/6] Verifying APK manifest version...
+echo [5/7] Verifying packaged Dart AOT metadata...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%PROJECT%\scripts\verify_apk_dart_metadata.ps1" -ApkPath "%BUILT_APK%" -ExpectedCommit "!GIT_COMMIT!" -ExpectedBuildTime "!BUILD_TIME_UTC!"
+if errorlevel 1 (
+  echo ERROR: Packaged Dart code does not match this build.
+  echo        Refusing to copy a potentially stale APK.
+  goto :failed
+)
+
+echo.
+echo [6/7] Verifying APK manifest version...
 set "AAPT="
 where aapt >nul 2>nul
 if not errorlevel 1 (
@@ -217,7 +226,7 @@ if defined AAPT (
 )
 
 echo.
-echo [6/6] Copying APK...
+echo [7/7] Copying APK...
 copy /Y "%BUILT_APK%" "%RELEASE_APK%" >nul
 if errorlevel 1 goto :failed
 

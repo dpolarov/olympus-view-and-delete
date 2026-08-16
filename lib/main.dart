@@ -11,6 +11,7 @@ import 'widgets/four_finger_debug_trigger.dart';
 
 final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 bool _debugRouteOpen = false;
+bool _debugRouteScheduled = false;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,21 +26,30 @@ class OlympusApp extends StatelessWidget {
   final LocaleController localeController;
 
   void _openDebugInfo() {
-    if (_debugRouteOpen) return;
-    final navigator = _navigatorKey.currentState;
-    if (navigator == null) return;
+    if (_debugRouteOpen || _debugRouteScheduled) return;
+    _debugRouteScheduled = true;
 
-    _debugRouteOpen = true;
-    unawaited(
-      navigator
-          .push<void>(
-            MaterialPageRoute<void>(
-              builder: (_) => const DebugInfoScreen(),
-              settings: const RouteSettings(name: '/debug-info'),
-            ),
-          )
-          .whenComplete(() => _debugRouteOpen = false),
-    );
+    // Raw pointer callbacks can arrive while Flutter is still dispatching the
+    // current input frame. Push diagnostics on the next frame so navigation is
+    // never attempted from inside pointer dispatch/gesture resolution.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _debugRouteScheduled = false;
+      if (_debugRouteOpen) return;
+      final navigator = _navigatorKey.currentState;
+      if (navigator == null || !navigator.mounted) return;
+
+      _debugRouteOpen = true;
+      unawaited(
+        navigator
+            .push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => const DebugInfoScreen(),
+                settings: const RouteSettings(name: '/debug-info'),
+              ),
+            )
+            .whenComplete(() => _debugRouteOpen = false),
+      );
+    });
   }
 
   @override
@@ -77,7 +87,10 @@ class OlympusApp extends StatelessWidget {
             onTriggered: _openDebugInfo,
             child: child ?? const SizedBox.shrink(),
           ),
-          home: HomeScreen(localeController: localeController),
+          home: HomeScreen(
+            localeController: localeController,
+            onOpenDiagnostics: _openDebugInfo,
+          ),
         );
       },
     );

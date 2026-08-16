@@ -6,13 +6,15 @@
 - **GitHub APK auto-update check**: the Android GitHub build checks the latest published GitHub release at startup, offers newer versions, downloads the APK in the background and shows an install-ready notification. The Google Play flavor explicitly disables external APK updates.
 - **Persistent downloaded-file markers**: successfully downloaded camera files are recorded by camera path, size and FAT timestamp and remain highlighted after app restarts and normal app updates.
 - **Android background camera downloads**: selected files can continue downloading through a `connectedDevice` foreground service while Olympus View is backgrounded or the screen is off, with progress and completion notifications.
+- **Four-finger diagnostics screen**: hold four fingers anywhere in the app to open runtime diagnostics with the installed package version/build, source version, embedded build time and Git commit, Android/device/ABI details, display/memory/storage information, active network, camera endpoint, permissions, saved-camera/download state and process metadata. The report can be copied to the clipboard and does not expose saved Wi-Fi passwords.
 
 ### Changed
 - Android distribution is split into `github` and `play` flavors so the GitHub APK can request package installation while the Play bundle does not request `REQUEST_INSTALL_PACKAGES`.
 - Android `versionName` and `versionCode` now come directly from the Flutter Gradle plugin instead of potentially stale values in `android/local.properties`.
-- `build_release.cmd` now requires the `master` branch, prints the source commit/version, passes explicit build-name/build-number values and verifies the finished APK manifest when `aapt` is available.
-- `install.cmd` now prints the actually installed Android `versionName`/`versionCode` after `adb install -r`.
+- `build_release.cmd` now requires the `master` branch, embeds build time/Git commit/Flutter version for diagnostics, performs `flutter clean` before every local release build, passes explicit build-name/build-number values and verifies the finished APK manifest when `aapt` is available. The clean step prevents a new APK manifest from being packaged with a stale cached Dart `libapp.so`.
+- `install.cmd` now force-stops any old Olympus View process before replacing the APK, prints the actually installed Android `versionName`/`versionCode`, and starts a fresh app process after installation.
 - The in-app About changelog now highlights the current 1.3.4 Android features instead of the older preview-only list.
+- Test build bumped to **1.3.4+10** for diagnostics verification.
 
 ## [1.3.2] - 2026-08-15
 
@@ -78,46 +80,3 @@
 
 ### Changed
 - Disk cache LRU index writes are now debounced (fewer `SharedPreferences` writes while browsing)
-- Hardened filename sanitization for downloaded photos (path traversal, NUL, control chars, Windows reserved names)
-- Connection history saves are serialized to prevent race conditions under rapid writes
-
-### Fixed
-- Crash (`RangeError`) when deleting the last photo from the preview screen
-- Race condition when the disk image cache was accessed before full initialization
-- Release APK signing configuration
-
-## [1.1.0] - 2026-04-06
-
-### Added
-- **Photo Preview**: Full-screen image viewer with swipe navigation and pinch-to-zoom
-- **Preview Download/Delete**: Download or delete photos directly from preview screen (delete with confirmation)
-- **Image Preloading**: Preload ±2 neighbor images for smooth swiping in preview
-- **Disk Image Cache**: Persistent LRU cache (150 images) for thumbnails and previews across sessions
-- **Connection History**: Save and recall previously connected cameras
-- **Auto-Connect**: Automatically connect to last used camera on startup
-- **Saved Cameras List**: Quick reconnect from error screen without rescanning QR
-- **Status Messages**: Detailed connection progress (checking camera, connecting WiFi, loading files...)
-- **Version Info**: App version displayed in About dialog
-
-### Changed
-- Retry camera connection up to 3 times after WiFi switch (1s delay)
-- WiFi connection from saved cameras happens directly without navigating to QR screen
-- Loading screen shows context-aware messages instead of generic "Connecting..."
-
-### Fixed
-- Error screen content centered horizontally and vertically
-- Saved cameras list no longer shifts left when empty
-
-## [1.0.0] - 2026-03-15
-
-### Initial Release
-- Connect to Olympus cameras via WiFi (QR code scan or manual SSID/password)
-- Browse photos in grid or list view
-- Filter photos by date range
-- Batch select, download, and delete files
-- RAW/ORF file toggle
-- Download progress dialog with per-file tracking
-- Delete progress dialog with per-file tracking
-- Progressive file list loading
-- Thumbnail caching (in-memory)
-- Android and Web support

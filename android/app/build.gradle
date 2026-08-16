@@ -4,24 +4,6 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-def localProperties = new Properties()
-def localPropertiesFile = rootProject.file('local.properties')
-if (localPropertiesFile.exists()) {
-    localPropertiesFile.withReader('UTF-8') { reader ->
-        localProperties.load(reader)
-    }
-}
-
-def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
-if (flutterVersionCode == null) {
-    flutterVersionCode = '1'
-}
-
-def flutterVersionName = localProperties.getProperty('flutter.versionName')
-if (flutterVersionName == null) {
-    flutterVersionName = '1.0'
-}
-
 // Release signing uses android/key.properties. A debug-signed release is only
 // allowed when the Gradle property `allowDebugReleaseSigning=true` is set
 // explicitly (used by non-publishing CI builds).
@@ -67,8 +49,8 @@ android {
         applicationId "com.flynew.photomanager"
         minSdk 24
         targetSdk 36
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        versionCode flutter.versionCode
+        versionName flutter.versionName
     }
 
     // The GitHub APK may self-update from GitHub Releases. Google Play policy

@@ -21,6 +21,15 @@ class AppReleaseInfo {
   final String releaseNotes;
 }
 
+class InstalledAppVersion {
+  const InstalledAppVersion({required this.versionName, required this.versionCode});
+
+  final String versionName;
+  final String versionCode;
+
+  String get display => 'v$versionName (build $versionCode)';
+}
+
 class AppUpdateService {
   AppUpdateService._();
 
@@ -34,26 +43,45 @@ class AppUpdateService {
       defaultTargetPlatform == TargetPlatform.android &&
       appFlavor == 'github';
 
+  static Future<InstalledAppVersion> getInstalledVersion() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return const InstalledAppVersion(
+        versionName: appVersion,
+        versionCode: appBuild,
+      );
+    }
+
+    try {
+      final current = await _channel.invokeMapMethod<String, dynamic>(
+        'getCurrentVersion',
+      );
+      final versionName = current?['versionName']?.toString();
+      final versionCode = current?['versionCode']?.toString();
+      if (versionName != null && versionName.isNotEmpty &&
+          versionCode != null && versionCode.isNotEmpty) {
+        return InstalledAppVersion(
+          versionName: versionName,
+          versionCode: versionCode,
+        );
+      }
+    } on PlatformException catch (error) {
+      AppLogger.debug(
+        'native version lookup failed; using source fallback: $error',
+        name: 'app_update',
+      );
+    }
+
+    return const InstalledAppVersion(
+      versionName: appVersion,
+      versionCode: appBuild,
+    );
+  }
+
   static Future<AppReleaseInfo?> checkForUpdate() async {
     if (!supportsExternalUpdates) return null;
 
     try {
-      String currentVersion = appVersion;
-      try {
-        final current = await _channel.invokeMapMethod<String, dynamic>(
-          'getCurrentVersion',
-        );
-        final nativeVersion = current?['versionName']?.toString();
-        if (nativeVersion != null && nativeVersion.isNotEmpty) {
-          currentVersion = nativeVersion;
-        }
-      } on PlatformException catch (error) {
-        AppLogger.debug(
-          'native version lookup failed; using appVersion: $error',
-          name: 'app_update',
-        );
-      }
-
+      final currentVersion = (await getInstalledVersion()).versionName;
       final response = await http.get(
         Uri.parse(latestReleaseEndpoint),
         headers: <String, String>{

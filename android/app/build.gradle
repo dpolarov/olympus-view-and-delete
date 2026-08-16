@@ -51,6 +51,7 @@ android {
         targetSdk 36
         versionCode flutter.versionCode
         versionName flutter.versionName
+        buildConfigField "int", "COMPILE_SDK_VERSION", "36"
     }
 
     // The GitHub APK may self-update from GitHub Releases. Google Play policy

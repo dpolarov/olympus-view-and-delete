@@ -94,6 +94,14 @@ jobs:
           --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
           --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
 
+      - name: Verify packaged Dart AOT metadata
+        shell: pwsh
+        run: >-
+          ./scripts/verify_apk_dart_metadata.ps1
+          -ApkPath build/app/outputs/flutter-apk/app-github-release.apk
+          -ExpectedCommit $env:BUILD_GIT_COMMIT
+          -ExpectedBuildTime $env:BUILD_TIME_UTC
+
       - name: Verify GitHub APK version matches pubspec
         shell: bash
         run: |

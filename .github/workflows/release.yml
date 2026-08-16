@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "Release tag, for example v1.3.2"
+        description: "Release tag, for example v1.3.4"
         required: true
-        default: "v1.3.2"
+        default: "v1.3.4"
 
 permissions:
   contents: write
@@ -120,15 +120,29 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Prepare build metadata
+        shell: bash
+        run: |
+          echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+          echo "BUILD_GIT_COMMIT=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_ENV"
+
       - name: Build signed GitHub APK
-        run: flutter build apk --flavor github --release
+        run: >-
+          flutter build apk --flavor github --release
+          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
+          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
+          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
 
       - name: Verify Android 16 KB page-size compatibility
         shell: bash
         run: bash scripts/check_android_16kb.sh build/app/outputs/flutter-apk/app-github-release.apk
 
       - name: Build signed GitHub AAB
-        run: flutter build appbundle --flavor github --release
+        run: >-
+          flutter build appbundle --flavor github --release
+          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
+          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
+          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
 
       - name: Stage Android files
         shell: bash
@@ -173,7 +187,7 @@ jobs:
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
             tag="$GITHUB_REF_NAME"
           else
-            tag="${INPUT_TAG:-v1.3.2}"
+            tag="${INPUT_TAG:-v1.3.4}"
           fi
           echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
 

@@ -99,6 +99,10 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
 
   void _loadAround(int index) {
     final generation = ++_preloadGeneration;
+    final currentKey = _cacheKey(_files[index]);
+    _cameraQueue.cancelPendingPreloads(
+      exceptKey: 'preview:$currentKey',
+    );
     unawaited(_loadAroundPrioritized(index, generation));
   }
 
@@ -155,24 +159,25 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       return;
     }
 
-    // Priority 3: fetch exactly one neighbor at a time. For every distance the
-    // right-hand photo goes first, then the left: +1, -1, +2, -2, +3, -3.
-    // Before every request we re-check downloads so a new Download stops the
-    // sequence at the next safe boundary.
+    // Priority 3: preload neighbors in distance pairs. The right and left
+    // images at the same distance may use two camera connections in parallel,
+    // but we never start the next pair until both have completed. The order is
+    // therefore (+1, -1), then (+2, -2), then (+3, -3).
     for (int distance = 1; distance <= _keepNeighbors; distance++) {
+      if (!await _waitForDownloadsIdle(index, generation)) return;
+
+      final pair = <Future<void>>[];
       final right = index + distance;
       if (right < _files.length) {
-        if (!await _waitForDownloadsIdle(index, generation)) return;
-        await _loadImage(right, priority: _priorityNeighborPreload);
-        if (!_isCurrentPreload(index, generation)) return;
+        pair.add(_loadImage(right, priority: _priorityNeighborPreload));
       }
-
       final left = index - distance;
       if (left >= 0) {
-        if (!await _waitForDownloadsIdle(index, generation)) return;
-        await _loadImage(left, priority: _priorityNeighborPreload);
-        if (!_isCurrentPreload(index, generation)) return;
+        pair.add(_loadImage(left, priority: _priorityNeighborPreload));
       }
+
+      if (pair.isNotEmpty) await Future.wait(pair);
+      if (!_isCurrentPreload(index, generation)) return;
     }
     _evictFar(index);
   }
@@ -440,6 +445,9 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
           _loading.remove(key);
         });
       }
+    } on _PreviewTaskCancelled {
+      if (!mounted) return;
+      setState(() => _loading.remove(key));
     } catch (e) {
       AppLogger.debug(
         'preview load failed for ${file.fullPath}: $e',
@@ -606,8 +614,12 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
 }
 
 class _PreviewCameraQueue {
+  static const int _exclusivePriorityMax = 1;
+  static const int _maxParallelPreloads = 2;
+
   final List<_QueuedPreviewTask> _pending = <_QueuedPreviewTask>[];
-  bool _running = false;
+  bool _exclusiveRunning = false;
+  int _preloadsRunning = 0;
   bool _disposed = false;
   int _order = 0;
 
@@ -621,6 +633,7 @@ class _PreviewCameraQueue {
     for (final task in _pending) {
       if (task.key == key) {
         if (priority < task.priority) task.priority = priority;
+        _pump();
         return task.completer.future;
       }
     }
@@ -632,7 +645,7 @@ class _PreviewCameraQueue {
       run: run,
     );
     _pending.add(task);
-    unawaited(_drain());
+    _pump();
     return task.completer.future;
   }
 
@@ -643,31 +656,70 @@ class _PreviewCameraQueue {
         break;
       }
     }
+    _pump();
   }
 
-  Future<void> _drain() async {
-    if (_running || _disposed) return;
-    _running = true;
+  void cancelPendingPreloads({String? exceptKey}) {
+    final cancelled = _pending
+        .where((task) =>
+            task.priority > _exclusivePriorityMax && task.key != exceptKey)
+        .toList(growable: false);
+    _pending.removeWhere((task) => cancelled.contains(task));
+    for (final task in cancelled) {
+      if (!task.completer.isCompleted) {
+        task.completer.completeError(const _PreviewTaskCancelled());
+      }
+    }
+    _pump();
+  }
+
+  void _pump() {
+    if (_disposed || _exclusiveRunning) return;
+    _pending.sort((a, b) {
+      final priorityCompare = a.priority.compareTo(b.priority);
+      if (priorityCompare != 0) return priorityCompare;
+      return a.order.compareTo(b.order);
+    });
+
+    final exclusiveIndex = _pending.indexWhere(
+      (task) => task.priority <= _exclusivePriorityMax,
+    );
+    if (exclusiveIndex >= 0) {
+      // Visible preview and Download are exclusive camera operations. If a
+      // preload pair is already in flight, let that pair finish, then the new
+      // high-priority task starts before any further preload.
+      if (_preloadsRunning > 0) return;
+      final task = _pending.removeAt(exclusiveIndex);
+      _exclusiveRunning = true;
+      unawaited(_runTask(task, preload: false));
+      return;
+    }
+
+    while (_preloadsRunning < _maxParallelPreloads && _pending.isNotEmpty) {
+      final task = _pending.removeAt(0);
+      _preloadsRunning++;
+      unawaited(_runTask(task, preload: true));
+    }
+  }
+
+  Future<void> _runTask(
+    _QueuedPreviewTask task, {
+    required bool preload,
+  }) async {
     try {
-      while (_pending.isNotEmpty && !_disposed) {
-        _pending.sort((a, b) {
-          final priorityCompare = a.priority.compareTo(b.priority);
-          if (priorityCompare != 0) return priorityCompare;
-          return a.order.compareTo(b.order);
-        });
-        final task = _pending.removeAt(0);
-        try {
-          final value = await task.run();
-          if (!task.completer.isCompleted) task.completer.complete(value);
-        } catch (error, stackTrace) {
-          if (!task.completer.isCompleted) {
-            task.completer.completeError(error, stackTrace);
-          }
-        }
+      final value = await task.run();
+      if (!task.completer.isCompleted) task.completer.complete(value);
+    } catch (error, stackTrace) {
+      if (!task.completer.isCompleted) {
+        task.completer.completeError(error, stackTrace);
       }
     } finally {
-      _running = false;
-      if (_pending.isNotEmpty && !_disposed) unawaited(_drain());
+      if (preload) {
+        _preloadsRunning--;
+      } else {
+        _exclusiveRunning = false;
+      }
+      _pump();
     }
   }
 
@@ -678,6 +730,10 @@ class _PreviewCameraQueue {
     }
     _pending.clear();
   }
+}
+
+class _PreviewTaskCancelled implements Exception {
+  const _PreviewTaskCancelled();
 }
 
 class _QueuedPreviewTask {

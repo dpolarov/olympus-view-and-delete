@@ -77,15 +77,29 @@ jobs:
       - name: Test
         run: flutter test
 
+      - name: Prepare build metadata
+        shell: bash
+        run: |
+          echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+          echo "BUILD_GIT_COMMIT=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_ENV"
+
       - name: Build Play release APK for compatibility checks
-        run: flutter build apk --flavor play --release
+        run: >-
+          flutter build apk --flavor play --release
+          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
+          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
+          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
 
       - name: Verify Android 16 KB page-size compatibility
         shell: bash
         run: bash scripts/check_android_16kb.sh build/app/outputs/flutter-apk/app-play-release.apk
 
       - name: Build Play app bundle
-        run: flutter build appbundle --flavor play --release
+        run: >-
+          flutter build appbundle --flavor play --release
+          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
+          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
+          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
 
       - name: Stage Play bundle
         shell: bash

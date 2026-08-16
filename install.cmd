@@ -4,6 +4,7 @@ setlocal EnableExtensions
 set "PROJECT=%~dp0"
 set "APK=%PROJECT%releases\OlympusView-Android.apk"
 set "ADB=adb"
+set "PACKAGE=com.flynew.photomanager"
 
 if not exist "%APK%" (
   echo ========================================
@@ -56,6 +57,13 @@ if errorlevel 1 (
   echo Check that the device is connected, USB debugging is enabled,
   echo and the installed app uses the same signing key.
   goto :end
+)
+
+echo.
+echo Installed package version:
+"%ADB%" shell dumpsys package %PACKAGE% | findstr /C:"versionCode=" /C:"versionName="
+if errorlevel 1 (
+  echo WARNING: Could not read installed version for %PACKAGE%.
 )
 
 echo.

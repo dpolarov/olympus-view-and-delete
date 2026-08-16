@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import 'app_logger.dart';
 import 'camera_api.dart' show cameraIp;
+import 'camera_image_validator.dart';
 import 'image_cache.dart';
 import 'service_config.dart';
 
@@ -14,6 +15,7 @@ class ThumbnailManager {
   ThumbnailManager._();
 
   static const int _maxConcurrent = kMaxConcurrentThumbs;
+  static const int _maxAttempts = 3;
 
   /// Max number of thumbnails kept in the in-memory LRU cache. Disk cache
   /// handles persistence; this just bounds RAM for very large libraries.
@@ -22,6 +24,7 @@ class ThumbnailManager {
   /// Max total bytes kept in the in-memory cache (second RAM cap).
   static const int _maxMemBytes = kMaxMemThumbBytes;
   int _active = 0;
+  int _generation = 0;
   final List<_Request> _queue = [];
   // LinkedHashMap keeps insertion order — we use it for LRU by re-inserting
   // on access (see [load]).
@@ -41,7 +44,7 @@ class ThumbnailManager {
   }
 
   /// Request a thumbnail. Returns cached data immediately if available.
-  /// [imagePath] is the camera file path (e.g. /DCIM/100OLYMP/P1010001.JPG)
+  /// [imagePath] is a stable cache identity for the camera file.
   Future<Uint8List?> load(String url, int index, {String imagePath = ''}) {
     final cached = _cache.remove(url);
     if (cached != null) {
@@ -55,11 +58,18 @@ class ThumbnailManager {
 
     final completer = Completer<Uint8List?>();
     _inflight[url] = completer;
-    _queue.add(_Request(
-        url: url, index: index, completer: completer, imagePath: imagePath));
-    // Try disk cache first
+    final request = _Request(
+      url: url,
+      index: index,
+      completer: completer,
+      imagePath: imagePath,
+      generation: _generation,
+    );
+    _queue.add(request);
+
+    // Try disk cache first.
     if (imagePath.isNotEmpty) {
-      _tryDiskCache(url, imagePath, completer);
+      unawaited(_tryDiskCache(request));
     } else {
       _processQueue();
     }
@@ -95,37 +105,50 @@ class ThumbnailManager {
   void debugPutInMemCache(String url, Uint8List bytes) =>
       _putInMemCache(url, bytes);
 
-  Future<void> _tryDiskCache(
-      String url, String imagePath, Completer<Uint8List?> completer) async {
-    final cached = await ImageDiskCache.instance.get(imagePath, 'thumb');
-    if (cached != null) {
-      _putInMemCache(url, cached);
-      if (!completer.isCompleted) completer.complete(cached);
-      _queue.removeWhere((r) => r.url == url);
-      _inflight.remove(url);
+  Future<void> _tryDiskCache(_Request request) async {
+    final cached =
+        await ImageDiskCache.instance.get(request.imagePath, 'thumb');
+    if (request.generation != _generation) return;
+
+    if (cached != null && isCompleteCameraJpeg(cached)) {
+      _putInMemCache(request.url, cached);
+      if (!request.completer.isCompleted) request.completer.complete(cached);
+      _queue.removeWhere((r) => identical(r, request));
+      if (_inflight[request.url] == request.completer) {
+        _inflight.remove(request.url);
+      }
       return;
+    }
+
+    if (cached != null) {
+      AppLogger.debug(
+        'discarding incomplete cached thumbnail for ${request.imagePath}',
+        name: 'thumbnail_manager',
+      );
     }
     _processQueue();
   }
 
   void _processQueue() {
-    // Drop requests that are very far from visible range
+    // Drop requests that are very far from visible range.
     _queue.removeWhere((req) {
       if (_distToVisible(req.index) > 60) {
         if (!req.completer.isCompleted) req.completer.complete(null);
-        _inflight.remove(req.url);
+        if (_inflight[req.url] == req.completer) {
+          _inflight.remove(req.url);
+        }
         return true;
       }
       return false;
     });
 
     while (_active < _maxConcurrent && _queue.isNotEmpty) {
-      // Sort: items closer to visible range first
+      // Sort: items closer to visible range first.
       _queue.sort(
           (a, b) => _distToVisible(a.index).compareTo(_distToVisible(b.index)));
       final req = _queue.removeAt(0);
       _active++;
-      _fetch(req);
+      unawaited(_fetch(req));
     }
   }
 
@@ -135,18 +158,57 @@ class ThumbnailManager {
     return index - _visibleEnd;
   }
 
+  Future<Uint8List?> _fetchValidBytes(String url) async {
+    for (var attempt = 1; attempt <= _maxAttempts; attempt++) {
+      try {
+        final resp = await _client.get(
+          Uri.parse(url),
+          headers: {
+            'User-Agent': 'OI.Share v2',
+            'Host': cameraIp,
+            'Connection': 'Keep-Alive',
+          },
+        ).timeout(kCameraRequestTimeout);
+
+        if (resp.statusCode == 200 && resp.bodyBytes.isNotEmpty) {
+          final bytes = Uint8List.fromList(resp.bodyBytes);
+          if (isCompleteCameraJpeg(
+            bytes,
+            expectedLength: resp.contentLength,
+          )) {
+            return bytes;
+          }
+          AppLogger.debug(
+            'incomplete thumbnail response for $url '
+            '(${bytes.lengthInBytes} bytes, attempt $attempt)',
+            name: 'thumbnail_manager',
+          );
+        } else {
+          AppLogger.debug(
+            'thumbnail HTTP ${resp.statusCode} for $url (attempt $attempt)',
+            name: 'thumbnail_manager',
+          );
+        }
+      } catch (e) {
+        AppLogger.debug(
+          'thumbnail fetch failed for $url (attempt $attempt): $e',
+          name: 'thumbnail_manager',
+        );
+      }
+
+      if (attempt < _maxAttempts) {
+        await Future.delayed(Duration(milliseconds: 150 * attempt));
+      }
+    }
+    return null;
+  }
+
   Future<void> _fetch(_Request req) async {
     try {
-      final resp = await _client.get(
-        Uri.parse(req.url),
-        headers: {
-          'User-Agent': 'OI.Share v2',
-          'Host': cameraIp,
-          'Connection': 'Keep-Alive',
-        },
-      ).timeout(kCameraRequestTimeout);
-      if (resp.statusCode == 200 && resp.bodyBytes.isNotEmpty) {
-        final bytes = Uint8List.fromList(resp.bodyBytes);
+      final bytes = await _fetchValidBytes(req.url);
+      if (req.generation != _generation) return;
+
+      if (bytes != null) {
         _putInMemCache(req.url, bytes);
         if (req.imagePath.isNotEmpty) {
           unawaited(ImageDiskCache.instance
@@ -157,22 +219,27 @@ class ThumbnailManager {
           }));
         }
         if (!req.completer.isCompleted) req.completer.complete(bytes);
-      } else {
-        if (!req.completer.isCompleted) req.completer.complete(null);
+      } else if (!req.completer.isCompleted) {
+        req.completer.complete(null);
       }
-    } catch (e) {
-      AppLogger.debug('thumbnail fetch failed for ${req.url}: $e',
-          name: 'thumbnail_manager');
-      if (!req.completer.isCompleted) req.completer.complete(null);
     } finally {
       _active--;
-      _inflight.remove(req.url);
+      if (_active < 0) _active = 0;
+      if (_inflight[req.url] == req.completer) {
+        _inflight.remove(req.url);
+      }
       _processQueue();
     }
   }
 
   /// Clear all cache and pending requests.
+  ///
+  /// Active HTTP calls are allowed to finish, but [_generation] prevents their
+  /// old responses from entering a freshly reloaded gallery. We intentionally
+  /// keep [_active] unchanged so old requests cannot make the concurrency
+  /// counter negative when they complete.
   void clear() {
+    _generation++;
     _cache.clear();
     _cacheBytes = 0;
     for (final req in _queue) {
@@ -183,7 +250,6 @@ class ThumbnailManager {
       if (!c.isCompleted) c.complete(null);
     }
     _inflight.clear();
-    _active = 0;
   }
 }
 
@@ -191,10 +257,14 @@ class _Request {
   final String url;
   final int index;
   final String imagePath;
+  final int generation;
   final Completer<Uint8List?> completer;
-  _Request(
-      {required this.url,
-      required this.index,
-      required this.completer,
-      this.imagePath = ''});
+
+  _Request({
+    required this.url,
+    required this.index,
+    required this.completer,
+    required this.generation,
+    this.imagePath = '',
+  });
 }

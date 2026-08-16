@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'l10n/app_localizations.dart';
@@ -28,14 +30,16 @@ class OlympusApp extends StatelessWidget {
     if (navigator == null) return;
 
     _debugRouteOpen = true;
-    navigator
-        .push<void>(
-          MaterialPageRoute<void>(
-            builder: (_) => const DebugInfoScreen(),
-            settings: const RouteSettings(name: '/debug-info'),
-          ),
-        )
-        .whenComplete(() => _debugRouteOpen = false);
+    unawaited(
+      navigator
+          .push<void>(
+            MaterialPageRoute<void>(
+              builder: (_) => const DebugInfoScreen(),
+              settings: const RouteSettings(name: '/debug-info'),
+            ),
+          )
+          .whenComplete(() => _debugRouteOpen = false),
+    );
   }
 
   @override

@@ -20,6 +20,24 @@ jobs:
         with:
           ref: agent/docs-background-download
 
+      - name: Fix duplicate localized card marker in one-time patcher
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/patch_docs_134.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''html = insert_before(html, '        <div class="feature-card">\\n            <div class="feature-icon">💻</div>\\n            <h3>Мультиплатформа</h3>', uk_cards, 'UK cards')
+          html = insert_before(html, '        <div class="feature-card">\\n            <div class="feature-icon">💻</div>\\n            <h3>Мультиплатформа</h3>', ru_cards, 'RU cards')'''.replace('          html =', 'html =')
+          new = '''localized_marker = '        <div class="feature-card">\\n            <div class="feature-icon">💻</div>\\n            <h3>Мультиплатформа</h3>'
+          first = html.index(localized_marker)
+          html = html[:first] + uk_cards + html[first:]
+          second = html.index(localized_marker, first + len(uk_cards) + len(localized_marker))
+          html = html[:second] + ru_cards + html[second:]'''.replace('          first =', 'first =').replace('          html =', 'html =').replace('          second =', 'second =')
+          if old not in text:
+              raise SystemExit('localized card insertion block not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
       - name: Apply documentation updates
         run: python3 scripts/patch_docs_134.py
 
@@ -32,9 +50,14 @@ jobs:
           assert 'Download in the background on Android' in readme
           assert 'Фоновое скачивание на Android' in readme
           assert 'Background Download' in html
+          assert 'Фонове завантаження' in html
           assert 'Фоновое скачивание' in html
+          assert 'Already Downloaded' in html
+          assert 'Вже завантажено' in html
+          assert 'Уже скачано' in html
           assert html.count('<style>') == 1
           assert 'fonts.googleapis.com' not in html
+          assert 'v1.3.2 APK<br>' not in html
           print('Documentation validation OK')
           PY
 

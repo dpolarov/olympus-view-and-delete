@@ -1,0 +1,30 @@
+name: One-time preview test reset
+
+on:
+  push:
+    branches:
+      - agent/preview-priority-and-debug
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[preview-test-reset]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/preview-priority-and-debug
+      - name: Apply test reset patch
+        run: python3 scripts/_patch_preview_test_reset.py
+      - name: Commit patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add test/photo_preview_screen_test.dart
+          git diff --cached --quiet && exit 0
+          git commit -m "Reset platform override inside preview test [preview-test-reset]"
+          git push

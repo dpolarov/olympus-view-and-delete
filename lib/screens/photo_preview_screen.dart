@@ -13,6 +13,7 @@ import '../services/camera_image_validator.dart';
 import '../services/download_history.dart';
 import '../services/file_saver.dart' as file_saver;
 import '../services/image_cache.dart';
+import '../services/preview_preload_plan.dart';
 import '../services/service_config.dart';
 import '../services/thumbnail_manager.dart';
 
@@ -159,24 +160,25 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       return;
     }
 
-    // Priority 3: preload neighbors in distance pairs. The right and left
-    // images at the same distance may use two camera connections in parallel,
-    // but we never start the next pair until both have completed. The order is
-    // therefore (+1, -1), then (+2, -2), then (+3, -3).
-    for (int distance = 1; distance <= _keepNeighbors; distance++) {
+    // Priority 3: preload neighbors in distance pairs. The planner yields
+    // right first, then left for each distance: (+1, -1), (+2, -2), (+3, -3).
+    // Both members of a pair may use two camera connections concurrently, but
+    // the next pair never starts until this pair has completed.
+    final preloadPairs = buildPreviewPreloadPairs(
+      center: index,
+      itemCount: _files.length,
+      radius: _keepNeighbors,
+    );
+    for (final indexes in preloadPairs) {
       if (!await _waitForDownloadsIdle(index, generation)) return;
 
-      final pair = <Future<void>>[];
-      final right = index + distance;
-      if (right < _files.length) {
-        pair.add(_loadImage(right, priority: _priorityNeighborPreload));
-      }
-      final left = index - distance;
-      if (left >= 0) {
-        pair.add(_loadImage(left, priority: _priorityNeighborPreload));
-      }
-
-      if (pair.isNotEmpty) await Future.wait(pair);
+      final pair = indexes
+          .map((neighbor) => _loadImage(
+                neighbor,
+                priority: _priorityNeighborPreload,
+              ))
+          .toList(growable: false);
+      await Future.wait(pair);
       if (!_isCurrentPreload(index, generation)) return;
     }
     _evictFar(index);

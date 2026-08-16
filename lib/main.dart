@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'l10n/app_localizations.dart';
 import 'l10n/l10n.dart';
+import 'screens/debug_info_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/locale_controller.dart';
+import 'widgets/four_finger_debug_trigger.dart';
+
+final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+bool _debugRouteOpen = false;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,12 +22,29 @@ class OlympusApp extends StatelessWidget {
 
   final LocaleController localeController;
 
+  void _openDebugInfo() {
+    if (_debugRouteOpen) return;
+    final navigator = _navigatorKey.currentState;
+    if (navigator == null) return;
+
+    _debugRouteOpen = true;
+    navigator
+        .push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => const DebugInfoScreen(),
+            settings: const RouteSettings(name: '/debug-info'),
+          ),
+        )
+        .whenComplete(() => _debugRouteOpen = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Locale?>(
       valueListenable: localeController,
       builder: (context, locale, _) {
         return MaterialApp(
+          navigatorKey: _navigatorKey,
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             brightness: Brightness.dark,
@@ -47,6 +69,10 @@ class OlympusApp extends StatelessWidget {
           supportedLocales: L10n.all,
           locale: locale,
           onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+          builder: (context, child) => FourFingerDebugTrigger(
+            onTriggered: _openDebugInfo,
+            child: child ?? const SizedBox.shrink(),
+          ),
           home: HomeScreen(localeController: localeController),
         );
       },

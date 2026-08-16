@@ -1,9 +1,12 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
+set "PROJECT=%~dp0"
+if "%PROJECT:~-1%"=="\" set "PROJECT=%PROJECT:~0,-1%"
 set "FLUTTER=C:\flutter\bin\flutter.bat"
-set "PROJECT=C:\tmp\olympus_flutter"
 set "RELEASES=%PROJECT%\releases"
+set "BUILT_APK=%PROJECT%\build\app\outputs\flutter-apk\app-github-release.apk"
+set "RELEASE_APK=%RELEASES%\OlympusView-Android.apk"
 set "KEY_PROPERTIES=%PROJECT%\android\key.properties"
 set "DEFAULT_KEYSTORE=%USERPROFILE%\.android\debug.keystore"
 set "EXPECTED_CERT_SHA256=3786A41C932C63183FC36DD388CB6BE397775392D3BF6E7F4FB16DC28CAE841E"
@@ -12,15 +15,72 @@ set "TEMP_KEY_PROPERTIES=0"
 cd /d "%PROJECT%" || goto :failed
 
 if not exist "%FLUTTER%" (
-  echo ERROR: Flutter not found: %FLUTTER%
+  where flutter >nul 2>nul
+  if errorlevel 1 (
+    echo ERROR: Flutter was not found at C:\flutter\bin\flutter.bat or in PATH.
+    goto :failed
+  )
+  set "FLUTTER=flutter"
+)
+
+where git >nul 2>nul
+if errorlevel 1 (
+  echo ERROR: git.exe was not found in PATH.
   goto :failed
 )
 
+set "GIT_BRANCH="
+for /f "delims=" %%A in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set "GIT_BRANCH=%%A"
+if not defined GIT_BRANCH (
+  echo ERROR: Could not determine the current Git branch.
+  goto :failed
+)
+if /I not "!GIT_BRANCH!"=="master" (
+  echo ERROR: build_release.cmd only builds the repository master branch.
+  echo Current branch: !GIT_BRANCH!
+  echo.
+  echo Run:
+  echo   git switch master
+  echo   git pull --ff-only
+  echo   build_release.cmd
+  goto :failed
+)
+
+set "GIT_COMMIT="
+for /f "delims=" %%A in ('git rev-parse --short HEAD 2^>nul') do set "GIT_COMMIT=%%A"
+
+set "PUBSPEC_VERSION="
+for /f "tokens=2" %%A in ('findstr /B /C:"version:" "%PROJECT%\pubspec.yaml"') do set "PUBSPEC_VERSION=%%A"
+if not defined PUBSPEC_VERSION (
+  echo ERROR: Could not read the version from pubspec.yaml.
+  goto :failed
+)
+
+set "BUILD_NAME="
+set "BUILD_NUMBER="
+for /f "tokens=1,2 delims=+" %%A in ("!PUBSPEC_VERSION!") do (
+  set "BUILD_NAME=%%A"
+  set "BUILD_NUMBER=%%B"
+)
+if not defined BUILD_NAME goto :bad_version
+if not defined BUILD_NUMBER goto :bad_version
+
+goto :version_ok
+
+:bad_version
+echo ERROR: Invalid pubspec version: !PUBSPEC_VERSION!
+echo Expected format: 1.2.3+4
+goto :failed
+
+:version_ok
 if not exist "%RELEASES%" mkdir "%RELEASES%"
 
 echo ========================================
 echo  Olympus View - GitHub Android Release
 echo ========================================
+echo Source branch : !GIT_BRANCH!
+echo Source commit : !GIT_COMMIT!
+echo App version   : !BUILD_NAME! (build !BUILD_NUMBER!)
 echo.
 
 rem Local GitHub APK updates must use the same certificate as the APKs that
@@ -71,26 +131,87 @@ if exist "%KEY_PROPERTIES%" (
 )
 
 echo.
-echo [1/4] Resolving dependencies...
+echo [1/5] Resolving dependencies...
 call "%FLUTTER%" pub get
 if errorlevel 1 goto :failed
 
 echo.
-echo [2/4] Building signed GitHub APK...
-call "%FLUTTER%" build apk --flavor github --release --obfuscate --split-debug-info=build/symbols
+echo [2/5] Removing stale APK outputs...
+if exist "%BUILT_APK%" del /Q "%BUILT_APK%"
+if exist "%RELEASE_APK%" del /Q "%RELEASE_APK%"
+
+echo.
+echo [3/5] Building signed GitHub APK !BUILD_NAME! build !BUILD_NUMBER!...
+call "%FLUTTER%" build apk --flavor github --release --build-name !BUILD_NAME! --build-number !BUILD_NUMBER! --obfuscate --split-debug-info=build/symbols
+if errorlevel 1 goto :failed
+if not exist "%BUILT_APK%" (
+  echo ERROR: Flutter reported success but the expected APK was not created:
+  echo   %BUILT_APK%
+  goto :failed
+)
+
+echo.
+echo [4/5] Verifying APK version...
+set "AAPT="
+where aapt >nul 2>nul
+if not errorlevel 1 (
+  for /f "delims=" %%A in ('where aapt') do if not defined AAPT set "AAPT=%%A"
+)
+if not defined AAPT (
+  if defined ANDROID_HOME (
+    for /f "delims=" %%A in ('dir /b /s /a-d "%ANDROID_HOME%\build-tools\aapt.exe" 2^>nul') do set "AAPT=%%A"
+  )
+)
+if not defined AAPT (
+  if defined ANDROID_SDK_ROOT (
+    for /f "delims=" %%A in ('dir /b /s /a-d "%ANDROID_SDK_ROOT%\build-tools\aapt.exe" 2^>nul') do set "AAPT=%%A"
+  )
+)
+if not defined AAPT (
+  if exist "%LOCALAPPDATA%\Android\Sdk\build-tools" (
+    for /f "delims=" %%A in ('dir /b /s /a-d "%LOCALAPPDATA%\Android\Sdk\build-tools\aapt.exe" 2^>nul') do set "AAPT=%%A"
+  )
+)
+
+if defined AAPT (
+  set "BADGING_FILE=%TEMP%\olympus-view-apk-badging.txt"
+  "!AAPT!" dump badging "%BUILT_APK%" > "!BADGING_FILE!" 2>nul
+  if errorlevel 1 (
+    echo ERROR: aapt could not inspect the built APK.
+    goto :failed
+  )
+  findstr /C:"versionCode='!BUILD_NUMBER!'" "!BADGING_FILE!" >nul
+  if errorlevel 1 (
+    echo ERROR: APK versionCode does not match pubspec build !BUILD_NUMBER!.
+    type "!BADGING_FILE!" | findstr /B /C:"package:"
+    del /Q "!BADGING_FILE!" >nul 2>nul
+    goto :failed
+  )
+  findstr /C:"versionName='!BUILD_NAME!'" "!BADGING_FILE!" >nul
+  if errorlevel 1 (
+    echo ERROR: APK versionName does not match pubspec version !BUILD_NAME!.
+    type "!BADGING_FILE!" | findstr /B /C:"package:"
+    del /Q "!BADGING_FILE!" >nul 2>nul
+    goto :failed
+  )
+  for /f "delims=" %%A in ('findstr /B /C:"package:" "!BADGING_FILE!"') do echo [verify] %%A
+  del /Q "!BADGING_FILE!" >nul 2>nul
+) else (
+  echo WARNING: aapt.exe was not found; manifest version verification was skipped.
+  echo          Flutter still receives explicit --build-name/--build-number values.
+)
+
+echo.
+echo [5/5] Copying APK...
+copy /Y "%BUILT_APK%" "%RELEASE_APK%" >nul
 if errorlevel 1 goto :failed
 
 echo.
-echo [3/4] Copying APK...
-copy /Y "%PROJECT%\build\app\outputs\flutter-apk\app-github-release.apk" "%RELEASES%\OlympusView-Android.apk" >nul
-if errorlevel 1 goto :failed
-
-echo.
-echo [4/4] Done.
 echo ========================================
 echo  Android release file
 echo ========================================
-echo APK: %RELEASES%\OlympusView-Android.apk
+echo Version: !BUILD_NAME! (build !BUILD_NUMBER!)
+echo APK: %RELEASE_APK%
 echo Symbols: %PROJECT%\build\symbols
 echo.
 echo NOTE: Google Play AAB is intentionally not built by this script.

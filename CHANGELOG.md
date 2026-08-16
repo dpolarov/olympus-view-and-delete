@@ -44,7 +44,9 @@
 - Downloading while the current preview is still loading no longer leaves the preview spinner stuck; downloaded JPEG bytes can immediately satisfy the preview.
 - Full-screen preview now shows a green `download_done` marker for files already recorded in persistent download history.
 - Diagnostics entry is more reliable: the About icon uses a direct long-press target without an `IconButton` tooltip conflict, and the four-finger recognizer tolerates Android pointer coalescing/cancellation.
-- Diagnostic test build bumped to **1.3.4+12**.
+- Neighbor full-screen previews now preload strictly one at a time in **right, left, right, left** distance order (`+1, -1, +2, -2, +3, -3`) and wait for foreground/background downloads to finish before continuing.
+- Diagnostics navigation is deferred through the root navigator; holding the About icon now uses raw pointer timing, and About includes a visible **Debug information** fallback button for devices that reserve multi-finger gestures.
+- Diagnostic test build bumped to **1.3.4+13**.
 - Release APK and AAB now build successfully in GitHub Actions.
 - Fixed the 16 KB checker so it validates ELF `LOAD` segment alignment correctly and follows Android's 64-bit ABI verification scope.
 - Fixed Android photo saving under scoped storage on recent Android versions.

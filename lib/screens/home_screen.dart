@@ -23,6 +23,7 @@ import '../services/thumbnail_manager.dart';
 import '../version.dart';
 import '../widgets/date_filter_sheet.dart';
 import '../widgets/delete_progress_dialog.dart';
+import '../widgets/diagnostics_info_action.dart';
 import '../widgets/download_progress_dialog.dart';
 import '../widgets/photo_grid.dart';
 import 'debug_info_screen.dart';
@@ -30,9 +31,14 @@ import 'photo_preview_screen.dart';
 import 'qr_scan_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.localeController});
+  const HomeScreen({
+    super.key,
+    required this.localeController,
+    this.onOpenDiagnostics,
+  });
 
   final LocaleController localeController;
+  final VoidCallback? onOpenDiagnostics;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -599,6 +605,11 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _openDebugInfo() {
+    final rootHandler = widget.onOpenDiagnostics;
+    if (rootHandler != null) {
+      rootHandler();
+      return;
+    }
     unawaited(
       Navigator.of(context).push<void>(
         MaterialPageRoute<void>(builder: (_) => const DebugInfoScreen()),
@@ -664,6 +675,17 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           icon: const Icon(Icons.privacy_tip_outlined, size: 18),
           label: const Text('Privacy Policy'),
+        ),
+        const SizedBox(height: 8),
+        TextButton.icon(
+          onPressed: () {
+            Navigator.of(context, rootNavigator: true).pop();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _openDebugInfo();
+            });
+          },
+          icon: const Icon(Icons.bug_report_outlined, size: 18),
+          label: const Text('Debug information'),
         ),
         const SizedBox(height: 8),
         const Divider(height: 1),
@@ -1209,18 +1231,9 @@ class _HomeScreenState extends State<HomeScreen>
                     .toList(),
               ),
             ),
-            Semantics(
-              button: true,
-              label: 'About. Long press for diagnostics.',
-              child: InkResponse(
-                radius: 24,
-                onTap: _showAbout,
-                onLongPress: _openDebugInfo,
-                child: const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Icon(Icons.info_outline),
-                ),
-              ),
+            DiagnosticsInfoAction(
+              onTap: _showAbout,
+              onDiagnostics: _openDebugInfo,
             ),
           ],
         ],

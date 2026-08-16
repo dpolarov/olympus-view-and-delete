@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../constants.dart';
 import '../services/app_logger.dart';
+import '../services/background_download_service.dart';
 import '../services/camera_api.dart';
 import '../services/camera_image_validator.dart';
 import '../services/download_history.dart';
@@ -57,6 +58,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   final _PreviewCameraQueue _cameraQueue = _PreviewCameraQueue();
   late final bool _ownsApi;
   bool _busy = false;
+  int _preloadGeneration = 0;
   Set<String> _downloadedKeys = <String>{};
 
   @override
@@ -96,34 +98,80 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   }
 
   void _loadAround(int index) {
-    unawaited(_loadAroundPrioritized(index));
+    final generation = ++_preloadGeneration;
+    unawaited(_loadAroundPrioritized(index, generation));
   }
 
-  Future<void> _loadAroundPrioritized(int index) async {
+  bool _isCurrentPreload(int index, int generation) =>
+      mounted &&
+      index == _currentIndex &&
+      generation == _preloadGeneration;
+
+  Future<bool> _downloadsAreRunning() async {
+    if (_busy) return true;
+    try {
+      return await BackgroundDownloadService.isRunning();
+    } catch (e) {
+      AppLogger.debug(
+        'background download state unavailable: $e',
+        name: 'photo_preview',
+      );
+      return _busy;
+    }
+  }
+
+  Future<bool> _waitForDownloadsIdle(
+    int index,
+    int generation, {
+    bool initialDelay = false,
+  }) async {
+    if (initialDelay) {
+      // Small idle window: if the user taps Download immediately after the
+      // visible preview appears, that download wins before any neighbor fetch.
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+
+    while (_isCurrentPreload(index, generation)) {
+      if (!await _downloadsAreRunning()) return true;
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+    return false;
+  }
+
+  Future<void> _loadAroundPrioritized(int index, int generation) async {
     if (index < 0 || index >= _files.length) return;
 
-    // Do not even enqueue neighbor network work until the visible frame has
-    // finished (or failed). This makes the user's current screen deterministic.
+    // Priority 1: the frame currently visible to the user.
     await _loadImage(index, priority: _priorityVisiblePreview);
-    if (!mounted || index != _currentIndex) return;
+    if (!_isCurrentPreload(index, generation)) return;
 
-    // Give an immediately requested Download a short chance to enter the queue
-    // before low-priority neighbor preloads begin.
-    await Future<void>.delayed(const Duration(milliseconds: 100));
-    if (!mounted || index != _currentIndex || _busy) return;
+    // Priority 2: all foreground/background downloads. Neighbor previews wait
+    // until those downloads are idle, then resume automatically.
+    if (!await _waitForDownloadsIdle(
+      index,
+      generation,
+      initialDelay: true,
+    )) {
+      return;
+    }
 
-    for (int d = 1; d <= _keepNeighbors; d++) {
-      if (index - d >= 0) {
-        unawaited(_loadImage(
-          index - d,
-          priority: _priorityNeighborPreload,
-        ));
+    // Priority 3: fetch exactly one neighbor at a time. For every distance the
+    // right-hand photo goes first, then the left: +1, -1, +2, -2, +3, -3.
+    // Before every request we re-check downloads so a new Download stops the
+    // sequence at the next safe boundary.
+    for (int distance = 1; distance <= _keepNeighbors; distance++) {
+      final right = index + distance;
+      if (right < _files.length) {
+        if (!await _waitForDownloadsIdle(index, generation)) return;
+        await _loadImage(right, priority: _priorityNeighborPreload);
+        if (!_isCurrentPreload(index, generation)) return;
       }
-      if (index + d < _files.length) {
-        unawaited(_loadImage(
-          index + d,
-          priority: _priorityNeighborPreload,
-        ));
+
+      final left = index - distance;
+      if (left >= 0) {
+        if (!await _waitForDownloadsIdle(index, generation)) return;
+        await _loadImage(left, priority: _priorityNeighborPreload);
+        if (!_isCurrentPreload(index, generation)) return;
       }
     }
     _evictFar(index);
@@ -175,7 +223,6 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
           _imageCache[key] = bytes;
         }
       });
-      _loadAround(_currentIndex);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${AppStrings.download}: ${file.filename}')),
       );
@@ -193,7 +240,12 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
         SnackBar(content: Text('${AppStrings.download} failed: $e')),
       );
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() => _busy = false);
+        // Restart deterministic right-first neighbor preloading after the
+        // foreground download completes. Cached neighbors are skipped cheaply.
+        _loadAround(_currentIndex);
+      }
     }
   }
 

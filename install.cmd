@@ -49,6 +49,10 @@ if errorlevel 1 (
 )
 
 echo.
+echo Stopping any old Olympus View process...
+"%ADB%" shell am force-stop %PACKAGE% >nul 2>nul
+
+echo.
 echo Installing existing APK...
 "%ADB%" install -r "%APK%"
 if errorlevel 1 (
@@ -67,8 +71,20 @@ if errorlevel 1 (
 )
 
 echo.
+echo Starting a fresh Olympus View process...
+"%ADB%" shell monkey -p %PACKAGE% -c android.intent.category.LAUNCHER 1 >nul 2>nul
+if errorlevel 1 (
+  echo WARNING: APK installed, but automatic launch failed.
+  echo          Start Olympus View manually on the device.
+) else (
+  timeout /t 1 /nobreak >nul
+  echo Running process:
+  "%ADB%" shell pidof %PACKAGE%
+)
+
+echo.
 echo ========================================
-echo  Done! APK installed on device.
+echo  Done! APK installed and restarted.
 echo ========================================
 
 :end

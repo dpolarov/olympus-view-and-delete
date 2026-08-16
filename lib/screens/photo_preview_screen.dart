@@ -13,6 +13,7 @@ import '../services/download_history.dart';
 import '../services/file_saver.dart' as file_saver;
 import '../services/image_cache.dart';
 import '../services/service_config.dart';
+import '../services/thumbnail_manager.dart';
 
 /// Full-screen photo preview loaded via get_resizeimg (high quality).
 class PhotoPreviewScreen extends StatefulWidget {
@@ -38,6 +39,9 @@ class PhotoPreviewScreen extends StatefulWidget {
 class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   static const int _keepNeighbors = kPreviewKeepNeighbors;
   static const int _maxPreviewAttempts = 3;
+  static const int _priorityVisiblePreview = 0;
+  static const int _priorityDownload = 1;
+  static const int _priorityNeighborPreload = 2;
 
   late PageController _pageController;
   late int _currentIndex;
@@ -45,12 +49,15 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   final Set<String> _deletedPaths = {};
   final Map<String, Uint8List?> _imageCache = {};
   final Set<String> _loading = {};
+  final Map<String, Future<void>> _loadFutures = {};
   final Set<String> _error = {};
   late final http.Client _client;
   late final bool _ownsClient;
   late final CameraApi _api;
+  final _PreviewCameraQueue _cameraQueue = _PreviewCameraQueue();
   late final bool _ownsApi;
   bool _busy = false;
+  Set<String> _downloadedKeys = <String>{};
 
   @override
   void initState() {
@@ -62,11 +69,15 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
     _files = List.of(widget.files);
     _currentIndex = widget.initialIndex.clamp(0, _files.length - 1);
     _pageController = PageController(initialPage: _currentIndex);
+    ThumbnailManager.instance.pauseNetwork();
+    unawaited(_refreshDownloadedHistory());
     _loadAround(_currentIndex);
   }
 
   @override
   void dispose() {
+    _cameraQueue.dispose();
+    ThumbnailManager.instance.resumeNetwork();
     _pageController.dispose();
     if (_ownsClient) _client.close();
     if (_ownsApi) _api.dispose();
@@ -75,12 +86,31 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
 
   String _cacheKey(CameraFile file) => file.downloadHistoryKey;
 
+  bool _isDownloaded(CameraFile file) =>
+      _downloadedKeys.contains(file.downloadHistoryKey);
+
+  Future<void> _refreshDownloadedHistory() async {
+    final keys = await DownloadHistory.load();
+    if (!mounted) return;
+    setState(() => _downloadedKeys = keys);
+  }
+
   void _loadAround(int index) {
     if (index < 0 || index >= _files.length) return;
-    _loadImage(index);
+    unawaited(_loadImage(index, priority: _priorityVisiblePreview));
     for (int d = 1; d <= _keepNeighbors; d++) {
-      if (index - d >= 0) _loadImage(index - d);
-      if (index + d < _files.length) _loadImage(index + d);
+      if (index - d >= 0) {
+        unawaited(_loadImage(
+          index - d,
+          priority: _priorityNeighborPreload,
+        ));
+      }
+      if (index + d < _files.length) {
+        unawaited(_loadImage(
+          index + d,
+          priority: _priorityNeighborPreload,
+        ));
+      }
     }
     _evictFar(index);
   }
@@ -98,18 +128,53 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
 
   Future<void> _downloadCurrent() async {
     final file = _files[_currentIndex];
+    final key = _cacheKey(file);
     setState(() => _busy = true);
     try {
-      final bytes = await _api.downloadFile(file);
+      // Highest priority is always the image the user is currently waiting to
+      // see. If it is still pending, finish/promote it before starting the full
+      // file download. Downloads then run ahead of all neighbor preloads.
+      await _loadImage(
+        _currentIndex,
+        priority: _priorityVisiblePreview,
+      );
+
+      final bytes = await _cameraQueue.schedule(
+        key: 'download:$key',
+        priority: _priorityDownload,
+        run: () async => Uint8List.fromList(await _api.downloadFile(file)),
+      );
+      if (bytes == null) throw StateError('Camera returned no file data');
+
       final saveDirPath = kIsWeb ? null : await file_saver.getSaveDirectory();
       await file_saver.saveFileToDevice(file.filename, bytes, saveDirPath);
       await DownloadHistory.mark(file.downloadHistoryKey);
       if (!mounted) return;
+
+      setState(() {
+        _downloadedKeys.add(key);
+        _loading.remove(key);
+        _error.remove(key);
+        if (isCompleteCameraJpeg(bytes)) {
+          // The downloaded original is also a valid full-screen preview. Reuse
+          // it immediately rather than leaving a failed resize request spinning.
+          _imageCache[key] = bytes;
+        }
+      });
+      _loadAround(_currentIndex);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${AppStrings.download}: ${file.filename}')),
       );
     } catch (e) {
       if (!mounted) return;
+      setState(() {
+        _loading.remove(key);
+        _error.remove(key);
+      });
+      unawaited(_loadImage(
+        _currentIndex,
+        priority: _priorityVisiblePreview,
+      ));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${AppStrings.download} failed: $e')),
       );
@@ -232,15 +297,42 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
     return null;
   }
 
-  Future<void> _loadImage(int index) async {
-    if (index < 0 || index >= _files.length) return;
+  Future<void> _loadImage(
+    int index, {
+    required int priority,
+  }) {
+    if (index < 0 || index >= _files.length) return Future<void>.value();
     final file = _files[index];
     final key = _cacheKey(file);
-    if (_imageCache.containsKey(key) || _loading.contains(key)) return;
-    setState(() {
-      _loading.add(key);
-      _error.remove(key);
+    if (_imageCache.containsKey(key)) return Future<void>.value();
+
+    final existing = _loadFutures[key];
+    if (existing != null) {
+      _cameraQueue.promote('preview:$key', priority);
+      return existing;
+    }
+
+    late Future<void> future;
+    future = _loadImageInternal(file, key, priority).whenComplete(() {
+      if (identical(_loadFutures[key], future)) {
+        _loadFutures.remove(key);
+      }
     });
+    _loadFutures[key] = future;
+    return future;
+  }
+
+  Future<void> _loadImageInternal(
+    CameraFile file,
+    String key,
+    int priority,
+  ) async {
+    if (mounted) {
+      setState(() {
+        _loading.add(key);
+        _error.remove(key);
+      });
+    }
 
     try {
       final cached = await ImageDiskCache.instance.get(key, 'preview');
@@ -259,7 +351,11 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
         );
       }
 
-      final bytes = await _fetchPreview(file);
+      final bytes = await _cameraQueue.schedule(
+        key: 'preview:$key',
+        priority: priority,
+        run: () => _fetchPreview(file),
+      );
       if (!mounted) return;
       if (bytes != null) {
         unawaited(ImageDiskCache.instance.put(key, 'preview', bytes).catchError(
@@ -293,7 +389,9 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
 
   void _onPageChanged(int index) {
     setState(() => _currentIndex = index);
+    // Promote the newly visible item over queued downloads/preloads.
     _loadAround(index);
+    unawaited(_refreshDownloadedHistory());
   }
 
   @override
@@ -345,8 +443,15 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
               )
             else ...[
               IconButton(
-                icon: const Icon(Icons.download, color: kAccentColor),
-                tooltip: AppStrings.downloadTooltip,
+                icon: Icon(
+                  _isDownloaded(file)
+                      ? Icons.download_done
+                      : Icons.download,
+                  color: kAccentColor,
+                ),
+                tooltip: _isDownloaded(file)
+                    ? 'Already downloaded · tap to download again'
+                    : AppStrings.downloadTooltip,
                 onPressed: _downloadCurrent,
               ),
               IconButton(
@@ -432,4 +537,94 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       ),
     );
   }
+}
+
+class _PreviewCameraQueue {
+  final List<_QueuedPreviewTask> _pending = <_QueuedPreviewTask>[];
+  bool _running = false;
+  bool _disposed = false;
+  int _order = 0;
+
+  Future<Uint8List?> schedule({
+    required String key,
+    required int priority,
+    required Future<Uint8List?> Function() run,
+  }) {
+    if (_disposed) return Future<Uint8List?>.value(null);
+
+    for (final task in _pending) {
+      if (task.key == key) {
+        if (priority < task.priority) task.priority = priority;
+        return task.completer.future;
+      }
+    }
+
+    final task = _QueuedPreviewTask(
+      key: key,
+      priority: priority,
+      order: _order++,
+      run: run,
+    );
+    _pending.add(task);
+    unawaited(_drain());
+    return task.completer.future;
+  }
+
+  void promote(String key, int priority) {
+    for (final task in _pending) {
+      if (task.key == key && priority < task.priority) {
+        task.priority = priority;
+        break;
+      }
+    }
+  }
+
+  Future<void> _drain() async {
+    if (_running || _disposed) return;
+    _running = true;
+    try {
+      while (_pending.isNotEmpty && !_disposed) {
+        _pending.sort((a, b) {
+          final priorityCompare = a.priority.compareTo(b.priority);
+          if (priorityCompare != 0) return priorityCompare;
+          return a.order.compareTo(b.order);
+        });
+        final task = _pending.removeAt(0);
+        try {
+          final value = await task.run();
+          if (!task.completer.isCompleted) task.completer.complete(value);
+        } catch (error, stackTrace) {
+          if (!task.completer.isCompleted) {
+            task.completer.completeError(error, stackTrace);
+          }
+        }
+      }
+    } finally {
+      _running = false;
+      if (_pending.isNotEmpty && !_disposed) unawaited(_drain());
+    }
+  }
+
+  void dispose() {
+    _disposed = true;
+    for (final task in _pending) {
+      if (!task.completer.isCompleted) task.completer.complete(null);
+    }
+    _pending.clear();
+  }
+}
+
+class _QueuedPreviewTask {
+  _QueuedPreviewTask({
+    required this.key,
+    required this.priority,
+    required this.order,
+    required this.run,
+  });
+
+  final String key;
+  int priority;
+  final int order;
+  final Future<Uint8List?> Function() run;
+  final Completer<Uint8List?> completer = Completer<Uint8List?>();
 }

@@ -58,4 +58,29 @@ void main() {
       await gesture.up();
     }
   });
+  testWidgets('four quick downs trigger even if one pointer was cancelled',
+      (tester) async {
+    var triggerCount = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: FourFingerDebugTrigger(
+          onTriggered: () => triggerCount++,
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final first = await tester.startGesture(const Offset(30, 80), pointer: 1);
+    final second = await tester.startGesture(const Offset(60, 80), pointer: 2);
+    final third = await tester.startGesture(const Offset(90, 80), pointer: 3);
+    await first.cancel();
+    final fourth = await tester.startGesture(const Offset(120, 80), pointer: 4);
+    await tester.pump();
+
+    expect(triggerCount, 1);
+    await second.up();
+    await third.up();
+    await fourth.up();
+  });
+
 }

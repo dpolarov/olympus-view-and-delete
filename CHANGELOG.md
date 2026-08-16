@@ -40,6 +40,11 @@
 - Removed tracked local Android build state (`android/local.properties`, `.gradle` cache and stale generated plugin registrant) from the repository.
 
 ### Fixed
+- Full-screen camera traffic is now serialized by priority: current visible preview first, active file download second, neighboring preview preloads last. Gallery thumbnail network work pauses while the viewer is open.
+- Downloading while the current preview is still loading no longer leaves the preview spinner stuck; downloaded JPEG bytes can immediately satisfy the preview.
+- Full-screen preview now shows a green `download_done` marker for files already recorded in persistent download history.
+- Diagnostics entry is more reliable: the About icon uses a direct long-press target without an `IconButton` tooltip conflict, and the four-finger recognizer tolerates Android pointer coalescing/cancellation.
+- Diagnostic test build bumped to **1.3.4+12**.
 - Release APK and AAB now build successfully in GitHub Actions.
 - Fixed the 16 KB checker so it validates ELF `LOAD` segment alignment correctly and follows Android's 64-bit ABI verification scope.
 - Fixed Android photo saving under scoped storage on recent Android versions.

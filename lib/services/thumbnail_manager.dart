@@ -25,6 +25,7 @@ class ThumbnailManager {
   static const int _maxMemBytes = kMaxMemThumbBytes;
   int _active = 0;
   int _generation = 0;
+  bool _networkPaused = false;
   final List<_Request> _queue = [];
   // LinkedHashMap keeps insertion order — we use it for LRU by re-inserting
   // on access (see [load]).
@@ -41,6 +42,20 @@ class ThumbnailManager {
   void updateVisibleRange(int start, int end) {
     _visibleStart = start;
     _visibleEnd = end;
+  }
+
+  /// Pause starting new camera thumbnail HTTP requests. Active requests are
+  /// allowed to finish, but queued work waits. Full-screen preview uses this so
+  /// the camera can prioritize what the user is actively viewing/downloading.
+  void pauseNetwork() {
+    _networkPaused = true;
+  }
+
+  /// Resume queued thumbnail work after full-screen preview closes.
+  void resumeNetwork() {
+    if (!_networkPaused) return;
+    _networkPaused = false;
+    _processQueue();
   }
 
   /// Request a thumbnail. Returns cached data immediately if available.
@@ -130,6 +145,7 @@ class ThumbnailManager {
   }
 
   void _processQueue() {
+    if (_networkPaused) return;
     // Drop requests that are very far from visible range.
     _queue.removeWhere((req) {
       if (_distToVisible(req.index) > 60) {

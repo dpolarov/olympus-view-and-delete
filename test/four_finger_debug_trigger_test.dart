@@ -3,12 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:olympus_tg6_manager/widgets/four_finger_debug_trigger.dart';
 
 void main() {
-  testWidgets('four held pointers trigger diagnostics once', (tester) async {
+  testWidgets('four simultaneous pointers trigger diagnostics once', (tester) async {
     var triggerCount = 0;
     await tester.pumpWidget(
       MaterialApp(
         home: FourFingerDebugTrigger(
-          holdDuration: const Duration(milliseconds: 40),
           onTriggered: () => triggerCount++,
           child: const SizedBox.expand(),
         ),
@@ -24,11 +23,7 @@ void main() {
         ),
       );
     }
-
-    await tester.pump(const Duration(milliseconds: 50));
-    expect(triggerCount, 1);
-
-    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump();
     expect(triggerCount, 1);
 
     for (final gesture in gestures) {
@@ -41,7 +36,6 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: FourFingerDebugTrigger(
-          holdDuration: const Duration(milliseconds: 20),
           onTriggered: () => triggerCount++,
           child: const SizedBox.expand(),
         ),
@@ -57,8 +51,7 @@ void main() {
         ),
       );
     }
-
-    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump();
     expect(triggerCount, 0);
 
     for (final gesture in gestures) {

@@ -72,23 +72,12 @@ finally {
 
 $commitBytes = [System.Text.Encoding]::UTF8.GetBytes($ExpectedCommit)
 $timeBytes = [System.Text.Encoding]::UTF8.GetBytes($ExpectedBuildTime)
-$hasCommit = Test-ByteSequence -Haystack $bytes -Needle $commitBytes
-$hasBuildTime = Test-ByteSequence -Haystack $bytes -Needle $timeBytes
 
-if ($hasCommit -and $hasBuildTime) {
-    Write-Host "[verify] Dart AOT metadata matches commit $ExpectedCommit and build time $ExpectedBuildTime"
-    exit 0
+if (-not (Test-ByteSequence -Haystack $bytes -Needle $commitBytes)) {
+    throw "Dart AOT metadata does not contain current Git commit '$ExpectedCommit'. Refusing a stale or inconsistent APK."
+}
+if (-not (Test-ByteSequence -Haystack $bytes -Needle $timeBytes)) {
+    throw "Dart AOT metadata does not contain current build time '$ExpectedBuildTime'. Refusing a stale or inconsistent APK."
 }
 
-if ($hasCommit -xor $hasBuildTime) {
-    throw 'Only part of the expected Dart build metadata is visible in libapp.so. Refusing an inconsistent APK.'
-}
-
-# Local release builds use --obfuscate. Dart AOT obfuscation/snapshot encoding is
-# allowed to hide String.fromEnvironment values from a raw byte scan even though
-# the values are available correctly at runtime. A missing pair therefore cannot
-# prove that libapp.so is stale. The release script already runs flutter clean
-# before every build, while the app's four-finger diagnostics compares native
-# package information with the Dart-side build/version values at runtime.
-Write-Warning "Git commit/build time are not visible as plain bytes in libapp.so. This is expected for an obfuscated Dart AOT build."
-Write-Host "[verify] libapp.so is present and structurally sane; raw metadata scan skipped for obfuscated AOT."
+Write-Host "[verify] Dart AOT metadata matches commit $ExpectedCommit and build time $ExpectedBuildTime"

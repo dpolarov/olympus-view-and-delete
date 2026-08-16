@@ -146,6 +146,21 @@ rem otherwise produce a new Android manifest around an older libapp.so.
 call "%FLUTTER%" clean
 if errorlevel 1 goto :failed
 
+rem Be explicit on Windows: stale .dart_tool/flutter_build or Android project
+rem caches must not survive a release build even if a tool leaves them behind.
+call "%PROJECT%\android\gradlew.bat" --stop >nul 2>nul
+if exist "%PROJECT%\build" rmdir /S /Q "%PROJECT%\build"
+if exist "%PROJECT%\.dart_tool" rmdir /S /Q "%PROJECT%\.dart_tool"
+if exist "%PROJECT%\android\.gradle" rmdir /S /Q "%PROJECT%\android\.gradle"
+if exist "%PROJECT%\build" (
+  echo ERROR: build directory could not be removed.
+  goto :failed
+)
+if exist "%PROJECT%\.dart_tool" (
+  echo ERROR: .dart_tool directory could not be removed.
+  goto :failed
+)
+
 echo.
 echo [2/7] Resolving dependencies...
 call "%FLUTTER%" pub get
@@ -157,7 +172,7 @@ if exist "%RELEASE_APK%" del /Q "%RELEASE_APK%"
 
 echo.
 echo [4/7] Building signed GitHub APK !BUILD_NAME! build !BUILD_NUMBER!...
-call "%FLUTTER%" build apk --flavor github --release --build-name !BUILD_NAME! --build-number !BUILD_NUMBER! --dart-define=OLYMPUS_BUILD_TIME_UTC=!BUILD_TIME_UTC! --dart-define=OLYMPUS_GIT_COMMIT=!GIT_COMMIT! --dart-define=OLYMPUS_FLUTTER_VERSION=!BUILD_FLUTTER_VERSION! --obfuscate --split-debug-info=build/symbols
+call "%FLUTTER%" build apk --flavor github --release --build-name !BUILD_NAME! --build-number !BUILD_NUMBER! --dart-define=OLYMPUS_BUILD_TIME_UTC=!BUILD_TIME_UTC! --dart-define=OLYMPUS_GIT_COMMIT=!GIT_COMMIT! --dart-define=OLYMPUS_FLUTTER_VERSION=!BUILD_FLUTTER_VERSION!
 if errorlevel 1 goto :failed
 if not exist "%BUILT_APK%" (
   echo ERROR: Flutter reported success but the expected APK was not created:
@@ -239,7 +254,6 @@ echo Build UTC: !BUILD_TIME_UTC!
 echo Commit: !GIT_COMMIT!
 echo Flutter: !BUILD_FLUTTER_VERSION!
 echo APK: %RELEASE_APK%
-echo Symbols: %PROJECT%\build\symbols
 echo.
 echo NOTE: Google Play AAB is intentionally not built by this script.
 echo       It must use the separate Play upload key via the "Google Play AAB" workflow.

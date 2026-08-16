@@ -9,6 +9,10 @@
 - **Four-finger diagnostics screen**: hold four fingers anywhere in the app to open runtime diagnostics with the installed package version/build, source version, embedded build time and Git commit, Android/device/ABI details, display/memory/storage information, active network, camera endpoint, permissions, saved-camera/download state and process metadata. The report can be copied to the clipboard and does not expose saved Wi-Fi passwords.
 
 ### Changed
+- About now reads the installed Android package version/build at runtime instead of displaying a duplicated Dart constant.
+- Four-finger diagnostics opens immediately on the fourth touch; long-pressing the About icon is a fallback diagnostics entry point.
+- Local release builds explicitly remove Flutter/Android project caches and use the same non-obfuscated Dart AOT mode as CI so stale `libapp.so` is rejected by strict build metadata verification.
+- Diagnostic test build bumped to **1.3.4+11**.
 - Android distribution is split into `github` and `play` flavors so the GitHub APK can request package installation while the Play bundle does not request `REQUEST_INSTALL_PACKAGES`.
 - Android `versionName` and `versionCode` now come directly from the Flutter Gradle plugin instead of potentially stale values in `android/local.properties`.
 - `build_release.cmd` now requires the `master` branch, embeds build time/Git commit/Flutter version for diagnostics, performs `flutter clean` before every local release build, passes explicit build-name/build-number values and verifies the finished APK manifest when `aapt` is available. The clean step prevents a new APK manifest from being packaged with a stale cached Dart `libapp.so`.

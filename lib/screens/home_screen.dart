@@ -25,6 +25,7 @@ import '../widgets/date_filter_sheet.dart';
 import '../widgets/delete_progress_dialog.dart';
 import '../widgets/download_progress_dialog.dart';
 import '../widgets/photo_grid.dart';
+import 'debug_info_screen.dart';
 import 'photo_preview_screen.dart';
 import 'qr_scan_screen.dart';
 
@@ -597,7 +598,17 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  void _showAbout() {
+  void _openDebugInfo() {
+    unawaited(
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(builder: (_) => const DebugInfoScreen()),
+      ),
+    );
+  }
+
+  Future<void> _showAbout() async {
+    final installedVersion = await AppUpdateService.getInstalledVersion();
+    if (!mounted) return;
     final disclaimer = AppLocalizations.of(context)?.trademarkDisclaimer ??
         'Olympus and OM System are trademarks of their respective owners. '
             'This is an unofficial app, not affiliated with or endorsed by '
@@ -605,16 +616,16 @@ class _HomeScreenState extends State<HomeScreen>
     showAboutDialog(
       context: context,
       applicationName: appName,
-      applicationVersion: 'v$appVersion (build $appBuild)',
+      applicationVersion: installedVersion.display,
       applicationIcon:
           const Icon(Icons.camera_alt, size: 48, color: Color(0xFFE94560)),
       children: [
         const SizedBox(height: 8),
         const Text('WiFi Camera Manager for Olympus/OM System cameras.'),
         const SizedBox(height: 16),
-        const Text(
-          'Changelog v$appVersion:',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        Text(
+          'Changelog v${installedVersion.versionName}:',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         const SizedBox(height: 8),
         const Text(
@@ -1198,10 +1209,14 @@ class _HomeScreenState extends State<HomeScreen>
                     .toList(),
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.info_outline),
-              tooltip: 'About',
-              onPressed: _showAbout,
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onLongPress: _openDebugInfo,
+              child: IconButton(
+                icon: const Icon(Icons.info_outline),
+                tooltip: 'About · hold for diagnostics',
+                onPressed: _showAbout,
+              ),
             ),
           ],
         ],

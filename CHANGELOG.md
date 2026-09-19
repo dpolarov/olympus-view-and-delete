@@ -2,11 +2,17 @@
 
 ## [Unreleased]
 
+## [1.3.9] - 2026-09-19
+
 ### Added
 - **Persistent three-state file type filter**: the gallery can now show **RAW only**, **JPG only**, or **RAW + JPG** instead of the previous two-state RAW toggle.
 - RAW mode includes `.ORF`, `.DNG`, and `.RAW`; JPG mode includes `.JPG` and `.JPEG`.
 - The selected file type mode is saved in `SharedPreferences` and restored on the next app launch. Existing installs with no saved value default to **JPG only**, matching the previous behavior.
 - Added regression tests for file-extension filtering and persisted filter restoration.
+
+### Changed
+- Version set to **1.3.9+18**.
+- Users already on **v1.3.6 or newer** can install this release as a normal in-app update using the existing permanent production signing identity.
 
 ## [1.3.8] - 2026-09-19
 
@@ -173,7 +179,7 @@
 ### Added
 - **Photo Preview**: Full-screen image viewer with swipe navigation and pinch-to-zoom
 - **Preview Download/Delete**: Download or delete photos directly from preview screen (delete with confirmation)
-- **Image Preloading**: Preload ±2 neighbor images for smooth swiping in preview
+- **Image Preloading**: Preload ±2 neighbor images for smooth swiping
 - **Disk Image Cache**: Persistent LRU cache (150 images) for thumbnails and previews across sessions
 - **Connection History**: Save and recall previously connected cameras
 - **Auto-Connect**: Automatically connect to last used camera on startup

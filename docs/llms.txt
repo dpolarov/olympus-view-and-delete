@@ -4,9 +4,9 @@
 
 Olympus View is an unofficial community project and is not affiliated with, endorsed by, or sponsored by OM Digital Solutions, Olympus Corporation, or OM System.
 
-Current stable Android release: **v1.3.8 (build 17), released September 19, 2026**.
+Current stable Android release: **v1.3.9 (build 18), released September 19, 2026**.
 
-Release v1.3.8 fixes Android RAW storage: Olympus ORF, Adobe DNG, and generic RAW files now save to DCIM/OlympusView through MediaStore.Images in both foreground and background downloads. This avoids Android scoped-storage rejection of DCIM for generic MediaStore files and restores the normal persistent green downloaded marker after a successful RAW save.
+Release v1.3.9 adds a persistent three-state gallery file filter: RAW only, JPG only, or RAW + JPG. RAW mode recognizes ORF, DNG, and RAW files; JPG mode recognizes JPG and JPEG. The selected mode is saved across app restarts, with existing installs defaulting to JPG only when no preference has been stored yet.
 
 Important upgrade note: direct APK users already on v1.3.6 or newer can update normally. Users on v1.3.5 or older must still perform the one-time uninstall/reinstall introduced by v1.3.6 because that release switched to the permanent production Android signing certificate.
 

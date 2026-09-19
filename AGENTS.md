@@ -144,3 +144,14 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+## Release Process
+
+For **every release**, updating release metadata is mandatory and must be part of the same release change:
+- Bump the application version/build in `pubspec.yaml` and `lib/version.dart`.
+- Add the new release section to `CHANGELOG.md`.
+- Update the public website release information and changelog in `docs/index.html`, `docs/index.md`, `docs/index.ru.md`, and `docs/index.uk.md`.
+- Update `docs/llms.txt` so its current stable version and release summary match the new release.
+- Keep historical release entries intact; add a new latest entry instead of rewriting old release history.
+- Before publishing, verify that the GitHub Release notes, `CHANGELOG.md`, and website describe the same version and changes.
+

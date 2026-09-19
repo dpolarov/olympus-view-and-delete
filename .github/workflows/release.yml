@@ -4,11 +4,6 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: "Existing release tag, for example v1.3.8"
-        required: true
 
 permissions:
   contents: write
@@ -19,22 +14,55 @@ env:
 
 jobs:
   quality:
-    name: Analyze and test
+    name: Validate, analyze and test
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout
+      - name: Checkout release tag
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag belongs to master and matches version
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin master
+          git merge-base --is-ancestor HEAD origin/master || {
+            echo "ERROR: release tag must point to a commit from master."
+            exit 1
+          }
+
+          tag="$GITHUB_REF_NAME"
+          version="${tag#v}"
+          app_version="$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml | head -n 1)"
+
+          [[ "$tag" == v* ]] || {
+            echo "ERROR: release tag must start with v."
+            exit 1
+          }
+          [[ "$version" == "$app_version" ]] || {
+            echo "ERROR: tag $tag does not match pubspec version $app_version."
+            exit 1
+          }
+          grep -Fq "## [$version]" CHANGELOG.md || {
+            echo "ERROR: CHANGELOG.md has no section for $version."
+            exit 1
+          }
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+
       - name: Install dependencies
         run: flutter pub get
+
       - name: Analyze
         run: flutter analyze
+
       - name: Test
         run: flutter test
 
@@ -44,36 +72,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - name: Checkout
+      - name: Checkout release tag
         uses: actions/checkout@v6
+
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
           cache: gradle
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
-
-      - name: Validate production signing secrets
-        shell: bash
-        env:
-          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          EXPECTED_CERT_SHA256: ${{ secrets.ANDROID_SIGNING_CERT_SHA256 }}
-        run: |
-          set -euo pipefail
-          [[ -n "$KEYSTORE_B64" ]] || { echo "Missing ANDROID_KEYSTORE_BASE64"; exit 1; }
-          [[ -n "$STORE_PASSWORD" ]] || { echo "Missing ANDROID_KEYSTORE_PASSWORD"; exit 1; }
-          [[ -n "$KEY_ALIAS" ]] || { echo "Missing ANDROID_KEY_ALIAS"; exit 1; }
-          [[ -n "$KEY_PASSWORD" ]] || { echo "Missing ANDROID_KEY_PASSWORD"; exit 1; }
-          [[ -n "$EXPECTED_CERT_SHA256" ]] || { echo "Missing ANDROID_SIGNING_CERT_SHA256"; exit 1; }
 
       - name: Restore and verify production Android signing key
         shell: bash
@@ -85,6 +99,13 @@ jobs:
           EXPECTED_CERT_SHA256: ${{ secrets.ANDROID_SIGNING_CERT_SHA256 }}
         run: |
           set -euo pipefail
+
+          [[ -n "$KEYSTORE_B64" ]] || { echo "Missing ANDROID_KEYSTORE_BASE64"; exit 1; }
+          [[ -n "$STORE_PASSWORD" ]] || { echo "Missing ANDROID_KEYSTORE_PASSWORD"; exit 1; }
+          [[ -n "$KEY_ALIAS" ]] || { echo "Missing ANDROID_KEY_ALIAS"; exit 1; }
+          [[ -n "$KEY_PASSWORD" ]] || { echo "Missing ANDROID_KEY_PASSWORD"; exit 1; }
+          [[ -n "$EXPECTED_CERT_SHA256" ]] || { echo "Missing ANDROID_SIGNING_CERT_SHA256"; exit 1; }
+
           printf '%s' "$KEYSTORE_B64" | base64 --decode > android/app/olympus-release.p12
 
           actual_cert_sha256="$(
@@ -100,16 +121,14 @@ jobs:
           expected_cert_sha256="$(printf '%s' "$EXPECTED_CERT_SHA256" | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
 
           echo "Signing certificate SHA-256: $actual_cert_sha256"
-          if [[ "$actual_cert_sha256" == "$LEGACY_DEBUG_CERT_SHA256" ]]; then
-            echo "ERROR: legacy Android debug certificate is forbidden for v1.3.6+ releases."
+          [[ "$actual_cert_sha256" != "$LEGACY_DEBUG_CERT_SHA256" ]] || {
+            echo "ERROR: legacy Android debug certificate is forbidden for releases."
             exit 1
-          fi
-          if [[ "$actual_cert_sha256" != "$expected_cert_sha256" ]]; then
+          }
+          [[ "$actual_cert_sha256" == "$expected_cert_sha256" ]] || {
             echo "ERROR: wrong production Android signing certificate."
-            echo "Expected: $expected_cert_sha256"
-            echo "Actual:   $actual_cert_sha256"
             exit 1
-          fi
+          }
 
           cat > android/key.properties <<EOF
           storeFile=${GITHUB_WORKSPACE}/android/app/olympus-release.p12
@@ -120,31 +139,37 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
       - name: Prepare build metadata
         shell: bash
         run: |
           echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
           echo "BUILD_GIT_COMMIT=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_ENV"
+
       - name: Build signed GitHub APK
         run: >-
           flutter build apk --flavor github --release
           --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
           --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
           --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
+
       - name: Verify Android 16 KB page-size compatibility
         shell: bash
         run: bash scripts/check_android_16kb.sh build/app/outputs/flutter-apk/app-github-release.apk
+
       - name: Build signed GitHub AAB
         run: >-
           flutter build appbundle --flavor github --release
           --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
           --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
           --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
+
       - name: Stage Android files
         shell: bash
         run: |
           cp build/app/outputs/flutter-apk/app-github-release.apk OlympusView-Android.apk
           cp build/app/outputs/bundle/githubRelease/app-github-release.aab OlympusView-Android.aab
+
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v6
         with:
@@ -153,6 +178,7 @@ jobs:
             OlympusView-Android.apk
             OlympusView-Android.aab
           if-no-files-found: error
+
       - name: Remove signing material
         if: always()
         shell: bash
@@ -161,31 +187,33 @@ jobs:
   windows:
     name: Build Windows x64 ZIP
     needs: quality
-    # permission_handler_windows 0.2.x still uses MSVC experimental coroutines;
-    # VS2026 turns that deprecation into a hard error. Keep release builds on
-    # the VS2022 toolchain until the permission plugin is upgraded.
     runs-on: windows-2022
     timeout-minutes: 35
     steps:
-      - name: Checkout
+      - name: Checkout release tag
         uses: actions/checkout@v6
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+
       - name: Enable Windows desktop
         shell: pwsh
         run: flutter config --enable-windows-desktop
+
       - name: Install dependencies
         shell: pwsh
         run: flutter pub get
+
       - name: Prepare build metadata
         shell: pwsh
         run: |
           "BUILD_TIME_UTC=$([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "BUILD_GIT_COMMIT=$(git rev-parse --short=12 HEAD)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Build Windows release
         shell: pwsh
         run: >-
@@ -193,6 +221,7 @@ jobs:
           --dart-define=OLYMPUS_BUILD_TIME_UTC=$env:BUILD_TIME_UTC
           --dart-define=OLYMPUS_GIT_COMMIT=$env:BUILD_GIT_COMMIT
           --dart-define=OLYMPUS_FLUTTER_VERSION=$env:FLUTTER_VERSION
+
       - name: Verify and package Windows build
         shell: pwsh
         run: |
@@ -200,6 +229,7 @@ jobs:
           $exe = Join-Path $releaseDir 'olympus_flutter.exe'
           if (-not (Test-Path $exe)) { throw "Windows executable not found: $exe" }
           Compress-Archive -Path "$releaseDir/*" -DestinationPath 'OlympusView-Windows.zip' -Force
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v6
         with:
@@ -213,35 +243,42 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Checkout
+      - name: Checkout release tag
         uses: actions/checkout@v6
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+
       - name: Enable Web
         run: flutter config --enable-web
+
       - name: Install dependencies
         run: flutter pub get
+
       - name: Prepare build metadata
         shell: bash
         run: |
           echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
           echo "BUILD_GIT_COMMIT=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_ENV"
+
       - name: Build Web release
         run: >-
           flutter build web --release
           --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
           --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
           --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
+
       - name: Verify Web output
         shell: bash
         run: |
           set -euo pipefail
           test -s build/web/index.html
           test -s build/web/main.dart.js
+
       - name: Add Web run instructions
         shell: bash
         run: |
@@ -256,12 +293,14 @@ jobs:
           Then open http://localhost:8080/ and connect the computer to the camera WiFi.
           Browser security/CORS rules may depend on the browser and camera firmware.
           EOF
+
       - name: Package Web ZIP
         shell: bash
         run: |
           set -euo pipefail
           cd build/web
           zip -qr ../../OlympusView-Web.zip .
+
       - name: Upload Web artifact
         uses: actions/upload-artifact@v6
         with:
@@ -274,72 +313,71 @@ jobs:
     needs: [android, windows, web]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout changelog and tags
+      - name: Checkout release tag
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
       - name: Download Android artifacts
         uses: actions/download-artifact@v7
         with:
           name: release-android
           path: dist
+
       - name: Download Windows artifact
         uses: actions/download-artifact@v7
         with:
           name: release-windows
           path: dist
+
       - name: Download Web artifact
         uses: actions/download-artifact@v7
         with:
           name: release-web
           path: dist
-      - name: Validate release tag and prepare notes
+
+      - name: Prepare release notes and checksums
         shell: bash
-        env:
-          INPUT_TAG: ${{ github.event.inputs.release_tag }}
         run: |
           set -euo pipefail
-          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
-            tag="$GITHUB_REF_NAME"
-          else
-            tag="${INPUT_TAG:?workflow_dispatch requires release_tag}"
-          fi
-          [[ "$tag" == v* ]] || { echo "ERROR: release tag must start with v: $tag" >&2; exit 1; }
-
+          tag="$GITHUB_REF_NAME"
           version="${tag#v}"
-          app_version="$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml | head -n 1)"
-          [[ -n "$app_version" ]] || { echo "ERROR: cannot read version from pubspec.yaml" >&2; exit 1; }
-          if [[ "$version" != "$app_version" ]]; then
-            echo "ERROR: release tag $tag does not match pubspec version $app_version." >&2
-            exit 1
-          fi
-
-          if ! git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
-            echo "ERROR: tag $tag does not exist. Create/push the tag first; its push will normally start this workflow automatically." >&2
-            exit 1
-          fi
 
           echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+
           awk -v version="$version" '
             $0 ~ "^## \\[" version "\\]" {capture=1; next}
             capture && $0 ~ "^## \\[" {exit}
             capture {print}
           ' CHANGELOG.md > release-notes.md
-          if [[ ! -s release-notes.md ]]; then
-            echo "ERROR: CHANGELOG.md has no section for $version" >&2
+
+          [[ -s release-notes.md ]] || {
+            echo "ERROR: CHANGELOG.md has no release notes for $version."
             exit 1
-          fi
-          (cd dist && sha256sum OlympusView-Android.apk OlympusView-Android.aab OlympusView-Windows.zip OlympusView-Web.zip > SHA256SUMS.txt)
+          }
+
+          (
+            cd dist
+            sha256sum \
+              OlympusView-Android.apk \
+              OlympusView-Android.aab \
+              OlympusView-Windows.zip \
+              OlympusView-Web.zip \
+              > SHA256SUMS.txt
+          )
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
+
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "ERROR: release $RELEASE_TAG already exists; refusing to replace published artifacts automatically." >&2
+            echo "ERROR: release $RELEASE_TAG already exists; refusing to overwrite it."
             exit 1
           fi
+
           gh release create "$RELEASE_TAG" \
             dist/OlympusView-Android.apk \
             dist/OlympusView-Android.aab \

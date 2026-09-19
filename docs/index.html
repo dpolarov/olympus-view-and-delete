@@ -17,7 +17,7 @@
 
     <!-- ===== PRIMARY SEO ===== -->
     <title>Olympus View — WiFi File Manager for Olympus &amp; OM System | Delete Photos, OI.Share Alternative</title>
-    <meta name="description" content="Free open-source app to manage Olympus and OM System cameras via WiFi. Delete photos, background-download on Android, remember downloaded files, batch by date and filter RAW.">
+    <meta name="description" content="Free open-source app to manage Olympus and OM System cameras via WiFi. Delete photos, background-download on Android, remember downloaded files, batch by date and filter RAW/JPG.">
     <meta name="theme-color" content="#060d1b">
     <meta name="keywords" content="Olympus WiFi app, delete photos from Olympus camera, OI.Share alternative, OM System file manager, Olympus camera WiFi, delete files from camera, Olympus TG-6 WiFi, OM-1 WiFi app, batch download Olympus, RAW filter camera">
     <meta name="robots" content="index, follow">
@@ -61,18 +61,18 @@
       "@type": "SoftwareApplication",
       "name": "Olympus View",
       "alternateName": ["Olympus View and Delete", "OI.Share Alternative"],
-      "description": "Free open-source app for managing photos on Olympus and OM System cameras via WiFi. Features file deletion, batch download by date, RAW/ORF filter, and QR code connection. Works on Android, Windows and in the browser.",
+      "description": "Free open-source app for managing photos on Olympus and OM System cameras via WiFi. Features file deletion, batch download by date, persistent RAW/JPG/Both filtering, and QR code connection. Works on Android, Windows and in the browser.",
       "applicationCategory": "MultimediaApplication",
       "applicationSubCategory": "Photography",
       "operatingSystem": ["Android", "Windows", "Web"],
       "url": "https://dpolarov.github.io/olympus-view-and-delete/",
       "downloadUrl": "https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk",
       "sameAs": "https://github.com/dpolarov/olympus-view-and-delete",
-      "softwareVersion": "1.3.8",
+      "softwareVersion": "1.3.9",
       "datePublished": "2026-03-15",
       "dateModified": "2026-09-19",
       "isAccessibleForFree": true,
-      "releaseNotes": "https://github.com/dpolarov/olympus-view-and-delete/releases/tag/v1.3.8",
+      "releaseNotes": "https://github.com/dpolarov/olympus-view-and-delete/releases/tag/v1.3.9",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -87,7 +87,7 @@
         "Batch download photos by date",
         "Background downloads on Android with completion notifications",
         "Persistent markers for files already downloaded",
-        "RAW/ORF file filter",
+        "Persistent RAW/JPG/Both file filter",
         "QR code WiFi connection (OIS1, OIS3)",
         "Multi-platform: Android, Windows, Web browser"
       ],
@@ -174,7 +174,6 @@
         a { color: var(--accent); text-decoration: none; }
         a:hover { text-decoration: underline; color: #7da8ff; }
 
-        /* Lang switcher */
         .lang-bar {
             background: var(--surface);
             padding: 10px 20px;
@@ -223,7 +222,6 @@
         .lang-section { display: none; }
         .lang-section.active { display: block; }
 
-        /* Hero */
         .hero {
             background: radial-gradient(ellipse at 50% 0%, #0f1f3d 0%, var(--bg) 70%);
             padding: 100px 20px 80px;
@@ -244,214 +242,60 @@
             max-width: 700px;
             margin: 0 auto 32px;
         }
-        .hero-badges {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .badge {
-            display: inline-block;
-            padding: 10px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
+        .hero-badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .badge { display: inline-block; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; }
         .badge-primary { background: var(--accent); color: #fff; }
         .badge-outline { border: 1px solid var(--border); color: var(--text-muted); }
         .badge-green { background: rgba(54,211,153,0.15); color: var(--green); border: 1px solid rgba(54,211,153,0.3); }
         a.badge { text-decoration: none; transition: transform 0.15s, opacity 0.15s; }
         a.badge:hover { transform: translateY(-2px); opacity: 0.9; text-decoration: none; color: inherit; }
 
-        /* Container */
-        .container {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 60px 20px;
-        }
+        .container { max-width: 960px; margin: 0 auto; padding: 60px 20px; }
         h2 { font-size: 2rem; margin-bottom: 24px; color: var(--accent); }
         h3 { font-size: 1.3rem; margin: 24px 0 12px; }
-
-        /* Advantage */
-        .advantage {
-            background: linear-gradient(135deg, var(--surface) 0%, var(--card) 100%);
-            border-left: 3px solid var(--accent);
-            padding: 32px;
-            margin-bottom: 40px;
-            border-radius: 0 12px 12px 0;
-        }
+        .advantage { background: linear-gradient(135deg, var(--surface) 0%, var(--card) 100%); border-left: 3px solid var(--accent); padding: 32px; margin-bottom: 40px; border-radius: 0 12px 12px 0; }
         .advantage h2 { margin-bottom: 16px; }
         .advantage ul { list-style: none; padding: 0; }
         .advantage li { padding: 8px 0; font-size: 1.1rem; }
         .advantage li::before { content: "\2713  "; color: var(--green); font-weight: bold; }
         .advantage .vs { color: var(--text-muted); font-size: 0.9rem; }
-
-        /* Features */
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin-bottom: 40px;
-        }
-        .feature-card {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 24px;
-            border: 1px solid var(--border);
-            transition: border-color 0.2s, transform 0.2s;
-        }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 40px; }
+        .feature-card { background: var(--card); border-radius: 12px; padding: 24px; border: 1px solid var(--border); transition: border-color 0.2s, transform 0.2s; }
         .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
         .feature-card h3 { margin-top: 0; color: var(--text); }
         .feature-card p { color: var(--text-muted); }
         .feature-icon { font-size: 2rem; margin-bottom: 12px; }
-
-        /* Cameras */
         .cameras { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 40px; }
-        .camera-tag {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 1rem;
-        }
-
-        /* Downloads */
-        .downloads {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 40px;
-        }
-        .download-card {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            border: 1px solid var(--border);
-            transition: border-color 0.2s, transform 0.2s;
-        }
+        .camera-tag { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 20px; font-size: 1rem; }
+        .downloads { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 40px; }
+        .download-card { background: var(--card); border-radius: 12px; padding: 24px; text-align: center; border: 1px solid var(--border); transition: border-color 0.2s, transform 0.2s; }
         .download-card:hover { border-color: var(--accent); transform: translateY(-2px); }
         a.download-card { text-decoration: none; color: var(--text); display: block; }
         a.download-card:hover { text-decoration: none; color: var(--text); }
         .download-icon { font-size: 2.5rem; margin-bottom: 12px; }
         .download-card h3 { margin: 0 0 8px; }
         .download-card p { color: var(--text-muted); font-size: 0.9rem; }
-
-        /* Code */
-        .code-block {
-            background: #080f1e;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            overflow-x: auto;
-            font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: #ccc;
-            margin: 16px 0;
-        }
-
-        /* Open source */
-        .opensource {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 40px;
-            border: 1px solid rgba(54,211,153,0.3);
-        }
+        .code-block { background: #080f1e; border: 1px solid var(--border); border-radius: 8px; padding: 20px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.9rem; color: #ccc; margin: 16px 0; }
+        .opensource { background: var(--card); border-radius: 12px; padding: 40px; text-align: center; margin-bottom: 40px; border: 1px solid rgba(54,211,153,0.3); }
         .opensource h2 { color: var(--green); }
         .opensource p { color: var(--text-muted); max-width: 600px; margin: 0 auto 20px; font-size: 1.1rem; }
-
-        /* Steps */
         .steps { counter-reset: step; list-style: none; padding: 0; }
-        .steps li {
-            counter-increment: step;
-            padding: 16px 0 16px 60px;
-            position: relative;
-            border-left: 2px solid var(--border);
-            margin-left: 20px;
-        }
-        .steps li::before {
-            content: counter(step);
-            position: absolute;
-            left: -21px;
-            width: 40px;
-            height: 40px;
-            background: var(--accent);
-            color: #fff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
+        .steps li { counter-increment: step; padding: 16px 0 16px 60px; position: relative; border-left: 2px solid var(--border); margin-left: 20px; }
+        .steps li::before { content: counter(step); position: absolute; left: -21px; width: 40px; height: 40px; background: var(--accent); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; }
         .steps li strong { color: var(--text); }
-
-        footer {
-            background: var(--surface);
-            padding: 32px 20px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-        /* Screenshots */
-        .screenshots {
-            display: flex;
-            gap: 24px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 40px;
-        }
-        .screenshot {
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            transition: transform 0.2s, border-color 0.2s;
-            max-width: 300px;
-        }
-        .screenshot:hover {
-            transform: scale(1.02);
-            border-color: var(--accent);
-        }
-        .screenshot img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        .screenshot-caption {
-            background: var(--card);
-            padding: 10px 16px;
-            text-align: center;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        /* FAQ */
+        footer { background: var(--surface); padding: 32px 20px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+        .screenshots { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+        .screenshot { border-radius: 16px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.3); transition: transform 0.2s, border-color 0.2s; max-width: 300px; }
+        .screenshot:hover { transform: scale(1.02); border-color: var(--accent); }
+        .screenshot img { width: 100%; height: auto; display: block; }
+        .screenshot-caption { background: var(--card); padding: 10px 16px; text-align: center; font-size: 0.85rem; color: var(--text-muted); }
         .faq { margin-bottom: 40px; }
-        .faq-item {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 16px;
-            transition: border-color 0.2s;
-        }
+        .faq-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; transition: border-color 0.2s; }
         .faq-item:hover { border-color: var(--accent); }
         .faq-item h3 { margin-top: 0; color: var(--accent); font-size: 1.05rem; }
         .faq-item p { color: var(--text-muted); margin: 0; }
-
-        /* Changelog */
         .changelog { margin-bottom: 40px; }
-        .changelog-version {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 16px;
-            transition: border-color 0.2s;
-        }
+        .changelog-version { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; transition: border-color 0.2s; }
         .changelog-version:hover { border-color: var(--accent); }
         .changelog-version h3 { margin-top: 0; color: var(--accent); font-size: 1.15rem; }
         .changelog-version h4 { color: var(--text); font-size: 0.95rem; margin: 16px 0 8px; }
@@ -459,1413 +303,186 @@
         .changelog-version li { padding: 4px 0; color: var(--text-muted); font-size: 0.95rem; }
         .changelog-version li::before { content: "→ "; color: var(--accent); font-weight: bold; }
         .changelog-version li strong { color: var(--text); }
-
-        /* Feedback form */
-        .feedback-form {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 32px;
-            margin-top: 40px;
-        }
+        .feedback-form { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-top: 40px; }
         .feedback-form h2 { margin-bottom: 8px; }
         .feedback-form p.form-desc { color: var(--text-muted); margin-bottom: 24px; }
         .form-group { margin-bottom: 16px; }
-        .form-group label {
-            display: block;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 12px;
-            color: var(--text);
-            font-family: inherit;
-            font-size: 0.95rem;
-            transition: border-color 0.2s;
-        }
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
+        .form-group label { display: block; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 6px; }
+        .form-group input, .form-group textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); font-family: inherit; font-size: 0.95rem; transition: border-color 0.2s; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
         .form-group textarea { resize: vertical; min-height: 120px; }
-        .form-submit {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 32px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s, transform 0.15s;
-        }
+        .form-submit { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 12px 32px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.15s; }
         .form-submit:hover { opacity: 0.9; transform: translateY(-1px); }
-        .form-success {
-            display: none;
-            background: rgba(54,211,153,0.1);
-            border: 1px solid rgba(54,211,153,0.3);
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            color: var(--green);
-            font-weight: 500;
-        }
+        .form-success { display: none; background: rgba(54,211,153,0.1); border: 1px solid rgba(54,211,153,0.3); border-radius: 8px; padding: 20px; text-align: center; color: var(--green); font-weight: 500; }
+        @media (max-width: 600px) { .hero h1 { font-size: 2rem; } .hero p { font-size: 1rem; } .container { padding: 40px 16px; } .screenshot { max-width: 260px; } .feedback-form { padding: 20px; } }
 
-        @media (max-width: 600px) {
-            .hero h1 { font-size: 2rem; }
-            .hero p { font-size: 1rem; }
-            .container { padding: 40px 16px; }
-            .screenshot { max-width: 260px; }
-            .feedback-form { padding: 20px; }
-        }
-    
-  /* ===== Polish overrides (v1.2.0) ===== */
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-    font-feature-settings: 'cv02','cv03','cv04','cv11';
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-feature-settings: 'cv02','cv03','cv04','cv11'; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   h1, h2, h3, h4 { letter-spacing: -0.015em; }
-
-  /* Links: swap underline-on-hover for a softer color change */
   a { transition: color .15s ease; }
   a:hover { text-decoration: none; color: #7da8ff; }
   .hero p a, .container p a { border-bottom: 1px solid rgba(91,141,239,0.35); }
   .hero p a:hover, .container p a:hover { border-bottom-color: var(--accent); }
-
-  /* Eyebrow section label (small uppercase tag above h2) */
-  .eyebrow {
-    display: inline-block;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--accent);
-    background: rgba(91,141,239,0.10);
-    border: 1px solid rgba(91,141,239,0.25);
-    padding: 4px 10px;
-    border-radius: 999px;
-    margin-bottom: 10px;
-  }
-
-  /* Lang bar: add brand on the left, keep GitHub on the right */
-  .lang-bar {
-    gap: 10px;
-    backdrop-filter: saturate(140%) blur(8px);
-    background: rgba(12,21,37,0.85);
-  }
-  .lang-bar .brand {
-    position: absolute;
-    left: 20px;
-    display: flex; align-items: center; gap: 8px;
-    color: var(--text); font-weight: 700; font-size: 0.95rem;
-    text-decoration: none; letter-spacing: -0.01em;
-  }
+  .eyebrow { display: inline-block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); background: rgba(91,141,239,0.10); border: 1px solid rgba(91,141,239,0.25); padding: 4px 10px; border-radius: 999px; margin-bottom: 10px; }
+  .lang-bar { gap: 10px; backdrop-filter: saturate(140%) blur(8px); background: rgba(12,21,37,0.85); }
+  .lang-bar .brand { position: absolute; left: 20px; display: flex; align-items: center; gap: 8px; color: var(--text); font-weight: 700; font-size: 0.95rem; text-decoration: none; letter-spacing: -0.01em; }
   .lang-bar .brand:hover { color: var(--accent); }
-  .lang-bar .brand .brand-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: linear-gradient(135deg, #7da8ff, var(--accent));
-    box-shadow: 0 0 10px rgba(91,141,239,0.55);
-  }
-  @media (max-width: 720px) {
-    .lang-bar .brand span.brand-label { display: none; }
-    .github-link span.gh-label { display: none; }
-  }
-
-  /* Feature cards: gradient background + soft glow on hover */
-  .feature-card {
-    background: linear-gradient(160deg, var(--card) 0%, #0e1a2f 100%);
-    position: relative;
-    overflow: hidden;
-  }
-  .feature-card::before {
-    content: "";
-    position: absolute; inset: 0;
-    background: radial-gradient(circle at 0% 0%, rgba(91,141,239,0.18), transparent 50%);
-    opacity: 0;
-    transition: opacity .25s ease;
-    pointer-events: none;
-  }
+  .lang-bar .brand .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #7da8ff, var(--accent)); box-shadow: 0 0 10px rgba(91,141,239,0.55); }
+  @media (max-width: 720px) { .lang-bar .brand span.brand-label { display: none; } .github-link span.gh-label { display: none; } }
+  .feature-card { background: linear-gradient(160deg, var(--card) 0%, #0e1a2f 100%); position: relative; overflow: hidden; }
+  .feature-card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 0% 0%, rgba(91,141,239,0.18), transparent 50%); opacity: 0; transition: opacity .25s ease; pointer-events: none; }
   .feature-card:hover::before { opacity: 1; }
-  .feature-card:hover {
-    box-shadow: 0 12px 32px -12px rgba(91,141,239,0.35);
-  }
-  .feature-icon {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 44px; height: 44px;
-    background: rgba(91,141,239,0.12);
-    border: 1px solid rgba(91,141,239,0.25);
-    border-radius: 10px;
-    font-size: 1.4rem;
-    margin-bottom: 14px;
-  }
-
-  /* Camera tags as chips */
-  .camera-tag {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(91,141,239,0.06);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 8px 14px;
-    font-size: 0.92rem;
-    color: var(--text);
-    transition: border-color .2s, background .2s, transform .15s;
-  }
-  .camera-tag:hover {
-    border-color: var(--accent);
-    background: rgba(91,141,239,0.14);
-    transform: translateY(-1px);
-  }
-  .camera-tag::before {
-    content: "";
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 6px rgba(91,141,239,0.6);
-  }
-
-  /* Screenshots: render inside a phone bezel */
-  .screenshot {
-    background: linear-gradient(180deg, #18202f, #0b1220);
-    border: 1px solid #2a3650;
-    border-radius: 32px;
-    padding: 10px 10px 0;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.04) inset,
-      0 24px 48px -24px rgba(0,0,0,0.6),
-      0 0 0 1px rgba(91,141,239,0.05);
-    max-width: 260px;
-    overflow: visible;
-    position: relative;
-  }
-  .screenshot::before {
-    /* phone notch */
-    content: "";
-    position: absolute;
-    top: 6px; left: 50%;
-    width: 72px; height: 6px;
-    background: #050910;
-    border-radius: 999px;
-    transform: translateX(-50%);
-  }
-  .screenshot img {
-    border-radius: 22px;
-    display: block;
-  }
-  .screenshot-caption {
-    background: transparent;
-    margin-top: 12px;
-    padding: 8px 4px 12px;
-  }
-
-  /* Code block: softer, mono font, copy button */
-  .code-block {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.88rem;
-    background: #060b18;
-    border-radius: 10px;
-    position: relative;
-  }
-  .code-block .copy-btn {
-    position: absolute;
-    top: 10px; right: 10px;
-    background: var(--accent2);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 0.72rem;
-    padding: 4px 10px;
-    cursor: pointer;
-    transition: background .15s, color .15s;
-    font-family: inherit;
-  }
+  .feature-card:hover { box-shadow: 0 12px 32px -12px rgba(91,141,239,0.35); }
+  .feature-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: rgba(91,141,239,0.12); border: 1px solid rgba(91,141,239,0.25); border-radius: 10px; font-size: 1.4rem; margin-bottom: 14px; }
+  .camera-tag { display: inline-flex; align-items: center; gap: 8px; background: rgba(91,141,239,0.06); border: 1px solid var(--border); border-radius: 999px; padding: 8px 14px; font-size: 0.92rem; color: var(--text); transition: border-color .2s, background .2s, transform .15s; }
+  .camera-tag:hover { border-color: var(--accent); background: rgba(91,141,239,0.14); transform: translateY(-1px); }
+  .camera-tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px rgba(91,141,239,0.6); }
+  .screenshot { background: linear-gradient(180deg, #18202f, #0b1220); border: 1px solid #2a3650; border-radius: 32px; padding: 10px 10px 0; box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 24px 48px -24px rgba(0,0,0,0.6), 0 0 0 1px rgba(91,141,239,0.05); max-width: 260px; overflow: visible; position: relative; }
+  .screenshot::before { content: ""; position: absolute; top: 6px; left: 50%; width: 72px; height: 6px; background: #050910; border-radius: 999px; transform: translateX(-50%); }
+  .screenshot img { border-radius: 22px; display: block; }
+  .screenshot-caption { background: transparent; margin-top: 12px; padding: 8px 4px 12px; }
+  .code-block { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.88rem; background: #060b18; border-radius: 10px; position: relative; }
+  .code-block .copy-btn { position: absolute; top: 10px; right: 10px; background: var(--accent2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font-size: 0.72rem; padding: 4px 10px; cursor: pointer; transition: background .15s, color .15s; font-family: inherit; }
   .code-block .copy-btn:hover { background: var(--accent); color: #fff; }
-
-  /* Changelog: collapsible <details> look */
   .changelog-version[open] { border-color: rgba(91,141,239,0.35); }
-  .changelog-version > summary {
-    list-style: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 0;
-  }
+  .changelog-version > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0; }
   .changelog-version > summary::-webkit-details-marker { display: none; }
   .changelog-version > summary h3 { margin: 0; }
-  .changelog-version > summary::after {
-    content: "+";
-    color: var(--accent);
-    font-size: 1.3rem;
-    font-weight: 300;
-    line-height: 1;
-    transition: transform .2s ease;
-  }
+  .changelog-version > summary::after { content: "+"; color: var(--accent); font-size: 1.3rem; font-weight: 300; line-height: 1; transition: transform .2s ease; }
   .changelog-version[open] > summary::after { content: "–"; }
-
-  /* Hero: subtle grid pattern behind the gradient */
-  .hero {
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::after {
-    content: "";
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(91,141,239,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(91,141,239,0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-    mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 70%);
-    -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 70%);
-    pointer-events: none;
-  }
+  .hero { position: relative; overflow: hidden; }
+  .hero::after { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(91,141,239,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(91,141,239,0.04) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 70%); -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 70%); pointer-events: none; }
   .hero > * { position: relative; z-index: 1; }
-
-
   :root { color-scheme: dark; }
-  @media (max-width: 520px) {
-    .lang-bar { padding-left: 48px; padding-right: 48px; gap: 4px; }
-    .lang-bar button { padding: 6px 9px; font-size: 0.78rem; }
-    .lang-bar .brand { left: 14px; }
-    .github-link { right: 14px; }
-    .hero { padding: 72px 16px 56px; }
-    .hero-badges .badge { width: 100%; max-width: 320px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
-  }
-
+  @media (max-width: 520px) { .lang-bar { padding-left: 48px; padding-right: 48px; gap: 4px; } .lang-bar button { padding: 6px 9px; font-size: 0.78rem; } .lang-bar .brand { left: 14px; } .github-link { right: 14px; } .hero { padding: 72px 16px 56px; } .hero-badges .badge { width: 100%; max-width: 320px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
 </style>
-
 </head>
 <body>
-
-<!-- Language switcher -->
 <nav class="lang-bar" aria-label="Language and project navigation">
-    <a href="#" class="brand">
-        <span class="brand-dot"></span>
-        <span class="brand-label">Olympus View</span>
-    </a>
+    <a href="#" class="brand"><span class="brand-dot"></span><span class="brand-label">Olympus View</span></a>
     <button type="button" class="active" aria-pressed="true" onclick="switchLang('en')">English</button>
     <button type="button" aria-pressed="false" onclick="switchLang('uk')">Українська</button>
     <button type="button" aria-pressed="false" onclick="switchLang('ru')">Русский</button>
-    <a href="https://github.com/dpolarov/olympus-view-and-delete" class="github-link" target="_blank" rel="noopener">
-        <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-        <span class="gh-label">GitHub</span>
-    </a>
+    <a href="https://github.com/dpolarov/olympus-view-and-delete" class="github-link" target="_blank" rel="noopener"><svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span class="gh-label">GitHub</span></a>
 </nav>
 
-<!-- ==================== ENGLISH ==================== -->
 <div id="lang-en" class="lang-section active">
-
-<section class="hero">
-    <h1>Olympus View — WiFi File Manager for Olympus &amp; OM System Cameras</h1>
-    <p>Manage, download and <strong>delete photos</strong> on Olympus and OM System cameras via WiFi — from your phone or computer. The free <strong>OI.Share alternative</strong> that actually works.</p>
-    <div class="hero-badges">
-        <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="badge badge-primary">Download Android APK</a>
-        <a href="#dl-en" class="badge badge-outline">Windows</a>
-        <a href="#dl-en" class="badge badge-outline">Web</a>
-        <a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener" class="badge badge-green">Open Source</a>
-    </div>
-</section>
-
+<section class="hero"><h1>Olympus View — WiFi File Manager for Olympus &amp; OM System Cameras</h1><p>Manage, download and <strong>delete photos</strong> on Olympus and OM System cameras via WiFi — from your phone or computer. The free <strong>OI.Share alternative</strong> that actually works.</p><div class="hero-badges"><a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="badge badge-primary">Download Android APK</a><a href="#dl-en" class="badge badge-outline">Windows</a><a href="#dl-en" class="badge badge-outline">Web</a><a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener" class="badge badge-green">Open Source</a></div></section>
 <div class="container">
-    <div class="advantage">
-        <h2>Why not OI.Share? Olympus View vs OI.Share</h2>
-        <p style="margin-bottom:16px">The official Olympus <strong>OI.Share</strong> app has serious limitations. <strong>Olympus View</strong> — the open-source OI.Share alternative — solves them:</p>
-        <ul>
-            <li><strong>Delete files from camera</strong> <span class="vs">— OI.Share cannot delete photos</span></li>
-            <li><strong>Batch download by date</strong> <span class="vs">— OI.Share only allows one by one</span></li>
-            <li><strong>Background downloads on Android</strong> <span class="vs">— keep transferring with the app minimized or screen off</span></li>
-            <li><strong>Downloaded-file markers</strong> <span class="vs">— see what was already copied even after restarting</span></li>
-            <li><strong>RAW/ORF filter</strong> <span class="vs">— OI.Share shows all duplicates</span></li>
-            <li><strong>Works on Windows and in browser</strong> <span class="vs">— OI.Share is mobile only</span></li>
-            <li><strong>Open source</strong> <span class="vs">— OI.Share is proprietary</span></li>
-        </ul>
+    <div class="advantage"><h2>Why not OI.Share? Olympus View vs OI.Share</h2><p style="margin-bottom:16px">The official Olympus <strong>OI.Share</strong> app has serious limitations. <strong>Olympus View</strong> — the open-source OI.Share alternative — solves them:</p><ul><li><strong>Delete files from camera</strong> <span class="vs">— OI.Share cannot delete photos</span></li><li><strong>Batch download by date</strong> <span class="vs">— OI.Share only allows one by one</span></li><li><strong>Background downloads on Android</strong> <span class="vs">— keep transferring with the app minimized or screen off</span></li><li><strong>Downloaded-file markers</strong> <span class="vs">— see what was already copied even after restarting</span></li><li><strong>RAW/JPG/Both filter</strong> <span class="vs">— choose exactly which paired file types to show</span></li><li><strong>Works on Windows and in browser</strong> <span class="vs">— OI.Share is mobile only</span></li><li><strong>Open source</strong> <span class="vs">— OI.Share is proprietary</span></li></ul></div>
+    <h2>Supported Cameras</h2><div class="cameras"><div class="camera-tag">OM System OM-1</div><div class="camera-tag">OM System OM-1 Mark II</div><div class="camera-tag">OM System OM-5</div><div class="camera-tag">Olympus E-M1 Mark II</div><div class="camera-tag">Olympus E-M1 Mark III</div><div class="camera-tag">Olympus E-M5 Mark III</div><div class="camera-tag">Olympus E-M10 Mark III</div><div class="camera-tag">Olympus E-M10 Mark IV</div><div class="camera-tag">Olympus TG-6</div><div class="camera-tag">Olympus TG-7</div><div class="camera-tag">Olympus E-PL10</div><div class="camera-tag">Olympus PEN E-P7</div></div>
+    <h2>Features</h2><div class="features">
+        <div class="feature-card"><div class="feature-icon">📱</div><h3>QR Code Scanning</h3><p>Scan the QR code from the camera screen — the app connects to WiFi automatically. Supports OIS1 and OIS3 formats.</p></div>
+        <div class="feature-card"><div class="feature-icon">🗑️</div><h3>File Deletion</h3><p>Select unwanted files and delete them directly from the camera. Free up memory card space without a computer.</p></div>
+        <div class="feature-card"><div class="feature-icon">📅</div><h3>Select by Date</h3><p>Select one file and press the button — all files from the same date are selected automatically.</p></div>
+        <div class="feature-card"><div class="feature-icon">🖼️</div><h3>RAW / JPG Filter</h3><p>Choose RAW only, JPG only, or RAW + JPG. The selected mode is remembered across app restarts.</p></div>
+        <div class="feature-card"><div class="feature-icon">⬇️</div><h3>Batch Download</h3><p>Download groups of files with progress. On Android photos appear in gallery immediately.</p></div>
+        <div class="feature-card"><div class="feature-icon">⏬</div><h3>Background Download</h3><p>On Android, transfers keep running while Olympus View is minimized or the screen is off. Progress and completion are shown in system notifications.</p></div>
+        <div class="feature-card"><div class="feature-icon">✅</div><h3>Already Downloaded</h3><p>Successfully transferred files get a persistent green marker, so you can reconnect days later and immediately see what was already copied.</p></div>
+        <div class="feature-card"><div class="feature-icon">💻</div><h3>Multi-platform</h3><p>Works on Android, Windows and in any browser. Unified interface across all platforms.</p></div>
     </div>
-
-    <h2>Supported Cameras</h2>
-    <div class="cameras">
-        <div class="camera-tag">OM System OM-1</div>
-        <div class="camera-tag">OM System OM-1 Mark II</div>
-        <div class="camera-tag">OM System OM-5</div>
-        <div class="camera-tag">Olympus E-M1 Mark II</div>
-        <div class="camera-tag">Olympus E-M1 Mark III</div>
-        <div class="camera-tag">Olympus E-M5 Mark III</div>
-        <div class="camera-tag">Olympus E-M10 Mark III</div>
-        <div class="camera-tag">Olympus E-M10 Mark IV</div>
-        <div class="camera-tag">Olympus TG-6</div>
-        <div class="camera-tag">Olympus TG-7</div>
-        <div class="camera-tag">Olympus E-PL10</div>
-        <div class="camera-tag">Olympus PEN E-P7</div>
+    <h2>Screenshots</h2><div class="screenshots"><div class="screenshot"><img src="img/gallery.jpg" alt="Olympus View photo gallery — OM-1 camera, 3788 files displayed via WiFi" loading="lazy" width="300" height="533"><div class="screenshot-caption">Photo gallery — OM-1, 3788 files</div></div><div class="screenshot"><img src="img/connect.jpg" alt="Olympus View QR code scan to connect to Olympus camera WiFi" loading="lazy" width="300" height="533"><div class="screenshot-caption">QR scan &amp; WiFi connect</div></div></div>
+    <h2>How to Use</h2><ol class="steps"><li>Enable WiFi on the Olympus / OM System camera</li><li>On <strong>Android</strong>: open the app and scan the QR code from the camera screen</li><li>On <strong>Windows</strong>: connect to the camera WiFi, then open the app</li><li>The photo list loads automatically with thumbnails</li><li><strong>Long press</strong> on a photo — enter file selection mode</li><li>Use buttons for batch selection, file-type filtering, download and deletion. On Android choose <strong>Background</strong> to keep transfers running outside the app; downloaded files stay marked in green.</li></ol>
+    <h2 id="dl-en">Download</h2><div class="downloads"><a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="download-card"><div class="download-icon">🤖</div><h3>Android</h3><p>Latest release APK<br>Direct download</p></a><a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Windows.zip" class="download-card"><div class="download-icon">🪟</div><h3>Windows</h3><p>Portable ZIP<br>Direct download</p></a><a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Web.zip" class="download-card"><div class="download-icon">🌐</div><h3>Web</h3><p>Web build ZIP<br>Run in browser</p></a></div>
+    <div class="opensource"><h2>Open Source</h2><p>Olympus View is built with Flutter/Dart. The source code is fully open — you can study, modify and build it yourself.</p><p><a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener">https://github.com/dpolarov/olympus-view-and-delete</a></p><div class="code-block">flutter pub get<br>flutter run</div></div>
+    <h2>Frequently Asked Questions</h2><div class="faq"><div class="faq-item"><h3>Can OI.Share delete photos from an Olympus camera?</h3><p>No. The official OI.Share app <strong>cannot delete photos</strong> from your Olympus or OM System camera. Olympus View fills this gap — it supports direct file deletion from the camera memory card via WiFi.</p></div><div class="faq-item"><h3>How to delete photos from an Olympus camera via WiFi?</h3><p>Enable WiFi on your camera → connect with Olympus View via QR code (Android) or direct WiFi (Windows/Web) → long-press a photo to enter selection mode → tap the delete button. Files are removed directly from the camera.</p></div><div class="faq-item"><h3>Is there a Web build?</h3><p>Yes. Download the <strong>Web ZIP</strong>, run the web build in a browser, and connect the PC to the camera's WiFi network. No native desktop installer is required.</p></div></div>
+    <h2>Technical Details</h2><h3>Stack</h3><p>Flutter 3 / Dart — Material 3 — OPC Communication Protocol</p><h3>Camera Protocol</h3><p style="margin-top:8px">The app communicates with the camera via HTTP over WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Uses the OPC (Olympus OPC Communication Protocol).</p><h3>QR Decoding</h3><p style="margin-top:8px">Olympus and OM System cameras use a proprietary QR code format (OIS1, OIS3) with a substitution cipher. The app decodes them automatically and extracts WiFi SSID, password and Bluetooth info.</p>
+    <h2 id="changelog-en">Changelog</h2><div class="changelog">
+        <div class="changelog-version"><h3>v1.3.9 — September 19, 2026</h3><h4>Persistent RAW / JPG / Both filter</h4><ul><li><strong>Three gallery modes</strong> — RAW only, JPG only, or RAW + JPG.</li><li>RAW mode recognizes ORF, DNG and RAW; JPG mode recognizes JPG and JPEG.</li><li>The selected mode is persisted and restored after restarting Olympus View.</li><li>Existing installs without a stored preference default to JPG only, preserving previous behavior.</li><li>Users on v1.3.6 or newer can update normally through the built-in updater.</li><li>Version: <strong>1.3.9+18</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.8 — September 19, 2026</h3><h4>Android RAW download hotfix</h4><ul><li><strong>ORF/DNG/RAW downloads fixed on Android</strong> — RAW files now use MediaStore.Images and can be saved to DCIM/OlympusView like JPEG files.</li><li>The fix applies to both foreground and background downloads.</li><li>Successful RAW downloads now receive the normal persistent green downloaded marker.</li><li>Users on v1.3.6 or newer can update normally through the built-in updater.</li><li>Version: <strong>1.3.8+17</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.7 — August 27, 2026</h3><h4>Camera-transfer reliability &amp; stronger integration tests</h4><ul><li><strong>Fixed thumbnail fetch races</strong> — disk-cache lookup now finishes before a camera network slot is consumed.</li><li><strong>Bounded full-screen preview cache</strong> during rapid paging, even when swiping faster than neighbor preloading.</li><li><strong>Safer downloads</strong> — non-200 camera responses are rejected instead of being saved as files.</li><li><strong>Failed/truncated transfers never poison caches</strong>, verified with HTTP 500, garbage-body and mid-transfer failure scenarios.</li><li><strong>On-device integration tests</strong> now exercise a fake Olympus camera over real TCP sockets, filesystem cache persistence and thumbnail concurrency.</li><li>Version: <strong>1.3.7+16</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.6 — August 16, 2026</h3><h4>Updater reliability, downloaded-file cleanup &amp; production signing</h4><ul><li><strong>One-time reinstall required for v1.3.5 and older</strong> — v1.3.6 switches from the temporary legacy debug signing certificate to the permanent production certificate. Uninstall the old Olympus View and install v1.3.6 once; future GitHub updates will work normally.</li><li><strong>Local settings and green-marker history reset on that uninstall</strong>; photos already saved on the phone and files on the camera are not affected.</li><li><strong>Visible update progress</strong> with downloaded/total MB and percent, explicit waiting-for-internet status, retry/cancel controls and an in-app Install button.</li><li><strong>Camera auto-connect pauses while an app update is active</strong>, preventing camera Wi-Fi without internet from stalling the APK download.</li><li><strong>Select downloaded</strong> — a green selection-mode button selects every file carrying the persistent green downloaded marker so they can be deleted from the camera in one batch.</li><li><strong>Production signing</strong> — GitHub APK releases now require the permanent app-signing key; Google Play uses a separate upload key while Play App Signing receives the same production signing identity.</li><li>Version: <strong>1.3.6+15</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.5 — August 16, 2026</h3><h4>Updater end-to-end test release</h4><ul><li><strong>Public updater test release</strong> — installed GitHub build 1.3.4 can now detect, download and install a real newer version through the built-in updater</li><li><strong>Updater regression tests</strong> cover version comparison, exact APK asset selection, missing APK handling and release-note parsing</li><li>Version: <strong>1.3.5+14</strong>; application behavior is otherwise the same as 1.3.4</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.4 — August 16, 2026</h3><h4>Android downloads, diagnostics &amp; preview reliability</h4><ul><li><strong>Background downloads</strong> continue while the app is minimized or the screen is off, with progress and completion notifications</li><li><strong>Persistent downloaded markers</strong> remain visible across restarts and normal app updates</li><li><strong>GitHub APK auto-update</strong> checks and downloads new direct releases; the Google Play flavor disables external APK installation</li><li><strong>Runtime diagnostics</strong> show installed build/version, build metadata, device/network/storage and camera state without exposing saved Wi-Fi passwords</li><li><strong>Preview priority and paired preloading</strong> keep the visible image responsive while downloads/preloads share the camera connection safely</li><li>Fixed stuck preview spinners, downloaded-preview reuse, persistent green markers and stale AOT release artifacts</li><li>Release build: <strong>1.3.4+13</strong>; Android CI passes analyze/tests, APK/AAB, metadata, Play-policy and 16 KB checks</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.2 — August 15, 2026</h3><h4>Android / Google Play preparation</h4><ul><li><strong>Android APK and AAB builds are green</strong> in GitHub Actions with analyzer and tests</li><li><strong>16 KB page-size support</strong> verified for arm64-v8a and x86_64 native libraries</li><li><strong>Modern Android storage</strong> — downloads use MediaStore and appear in DCIM/OlympusView</li><li><strong>Android 13+ WiFi permissions</strong> updated to NEARBY_WIFI_DEVICES</li><li>Updated mobile scanner / ML Kit components and Android build toolchain for targetSdk 36</li><li>Release signing is verified against the existing app certificate before publishing</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.1 — May 29, 2026</h3><h4>Added</h4><ul><li><strong>In-app language selection</strong> — switch the interface between System, English, Russian and Ukrainian from the app bar; your choice is saved across launches</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.0 — May 29, 2026</h3><h4>Changed</h4><ul><li><strong>Unified logging</strong> — all diagnostics go through a single cross-platform logger</li><li><strong>Centralised configuration</strong> — network timeouts and cache/memory limits moved to named constants</li><li><strong>Memory-safe thumbnails</strong> — in-memory cache now bounded by total bytes (32 MiB), not just entry count</li><li>Upgraded dependencies and the Android build toolchain (compileSdk 36, AGP 8.9.1, Gradle 8.11.1)</li></ul><h4>Added</h4><ul><li><strong>Expanded test suite</strong> — 82 tests including network-error and localization coverage</li></ul></div>
+        <div class="changelog-version"><h3>v1.2.0 — April 17, 2026</h3><h4>Added</h4><ul><li><strong>Test Suite</strong> — 61 unit and widget tests covering caching, deletion and paging</li></ul><h4>Changed</h4><ul><li>Debounced disk cache index writes for smoother browsing</li><li>Hardened filename sanitization for downloaded photos</li><li>Serialized connection-history writes to prevent races</li></ul><h4>Fixed</h4><ul><li>Crash when deleting the last photo from preview</li><li>Race condition when disk cache was used before full init</li><li>Release APK signing configuration</li></ul></div>
+        <div class="changelog-version"><h3>v1.1.0 — April 6, 2026</h3><h4>Added</h4><ul><li><strong>Photo Preview</strong> — full-screen viewer with swipe and pinch-to-zoom</li><li><strong>Preview Download/Delete</strong> — manage photos directly from preview</li><li><strong>Image Preloading</strong> — preload ±2 neighbors for smooth swiping</li><li><strong>Disk Image Cache</strong> — persistent LRU cache (150 images) across sessions</li><li><strong>Connection History</strong> — save and recall previously connected cameras</li><li><strong>Auto-Connect</strong> — automatically connect to last used camera on startup</li><li><strong>Status Messages</strong> — detailed connection progress on loading screen</li><li><strong>Version Info</strong> — About dialog with changelog and website link</li></ul><h4>Fixed</h4><ul><li>Error screen content centered properly</li><li>WiFi reconnection from saved cameras without extra navigation</li><li>Context-aware loading messages</li></ul></div>
+        <div class="changelog-version"><h3>v1.0.0 — March 15, 2026</h3><h4>Initial Release</h4><ul><li>Connect to Olympus cameras via WiFi (QR code or manual SSID)</li><li>Browse photos in grid or list view</li><li>Filter photos by date range</li><li>Batch select, download, and delete files</li><li>RAW/ORF file toggle</li><li>Download and delete progress dialogs</li><li>Progressive file list loading</li><li>Android and Web support</li></ul></div>
     </div>
+    <div class="feedback-form" id="feedback-en"><h2>Feedback</h2><p class="form-desc">Found a bug, have a question or suggestion? Let us know!</p><form action="https://formspree.io/f/xojkjpvl" method="POST" class="contact-form" data-lang="en"><div class="form-group"><label for="name-en">Name</label><input type="text" id="name-en" name="name" placeholder="Your name" required></div><div class="form-group"><label for="email-en">Email</label><input type="email" id="email-en" name="email" placeholder="your@email.com" required></div><div class="form-group"><label for="message-en">Message</label><textarea id="message-en" name="message" placeholder="Describe a bug, ask a question or share an idea..." required></textarea></div><input type="hidden" name="_subject" value="Olympus View Feedback (EN)"><button type="submit" class="form-submit">Send Message</button></form><div class="form-success">Thank you! Your message has been sent.</div></div>
+</div></div>
 
-    <h2>Features</h2>
-    <div class="features">
-        <div class="feature-card">
-            <div class="feature-icon">📱</div>
-            <h3>QR Code Scanning</h3>
-            <p>Scan the QR code from the camera screen — the app connects to WiFi automatically. Supports OIS1 and OIS3 formats.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">🗑️</div>
-            <h3>File Deletion</h3>
-            <p>Select unwanted files and delete them directly from the camera. Free up memory card space without a computer.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">📅</div>
-            <h3>Select by Date</h3>
-            <p>Select one file and press the button — all files from the same date are selected automatically.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">🖼️</div>
-            <h3>RAW Filter</h3>
-            <p>Hide ORF/RAW files with one button to remove duplicates when shooting RAW+JPG.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">⬇️</div>
-            <h3>Batch Download</h3>
-            <p>Download groups of files with progress. On Android photos appear in gallery immediately.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">⏬</div>
-            <h3>Background Download</h3>
-            <p>On Android, transfers keep running while Olympus View is minimized or the screen is off. Progress and completion are shown in system notifications.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">✅</div>
-            <h3>Already Downloaded</h3>
-            <p>Successfully transferred files get a persistent green marker, so you can reconnect days later and immediately see what was already copied.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">💻</div>
-            <h3>Multi-platform</h3>
-            <p>Works on Android, Windows and in any browser. Unified interface across all platforms.</p>
-        </div>
-    </div>
-
-    <h2>Screenshots</h2>
-    <div class="screenshots">
-        <div class="screenshot">
-            <img src="img/gallery.jpg" alt="Olympus View photo gallery — OM-1 camera, 3788 files displayed via WiFi" loading="lazy" width="300" height="533">
-            <div class="screenshot-caption">Photo gallery — OM-1, 3788 files</div>
-        </div>
-        <div class="screenshot">
-            <img src="img/connect.jpg" alt="Olympus View QR code scan to connect to Olympus camera WiFi" loading="lazy" width="300" height="533">
-            <div class="screenshot-caption">QR scan &amp; WiFi connect</div>
-        </div>
-    </div>
-
-    <h2>How to Use</h2>
-    <ol class="steps">
-        <li>Enable WiFi on the Olympus / OM System camera</li>
-        <li>On <strong>Android</strong>: open the app and scan the QR code from the camera screen</li>
-        <li>On <strong>Windows</strong>: connect to the camera WiFi, then open the app</li>
-        <li>The photo list loads automatically with thumbnails</li>
-        <li><strong>Long press</strong> on a photo — enter file selection mode</li>
-        <li>Use buttons for batch selection, download and deletion. On Android choose <strong>Background</strong> to keep transfers running outside the app; downloaded files stay marked in green.</li>
-    </ol>
-
-    <h2 id="dl-en">Download</h2>
-    <div class="downloads">
-        <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="download-card">
-            <div class="download-icon">🤖</div>
-            <h3>Android</h3>
-            <p>Latest release APK<br>Direct download</p>
-        </a>
-        <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Windows.zip" class="download-card">
-            <div class="download-icon">🪟</div>
-            <h3>Windows</h3>
-            <p>Portable ZIP<br>Direct download</p>
-        </a>
-        <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Web.zip" class="download-card">
-            <div class="download-icon">🌐</div>
-            <h3>Web</h3>
-            <p>Web build ZIP<br>Run in browser</p>
-        </a>
-    </div>
-
-    <div class="opensource">
-        <h2>Open Source</h2>
-        <p>Olympus View is built with Flutter/Dart. The source code is fully open — you can study, modify and build it yourself.</p>
-        <p><a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener">https://github.com/dpolarov/olympus-view-and-delete</a></p>
-        <div class="code-block">flutter pub get<br>flutter run</div>
-    </div>
-
-    <h2>Frequently Asked Questions</h2>
-    <div class="faq">
-        <div class="faq-item">
-            <h3>Can OI.Share delete photos from an Olympus camera?</h3>
-            <p>No. The official OI.Share app <strong>cannot delete photos</strong> from your Olympus or OM System camera. Olympus View fills this gap — it supports direct file deletion from the camera memory card via WiFi.</p>
-        </div>
-        <div class="faq-item">
-            <h3>How to delete photos from an Olympus camera via WiFi?</h3>
-            <p>Enable WiFi on your camera → connect with Olympus View via QR code (Android) or direct WiFi (Windows/Web) → long-press a photo to enter selection mode → tap the delete button. Files are removed directly from the camera.</p>
-        </div>
-        <div class="faq-item">
-            <h3>Is there a Web build?</h3>
-            <p>Yes. Download the <strong>Web ZIP</strong>, run the web build in a browser, and connect the PC to the camera's WiFi network. No native desktop installer is required.</p>
-        </div>
-    </div>
-
-    <h2>Technical Details</h2>
-    <h3>Stack</h3>
-    <p>Flutter 3 / Dart — Material 3 — OPC Communication Protocol</p>
-    <h3>Camera Protocol</h3>
-    <p style="margin-top:8px">The app communicates with the camera via HTTP over WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Uses the OPC (Olympus OPC Communication Protocol).</p>
-    <h3>QR Decoding</h3>
-    <p style="margin-top:8px">Olympus and OM System cameras use a proprietary QR code format (OIS1, OIS3) with a substitution cipher. The app decodes them automatically and extracts WiFi SSID, password and Bluetooth info.</p>
-
-    <h2 id="changelog-en">Changelog</h2>
-    <div class="changelog">
-        <div class="changelog-version">
-            <h3>v1.3.8 — September 19, 2026</h3>
-            <h4>Android RAW download hotfix</h4>
-            <ul>
-                <li><strong>ORF/DNG/RAW downloads fixed on Android</strong> — RAW files now use MediaStore.Images and can be saved to DCIM/OlympusView like JPEG files.</li>
-                <li>The fix applies to both foreground and background downloads.</li>
-                <li>Successful RAW downloads now receive the normal persistent green downloaded marker.</li>
-                <li>Users on v1.3.6 or newer can update normally through the built-in updater.</li>
-                <li>Version: <strong>1.3.8+17</strong>.</li>
-            </ul>
-        </div>
-                        <div class="changelog-version">
-            <h3>v1.3.7 — August 27, 2026</h3>
-            <h4>Camera-transfer reliability &amp; stronger integration tests</h4>
-            <ul>
-                <li><strong>Fixed thumbnail fetch races</strong> — disk-cache lookup now finishes before a camera network slot is consumed.</li>
-                <li><strong>Bounded full-screen preview cache</strong> during rapid paging, even when swiping faster than neighbor preloading.</li>
-                <li><strong>Safer downloads</strong> — non-200 camera responses are rejected instead of being saved as files.</li>
-                <li><strong>Failed/truncated transfers never poison caches</strong>, verified with HTTP 500, garbage-body and mid-transfer failure scenarios.</li>
-                <li><strong>On-device integration tests</strong> now exercise a fake Olympus camera over real TCP sockets, filesystem cache persistence and thumbnail concurrency.</li>
-                <li>Version: <strong>1.3.7+16</strong>.</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.3.6 — August 16, 2026</h3>
-            <h4>Updater reliability, downloaded-file cleanup &amp; production signing</h4>
-            <ul>
-                <li><strong>One-time reinstall required for v1.3.5 and older</strong> — v1.3.6 switches from the temporary legacy debug signing certificate to the permanent production certificate. Uninstall the old Olympus View and install v1.3.6 once; future GitHub updates will work normally.</li>
-                <li><strong>Local settings and green-marker history reset on that uninstall</strong>; photos already saved on the phone and files on the camera are not affected.</li>
-                <li><strong>Visible update progress</strong> with downloaded/total MB and percent, explicit waiting-for-internet status, retry/cancel controls and an in-app Install button.</li>
-                <li><strong>Camera auto-connect pauses while an app update is active</strong>, preventing camera Wi-Fi without internet from stalling the APK download.</li>
-                <li><strong>Select downloaded</strong> — a green selection-mode button selects every file carrying the persistent green downloaded marker so they can be deleted from the camera in one batch.</li>
-                <li><strong>Production signing</strong> — GitHub APK releases now require the permanent app-signing key; Google Play uses a separate upload key while Play App Signing receives the same production signing identity.</li>
-                <li>Version: <strong>1.3.6+15</strong>.</li>
-            </ul>
-        </div>
-<div class="changelog-version">
-            <h3>v1.3.5 — August 16, 2026</h3>
-            <h4>Updater end-to-end test release</h4>
-            <ul>
-                <li><strong>Public updater test release</strong> — installed GitHub build 1.3.4 can now detect, download and install a real newer version through the built-in updater</li>
-                <li><strong>Updater regression tests</strong> cover version comparison, exact APK asset selection, missing APK handling and release-note parsing</li>
-                <li>Version: <strong>1.3.5+14</strong>; application behavior is otherwise the same as 1.3.4</li>
-            </ul>
-        </div>
-<div class="changelog-version">
-            <h3>v1.3.4 — August 16, 2026</h3>
-            <h4>Android downloads, diagnostics &amp; preview reliability</h4>
-            <ul>
-                <li><strong>Background downloads</strong> continue while the app is minimized or the screen is off, with progress and completion notifications</li>
-                <li><strong>Persistent downloaded markers</strong> remain visible across restarts and normal app updates</li>
-                <li><strong>GitHub APK auto-update</strong> checks and downloads new direct releases; the Google Play flavor disables external APK installation</li>
-                <li><strong>Runtime diagnostics</strong> show installed build/version, build metadata, device/network/storage and camera state without exposing saved Wi-Fi passwords</li>
-                <li><strong>Preview priority and paired preloading</strong> keep the visible image responsive while downloads/preloads share the camera connection safely</li>
-                <li>Fixed stuck preview spinners, downloaded-preview reuse, persistent green markers and stale AOT release artifacts</li>
-                <li>Release build: <strong>1.3.4+13</strong>; Android CI passes analyze/tests, APK/AAB, metadata, Play-policy and 16 KB checks</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.3.2 — August 15, 2026</h3>
-            <h4>Android / Google Play preparation</h4>
-            <ul>
-                <li><strong>Android APK and AAB builds are green</strong> in GitHub Actions with analyzer and tests</li>
-                <li><strong>16 KB page-size support</strong> verified for arm64-v8a and x86_64 native libraries</li>
-                <li><strong>Modern Android storage</strong> — downloads use MediaStore and appear in DCIM/OlympusView</li>
-                <li><strong>Android 13+ WiFi permissions</strong> updated to NEARBY_WIFI_DEVICES</li>
-                <li>Updated mobile scanner / ML Kit components and Android build toolchain for targetSdk 36</li>
-                <li>Release signing is verified against the existing app certificate before publishing</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.3.1 — May 29, 2026</h3>
-            <h4>Added</h4>
-            <ul>
-                <li><strong>In-app language selection</strong> — switch the interface between System, English, Russian and Ukrainian from the app bar; your choice is saved across launches</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.3.0 — May 29, 2026</h3>
-            <h4>Changed</h4>
-            <ul>
-                <li><strong>Unified logging</strong> — all diagnostics go through a single cross-platform logger</li>
-                <li><strong>Centralised configuration</strong> — network timeouts and cache/memory limits moved to named constants</li>
-                <li><strong>Memory-safe thumbnails</strong> — in-memory cache now bounded by total bytes (32 MiB), not just entry count</li>
-                <li>Upgraded dependencies and the Android build toolchain (compileSdk 36, AGP 8.9.1, Gradle 8.11.1)</li>
-            </ul>
-            <h4>Added</h4>
-            <ul>
-                <li><strong>Expanded test suite</strong> — 82 tests including network-error and localization coverage</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.2.0 — April 17, 2026</h3>
-            <h4>Added</h4>
-            <ul>
-                <li><strong>Test Suite</strong> — 61 unit and widget tests covering caching, deletion and paging</li>
-            </ul>
-            <h4>Changed</h4>
-            <ul>
-                <li>Debounced disk cache index writes for smoother browsing</li>
-                <li>Hardened filename sanitization for downloaded photos</li>
-                <li>Serialized connection-history writes to prevent races</li>
-            </ul>
-            <h4>Fixed</h4>
-            <ul>
-                <li>Crash when deleting the last photo from preview</li>
-                <li>Race condition when disk cache was used before full init</li>
-                <li>Release APK signing configuration</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.1.0 — April 6, 2026</h3>
-            <h4>Added</h4>
-            <ul>
-                <li><strong>Photo Preview</strong> — full-screen viewer with swipe and pinch-to-zoom</li>
-                <li><strong>Preview Download/Delete</strong> — manage photos directly from preview</li>
-                <li><strong>Image Preloading</strong> — preload ±2 neighbors for smooth swiping</li>
-                <li><strong>Disk Image Cache</strong> — persistent LRU cache (150 images) across sessions</li>
-                <li><strong>Connection History</strong> — save and recall previously connected cameras</li>
-                <li><strong>Auto-Connect</strong> — automatically connect to last used camera on startup</li>
-                <li><strong>Status Messages</strong> — detailed connection progress on loading screen</li>
-                <li><strong>Version Info</strong> — About dialog with changelog and website link</li>
-            </ul>
-            <h4>Fixed</h4>
-            <ul>
-                <li>Error screen content centered properly</li>
-                <li>WiFi reconnection from saved cameras without extra navigation</li>
-                <li>Context-aware loading messages</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.0.0 — March 15, 2026</h3>
-            <h4>Initial Release</h4>
-            <ul>
-                <li>Connect to Olympus cameras via WiFi (QR code or manual SSID)</li>
-                <li>Browse photos in grid or list view</li>
-                <li>Filter photos by date range</li>
-                <li>Batch select, download, and delete files</li>
-                <li>RAW/ORF file toggle</li>
-                <li>Download and delete progress dialogs</li>
-                <li>Progressive file list loading</li>
-                <li>Android and Web support</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="feedback-form" id="feedback-en">
-        <h2>Feedback</h2>
-        <p class="form-desc">Found a bug, have a question or suggestion? Let us know!</p>
-        <form action="https://formspree.io/f/xojkjpvl" method="POST" class="contact-form" data-lang="en">
-            <div class="form-group">
-                <label for="name-en">Name</label>
-                <input type="text" id="name-en" name="name" placeholder="Your name" required>
-            </div>
-            <div class="form-group">
-                <label for="email-en">Email</label>
-                <input type="email" id="email-en" name="email" placeholder="your@email.com" required>
-            </div>
-            <div class="form-group">
-                <label for="message-en">Message</label>
-                <textarea id="message-en" name="message" placeholder="Describe a bug, ask a question or share an idea..." required></textarea>
-            </div>
-            <input type="hidden" name="_subject" value="Olympus View Feedback (EN)">
-            <button type="submit" class="form-submit">Send Message</button>
-        </form>
-        <div class="form-success">Thank you! Your message has been sent.</div>
-    </div>
-</div>
-
-</div><!-- /lang-en -->
-
-<!-- ==================== UKRAINIAN ==================== -->
 <div id="lang-uk" class="lang-section">
-
-<section class="hero">
-    <h1>Olympus View</h1>
-    <p>Керуйте фотографіями на камерах Olympus та OM System через WiFi. Завантажуйте, видаляйте та переглядайте файли — з телефону або комп'ютера.</p>
-    <div class="hero-badges">
-        <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="badge badge-primary">Завантажити Android APK</a>
-        <a href="#dl-uk" class="badge badge-outline">Windows</a>
-        <a href="#dl-uk" class="badge badge-outline">Web</a>
-        <a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener" class="badge badge-green">Open Source</a>
-    </div>
-</section>
-
+<section class="hero"><h1>Olympus View</h1><p>Керуйте фотографіями на камерах Olympus та OM System через WiFi. Завантажуйте, видаляйте та переглядайте файли — з телефону або комп'ютера.</p><div class="hero-badges"><a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="badge badge-primary">Завантажити Android APK</a><a href="#dl-uk" class="badge badge-outline">Windows</a><a href="#dl-uk" class="badge badge-outline">Web</a><a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener" class="badge badge-green">Open Source</a></div></section>
 <div class="container">
-    <div class="advantage">
-        <h2>Чому не OI.Share?</h2>
-        <p style="margin-bottom:16px">Офіційний додаток Olympus <strong>OI.Share</strong> має серйозні обмеження. Olympus View вирішує їх:</p>
-        <ul>
-            <li><strong>Видалення файлів з камери</strong> <span class="vs">— OI.Share не вміє видаляти фото</span></li>
-            <li><strong>Масове завантаження за датами</strong> <span class="vs">— OI.Share дозволяє лише по одному</span></li>
-            <li><strong>Фонове завантаження на Android</strong> <span class="vs">— працює після згортання застосунку або вимкнення екрана</span></li>
-            <li><strong>Позначки вже завантажених файлів</strong> <span class="vs">— видно навіть після перезапуску</span></li>
-            <li><strong>Фільтр RAW/ORF файлів</strong> <span class="vs">— OI.Share показує всі дублі</span></li>
-            <li><strong>Працює на Windows та у браузері</strong> <span class="vs">— OI.Share лише мобільний</span></li>
-            <li><strong>Відкритий вихідний код</strong> <span class="vs">— OI.Share має закритий вихідний код</span></li>
-        </ul>
+    <div class="advantage"><h2>Чому не OI.Share?</h2><p style="margin-bottom:16px">Офіційний додаток Olympus <strong>OI.Share</strong> має серйозні обмеження. Olympus View вирішує їх:</p><ul><li><strong>Видалення файлів з камери</strong> <span class="vs">— OI.Share не вміє видаляти фото</span></li><li><strong>Масове завантаження за датами</strong> <span class="vs">— OI.Share дозволяє лише по одному</span></li><li><strong>Фонове завантаження на Android</strong> <span class="vs">— працює після згортання застосунку або вимкнення екрана</span></li><li><strong>Позначки вже завантажених файлів</strong> <span class="vs">— видно навіть після перезапуску</span></li><li><strong>Фільтр RAW / JPG</strong> <span class="vs">— оберіть RAW, JPG або обидва типи</span></li><li><strong>Працює на Windows та у браузері</strong> <span class="vs">— OI.Share лише мобільний</span></li><li><strong>Відкритий вихідний код</strong> <span class="vs">— OI.Share має закритий вихідний код</span></li></ul></div>
+    <h2>Підтримувані камери</h2><div class="cameras"><div class="camera-tag">OM System OM-1</div><div class="camera-tag">OM System OM-1 Mark II</div><div class="camera-tag">OM System OM-5</div><div class="camera-tag">Olympus E-M1 Mark II</div><div class="camera-tag">Olympus E-M1 Mark III</div><div class="camera-tag">Olympus E-M5 Mark III</div><div class="camera-tag">Olympus E-M10 Mark III</div><div class="camera-tag">Olympus E-M10 Mark IV</div><div class="camera-tag">Olympus TG-6</div><div class="camera-tag">Olympus TG-7</div><div class="camera-tag">Olympus E-PL10</div><div class="camera-tag">Olympus PEN E-P7</div></div>
+    <h2>Можливості</h2><div class="features"><div class="feature-card"><div class="feature-icon">📱</div><h3>Сканування QR-коду</h3><p>Відскануйте QR-код з екрану камери — додаток автоматично підключиться до WiFi. Підтримка форматів OIS1 та OIS3.</p></div><div class="feature-card"><div class="feature-icon">🗑️</div><h3>Видалення файлів</h3><p>Виберіть непотрібні файли та видаліть їх прямо з камери. Звільняйте карту пам'яті без комп'ютера.</p></div><div class="feature-card"><div class="feature-icon">📅</div><h3>Вибір за датами</h3><p>Виділіть один файл і натисніть кнопку — усі файли за ту саму дату будуть вибрані автоматично.</p></div><div class="feature-card"><div class="feature-icon">🖼️</div><h3>Фільтр RAW / JPG</h3><p>Оберіть лише RAW, лише JPG або RAW + JPG. Вибраний режим зберігається між запусками.</p></div><div class="feature-card"><div class="feature-icon">⬇️</div><h3>Масове завантаження</h3><p>Завантажуйте групи файлів з прогресом. На Android фото одразу з'являються у галереї.</p></div><div class="feature-card"><div class="feature-icon">⏬</div><h3>Фонове завантаження</h3><p>На Android передача продовжується після згортання Olympus View або вимкнення екрана. Прогрес і завершення показуються у системних сповіщеннях.</p></div><div class="feature-card"><div class="feature-icon">✅</div><h3>Вже завантажено</h3><p>Успішно перенесені файли отримують постійну зелену позначку, тому навіть через кілька днів видно, що вже було скопійовано.</p></div><div class="feature-card"><div class="feature-icon">💻</div><h3>Мультиплатформа</h3><p>Працює на Android, Windows та у будь-якому браузері. Єдиний інтерфейс на всіх платформах.</p></div></div>
+    <h2>Скріншоти</h2><div class="screenshots"><div class="screenshot"><img src="img/gallery.jpg" alt="Olympus View галерея фотографій — камера OM-1, 3788 файлів через WiFi" loading="lazy" width="300" height="533"><div class="screenshot-caption">Галерея фото — OM-1, 3788 файлів</div></div><div class="screenshot"><img src="img/connect.jpg" alt="Olympus View QR сканування для підключення до камери Olympus через WiFi" loading="lazy" width="300" height="533"><div class="screenshot-caption">QR сканування та WiFi підключення</div></div></div>
+    <h2>Як використовувати</h2><ol class="steps"><li>Увімкніть WiFi на камері Olympus / OM System</li><li>На <strong>Android</strong>: відкрийте додаток та відскануйте QR-код з екрану камери</li><li>На <strong>Windows</strong>: підключіться до WiFi камери, потім відкрийте додаток</li><li>Список фотографій завантажиться автоматично з мініатюрами</li><li><strong>Довге натискання</strong> на фото — режим вибору файлів</li><li>Використовуйте кнопки для масового вибору, фільтрації, завантаження та видалення. На Android виберіть <strong>У фоні</strong>; завантажені файли залишаються позначеними зеленим.</li></ol>
+    <h2 id="dl-uk">Завантажити</h2><div class="downloads"><a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="download-card"><div class="download-icon">🤖</div><h3>Android</h3><p>Останній реліз APK<br>Пряме завантаження</p></a><a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Windows.zip" class="download-card"><div class="download-icon">🪟</div><h3>Windows</h3><p>Portable ZIP<br>Пряме завантаження</p></a><a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Web.zip" class="download-card"><div class="download-icon">🌐</div><h3>Web</h3><p>Web ZIP<br>Запуск у браузері</p></a></div>
+    <div class="opensource"><h2>Відкритий вихідний код</h2><p>Olympus View написаний на Flutter/Dart. Вихідний код повністю відкритий — ви можете вивчити його, модифікувати та зібрати самостійно.</p><p><a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener">https://github.com/dpolarov/olympus-view-and-delete</a></p><div class="code-block">flutter pub get<br>flutter run</div></div>
+    <h2>Технічні деталі</h2><h3>Стек</h3><p>Flutter 3 / Dart — Material 3 — OPC Communication Protocol</p><h3>Протокол камери</h3><p style="margin-top:8px">Додаток спілкується з камерою через HTTP по WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Використовується протокол OPC (Olympus OPC Communication Protocol).</p><h3>Декодування QR</h3><p style="margin-top:8px">Камери Olympus та OM System використовують пропрієтарний формат QR-кодів (OIS1, OIS3) з підстановочним шифром. Додаток декодує їх автоматично та витягує SSID, пароль WiFi та інформацію про Bluetooth.</p>
+    <h2 id="changelog-uk">Журнал змін</h2><div class="changelog">
+        <div class="changelog-version"><h3>v1.3.9 — 19 вересня 2026</h3><h4>Постійний фільтр RAW / JPG / обидва</h4><ul><li><strong>Три режими галереї</strong> — лише RAW, лише JPG або RAW + JPG.</li><li>RAW-режим розпізнає ORF, DNG і RAW; JPG-режим — JPG і JPEG.</li><li>Вибраний режим зберігається та відновлюється після перезапуску Olympus View.</li><li>Якщо збереженого значення ще немає, початковим лишається режим лише JPG.</li><li>Користувачі v1.3.6 і новіше можуть оновитися штатно через вбудований updater.</li><li>Версія: <strong>1.3.9+18</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.8 — 19 вересня 2026</h3><h4>Виправлення завантаження RAW на Android</h4><ul><li><strong>Виправлено завантаження ORF/DNG/RAW</strong> — RAW-файли тепер використовують MediaStore.Images і можуть зберігатися в DCIM/OlympusView як JPEG.</li><li>Виправлення діє для звичайного та фонового завантаження.</li><li>Після успішного збереження RAW отримує звичайну постійну зелену позначку завантаженого файлу.</li><li>Користувачі v1.3.6 і новіше можуть оновитися штатно через вбудований updater.</li><li>Версія: <strong>1.3.8+17</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.7 — 27 серпня 2026</h3><h4>Надійніша передача з камери та розширені інтеграційні тести</h4><ul><li><strong>Виправлено гонку завантаження мініатюр</strong> — перевірка дискового кешу завершується до зайняття мережевого слота камери.</li><li><strong>Обмежено кеш повноекранного перегляду</strong> під час швидкого гортання.</li><li><strong>Безпечніше завантаження</strong> — відповіді камери з HTTP-кодом, відмінним від 200, більше не зберігаються як файли.</li><li><strong>Помилкові та обірвані передачі не потрапляють у кеш</strong>.</li><li><strong>Інтеграційні тести на Android</strong> перевіряють фальшиву Olympus-камеру через реальні TCP-з'єднання, файловий кеш і паралельність мініатюр.</li><li>Версія: <strong>1.3.7+16</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.6 — 16 серпня 2026</h3><h4>Надійне оновлення, вибір завантажених файлів і production-підпис</h4><ul><li><strong>Для v1.3.5 і старіших потрібне одноразове перевстановлення</strong> — у v1.3.6 тимчасовий debug-сертифікат замінено постійним production-сертифікатом.</li><li><strong>Під час цього перевстановлення скинуться локальні налаштування та історія зелених позначок</strong>; уже збережені на телефоні фотографії та файли на камері не зачіпаються.</li><li><strong>Видимий прогрес оновлення</strong>, статус очікування інтернету, повтор/скасування та кнопка встановлення прямо в застосунку.</li><li><strong>Автопідключення до камери призупиняється на час оновлення</strong>.</li><li><strong>Виділити завантажені</strong> — виділяє всі файли зі збереженою зеленою позначкою.</li><li><strong>Production-підпис</strong> — GitHub APK підписуються постійним app-signing ключом.</li><li>Версія: <strong>1.3.6+15</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.5 — 16 серпня 2026</h3><h4>Наскрізний тест автооновлення</h4><ul><li><strong>Публічний тестовий реліз</strong> для вбудованого updater.</li><li><strong>Регресійні тести updater</strong> перевіряють порівняння версій та вибір APK.</li><li>Версія: <strong>1.3.5+14</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.4 — 16 серпня 2026</h3><h4>Завантаження Android, діагностика та надійність прев'ю</h4><ul><li><strong>Фонові завантаження</strong> продовжуються після згортання застосунку або вимкнення екрана</li><li><strong>Постійні позначки завантажених файлів</strong> зберігаються між запусками</li><li><strong>Автооновлення GitHub APK</strong> перевіряє прямі релізи</li><li><strong>Діагностика під час роботи</strong> показує версію, пристрій, мережу і стан камери</li><li>Реліз: <strong>1.3.4+13</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.2 — 15 серпня 2026</h3><h4>Android / підготовка до Google Play</h4><ul><li><strong>APK та AAB успішно збираються</strong> у GitHub Actions</li><li><strong>Підтримка сторінок 16 КБ</strong> перевірена</li><li><strong>Сучасне збереження Android</strong> через MediaStore</li><li><strong>Дозволи WiFi для Android 13+</strong> оновлено</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.1 — 29 травня 2026</h3><h4>Додано</h4><ul><li><strong>Вибір мови в застосунку</strong> збережений між запусками</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.0 — 29 травня 2026</h3><h4>Змінено</h4><ul><li><strong>Єдине логування</strong></li><li><strong>Централізована конфігурація</strong></li><li><strong>Безпечні для пам'яті мініатюри</strong></li></ul><h4>Додано</h4><ul><li><strong>Розширений набір тестів</strong></li></ul></div>
+        <div class="changelog-version"><h3>v1.2.0 — 17 квітня 2026</h3><h4>Додано</h4><ul><li><strong>Набір тестів</strong> — 61 юніт- та віджет-тест</li></ul></div>
+        <div class="changelog-version"><h3>v1.1.0 — 6 квітня 2026</h3><h4>Додано</h4><ul><li><strong>Перегляд фото</strong> зі свайпом та масштабуванням</li><li><strong>Дисковий кеш</strong> між сеансами</li><li><strong>Автопідключення</strong> до останньої камери</li></ul></div>
+        <div class="changelog-version"><h3>v1.0.0 — 15 березня 2026</h3><h4>Перший реліз</h4><ul><li>Підключення до камер Olympus через WiFi</li><li>Перегляд, завантаження та видалення файлів</li><li>Підтримка Android та Web</li></ul></div>
     </div>
+    <div class="feedback-form" id="feedback-uk"><h2>Зворотній зв'язок</h2><p class="form-desc">Знайшли помилку, маєте питання чи пропозицію? Напишіть нам!</p><form action="https://formspree.io/f/xeogrgvr" method="POST" class="contact-form" data-lang="uk"><div class="form-group"><label for="name-uk">Ім'я</label><input type="text" id="name-uk" name="name" placeholder="Ваше ім'я" required></div><div class="form-group"><label for="email-uk">Email</label><input type="email" id="email-uk" name="email" placeholder="your@email.com" required></div><div class="form-group"><label for="message-uk">Повідомлення</label><textarea id="message-uk" name="message" placeholder="Опишіть помилку, задайте питання або поділіться ідеєю..." required></textarea></div><input type="hidden" name="_subject" value="Olympus View Feedback (UK)"><button type="submit" class="form-submit">Надіслати</button></form><div class="form-success">Дякуємо! Ваше повідомлення надіслано.</div></div>
+</div></div>
 
-    <h2>Підтримувані камери</h2>
-    <div class="cameras">
-        <div class="camera-tag">OM System OM-1</div>
-        <div class="camera-tag">OM System OM-1 Mark II</div>
-        <div class="camera-tag">OM System OM-5</div>
-        <div class="camera-tag">Olympus E-M1 Mark II</div>
-        <div class="camera-tag">Olympus E-M1 Mark III</div>
-        <div class="camera-tag">Olympus E-M5 Mark III</div>
-        <div class="camera-tag">Olympus E-M10 Mark III</div>
-        <div class="camera-tag">Olympus E-M10 Mark IV</div>
-        <div class="camera-tag">Olympus TG-6</div>
-        <div class="camera-tag">Olympus TG-7</div>
-        <div class="camera-tag">Olympus E-PL10</div>
-        <div class="camera-tag">Olympus PEN E-P7</div>
-    </div>
-
-    <h2>Можливості</h2>
-    <div class="features">
-        <div class="feature-card">
-            <div class="feature-icon">📱</div>
-            <h3>Сканування QR-коду</h3>
-            <p>Відскануйте QR-код з екрану камери — додаток автоматично підключиться до WiFi. Підтримка форматів OIS1 та OIS3.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">🗑️</div>
-            <h3>Видалення файлів</h3>
-            <p>Виберіть непотрібні файли та видаліть їх прямо з камери. Звільняйте карту пам'яті без комп'ютера.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">📅</div>
-            <h3>Вибір за датами</h3>
-            <p>Виділіть один файл і натисніть кнопку — усі файли за ту саму дату будуть вибрані автоматично.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">🖼️</div>
-            <h3>RAW фільтр</h3>
-            <p>Приховуйте ORF/RAW файли однією кнопкою, щоб прибрати дублі при зйомці в RAW+JPG.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">⬇️</div>
-            <h3>Масове завантаження</h3>
-            <p>Завантажуйте групи файлів з прогресом. На Android фото одразу з'являються у галереї.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">⏬</div>
-            <h3>Фонове завантаження</h3>
-            <p>На Android передача продовжується після згортання Olympus View або вимкнення екрана. Прогрес і завершення показуються у системних сповіщеннях.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">✅</div>
-            <h3>Вже завантажено</h3>
-            <p>Успішно перенесені файли отримують постійну зелену позначку, тому навіть через кілька днів видно, що вже було скопійовано.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">💻</div>
-            <h3>Мультиплатформа</h3>
-            <p>Працює на Android, Windows та у будь-якому браузері. Єдиний інтерфейс на всіх платформах.</p>
-        </div>
-    </div>
-
-    <h2>Скріншоти</h2>
-    <div class="screenshots">
-        <div class="screenshot">
-            <img src="img/gallery.jpg" alt="Olympus View галерея фотографій — камера OM-1, 3788 файлів через WiFi" loading="lazy" width="300" height="533">
-            <div class="screenshot-caption">Галерея фото — OM-1, 3788 файлів</div>
-        </div>
-        <div class="screenshot">
-            <img src="img/connect.jpg" alt="Olympus View QR сканування для підключення до камери Olympus через WiFi" loading="lazy" width="300" height="533">
-            <div class="screenshot-caption">QR сканування та WiFi підключення</div>
-        </div>
-    </div>
-
-    <h2>Як використовувати</h2>
-    <ol class="steps">
-        <li>Увімкніть WiFi на камері Olympus / OM System</li>
-        <li>На <strong>Android</strong>: відкрийте додаток та відскануйте QR-код з екрану камери</li>
-        <li>На <strong>Windows</strong>: підключіться до WiFi камери, потім відкрийте додаток</li>
-        <li>Список фотографій завантажиться автоматично з мініатюрами</li>
-        <li><strong>Довге натискання</strong> на фото — режим вибору файлів</li>
-        <li>Використовуйте кнопки для масового вибору, завантаження та видалення. На Android виберіть <strong>У фоні</strong>; завантажені файли залишаються позначеними зеленим.</li>
-    </ol>
-
-    <h2 id="dl-uk">Завантажити</h2>
-    <div class="downloads">
-        <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="download-card">
-            <div class="download-icon">🤖</div>
-            <h3>Android</h3>
-            <p>Останній реліз APK<br>Пряме завантаження</p>
-        </a>
-        <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Windows.zip" class="download-card">
-            <div class="download-icon">🪟</div>
-            <h3>Windows</h3>
-            <p>Portable ZIP<br>Пряме завантаження</p>
-        </a>
-        <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Web.zip" class="download-card">
-            <div class="download-icon">🌐</div>
-            <h3>Web</h3>
-            <p>Web ZIP<br>Запуск у браузері</p>
-        </a>
-    </div>
-
-    <div class="opensource">
-        <h2>Відкритий вихідний код</h2>
-        <p>Olympus View написаний на Flutter/Dart. Вихідний код повністю відкритий — ви можете вивчити його, модифікувати та зібрати самостійно.</p>
-        <p><a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener">https://github.com/dpolarov/olympus-view-and-delete</a></p>
-        <div class="code-block">flutter pub get<br>flutter run</div>
-    </div>
-
-    <h2>Технічні деталі</h2>
-    <h3>Стек</h3>
-    <p>Flutter 3 / Dart — Material 3 — OPC Communication Protocol</p>
-    <h3>Протокол камери</h3>
-    <p style="margin-top:8px">Додаток спілкується з камерою через HTTP по WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Використовується протокол OPC (Olympus OPC Communication Protocol).</p>
-    <h3>Декодування QR</h3>
-    <p style="margin-top:8px">Камери Olympus та OM System використовують пропрієтарний формат QR-кодів (OIS1, OIS3) з підстановочним шифром. Додаток декодує їх автоматично та витягує SSID, пароль WiFi та інформацію про Bluetooth.</p>
-
-    <h2 id="changelog-uk">Журнал змін</h2>
-    <div class="changelog">
-        <div class="changelog-version">
-            <h3>v1.3.8 — 19 вересня 2026</h3>
-            <h4>Виправлення завантаження RAW на Android</h4>
-            <ul>
-                <li><strong>Виправлено завантаження ORF/DNG/RAW</strong> — RAW-файли тепер використовують MediaStore.Images і можуть зберігатися в DCIM/OlympusView як JPEG.</li>
-                <li>Виправлення діє для звичайного та фонового завантаження.</li>
-                <li>Після успішного збереження RAW отримує звичайну постійну зелену позначку завантаженого файлу.</li>
-                <li>Користувачі v1.3.6 і новіше можуть оновитися штатно через вбудований updater.</li>
-                <li>Версія: <strong>1.3.8+17</strong>.</li>
-            </ul>
-        </div>
-                        <div class="changelog-version">
-            <h3>v1.3.7 — 27 серпня 2026</h3>
-            <h4>Надійніша передача з камери та розширені інтеграційні тести</h4>
-            <ul>
-                <li><strong>Виправлено гонку завантаження мініатюр</strong> — перевірка дискового кешу завершується до зайняття мережевого слота камери.</li>
-                <li><strong>Обмежено кеш повноекранного перегляду</strong> під час швидкого гортання.</li>
-                <li><strong>Безпечніше завантаження</strong> — відповіді камери з HTTP-кодом, відмінним від 200, більше не зберігаються як файли.</li>
-                <li><strong>Помилкові та обірвані передачі не потрапляють у кеш</strong>.</li>
-                <li><strong>Інтеграційні тести на Android</strong> перевіряють фальшиву Olympus-камеру через реальні TCP-з'єднання, файловий кеш і паралельність мініатюр.</li>
-                <li>Версія: <strong>1.3.7+16</strong>.</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.3.6 — 16 серпня 2026</h3>
-            <h4>Надійне оновлення, вибір завантажених файлів і production-підпис</h4>
-            <ul>
-                <li><strong>Для v1.3.5 і старіших потрібне одноразове перевстановлення</strong> — у v1.3.6 тимчасовий debug-сертифікат замінено постійним production-сертифікатом. Видаліть старий Olympus View і один раз встановіть v1.3.6; наступні оновлення з GitHub знову встановлюватимуться поверх застосунку.</li>
-                <li><strong>Під час цього перевстановлення скинуться локальні налаштування та історія зелених позначок</strong>; уже збережені на телефоні фотографії та файли на камері не зачіпаються.</li>
-                <li><strong>Видимий прогрес оновлення</strong>: завантажено/всього МБ і відсотки, статус очікування інтернету, повтор/скасування та кнопка встановлення прямо в застосунку.</li>
-                <li><strong>Автопідключення до камери призупиняється на час оновлення</strong>, щоб Wi-Fi камери без інтернету не зупиняв завантаження APK.</li>
-                <li><strong>Виділити завантажені</strong> — нова зелена кнопка в режимі вибору виділяє всі файли зі збереженою зеленою позначкою, після чого їх можна видалити з камери однією операцією.</li>
-                <li><strong>Production-підпис</strong> — GitHub APK тепер підписуються постійним app-signing ключом; для Google Play використовується окремий upload key, а в Play App Signing передається той самий production app-signing key.</li>
-                <li>Версія: <strong>1.3.6+15</strong>.</li>
-            </ul>
-        </div>
-<div class="changelog-version">
-            <h3>v1.3.5 — 16 серпня 2026</h3>
-            <h4>Наскрізний тест автооновлення</h4>
-            <ul>
-                <li><strong>Публічний тестовий реліз</strong> — встановлена GitHub-версія 1.3.4 може знайти, завантажити та встановити реальну новішу версію через вбудоване оновлення</li>
-                <li><strong>Регресійні тести updater</strong> перевіряють порівняння версій, точний вибір APK, відсутність APK та release notes</li>
-                <li>Версія: <strong>1.3.5+14</strong>; в іншому поведінка застосунку така сама, як у 1.3.4</li>
-            </ul>
-        </div>
-<div class="changelog-version">
-            <h3>v1.3.4 — 16 серпня 2026</h3>
-            <h4>Завантаження Android, діагностика та надійність прев'ю</h4>
-            <ul>
-                <li><strong>Фонові завантаження</strong> продовжуються після згортання застосунку або вимкнення екрана</li>
-                <li><strong>Постійні позначки завантажених файлів</strong> зберігаються між запусками та оновленнями</li>
-                <li><strong>Автооновлення GitHub APK</strong> перевіряє прямі релізи; Google Play-збірка не встановлює зовнішні APK</li>
-                <li><strong>Діагностика під час роботи</strong> показує версію, build metadata, пристрій, мережу, сховище та стан камери без паролів Wi-Fi</li>
-                <li><strong>Пріоритет прев'ю та парне передзавантаження</strong> роблять перегляд стабільнішим під час завантажень</li>
-                <li>Виправлено зависання прев'ю, повторне використання завантаженого JPEG, зелені позначки та застарілі AOT-артефакти</li>
-                <li>Реліз: <strong>1.3.4+13</strong>; Android CI успішно проходить аналіз, тести, APK/AAB, metadata, Play-policy та 16 КБ</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.3.2 — 15 серпня 2026</h3>
-            <h4>Android / підготовка до Google Play</h4>
-            <ul>
-                <li><strong>APK та AAB успішно збираються</strong> у GitHub Actions разом з аналізатором і тестами</li>
-                <li><strong>Підтримка сторінок 16 КБ</strong> перевірена для arm64-v8a та x86_64</li>
-                <li><strong>Сучасне збереження Android</strong> — фото зберігаються через MediaStore у DCIM/OlympusView</li>
-                <li><strong>Дозволи WiFi для Android 13+</strong> переведені на NEARBY_WIFI_DEVICES</li>
-                <li>Оновлено mobile scanner / ML Kit та Android toolchain для targetSdk 36</li>
-                <li>Перед публікацією workflow перевіряє сертифікат ключа підпису</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.3.1 — 29 травня 2026</h3>
-            <h4>Додано</h4>
-            <ul>
-                <li><strong>Вибір мови в застосунку</strong> — перемикайте інтерфейс між системною, англійською, російською та українською прямо з панелі застосунку; вибір зберігається між запусками</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.3.0 — 29 травня 2026</h3>
-            <h4>Змінено</h4>
-            <ul>
-                <li><strong>Єдине логування</strong> — уся діагностика проходить через єдиний кросплатформний логер</li>
-                <li><strong>Централізована конфігурація</strong> — таймаути мережі та ліміти кешу/пам'яті винесені в іменовані константи</li>
-                <li><strong>Безпечні для пам'яті мініатюри</strong> — кеш у пам'яті тепер обмежений сумарним обсягом байтів (32 МіБ), а не лише кількістю записів</li>
-                <li>Оновлено залежності та збірковий ланцюжок Android (compileSdk 36, AGP 8.9.1, Gradle 8.11.1)</li>
-            </ul>
-            <h4>Додано</h4>
-            <ul>
-                <li><strong>Розширений набір тестів</strong> — 82 тести, включно з покриттям мережевих помилок та локалізації</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.2.0 — 17 квітня 2026</h3>
-            <h4>Додано</h4>
-            <ul>
-                <li><strong>Набір тестів</strong> — 61 юніт- та віджет-тест на кешування, видалення та гортання</li>
-            </ul>
-            <h4>Змінено</h4>
-            <ul>
-                <li>Відкладений запис індексу дискового кешу для плавнішого перегляду</li>
-                <li>Посилена санітизація імен завантажених файлів</li>
-                <li>Серіалізований запис історії підключень для уникнення гонок</li>
-            </ul>
-            <h4>Виправлено</h4>
-            <ul>
-                <li>Збій при видаленні останнього фото з перегляду</li>
-                <li>Гонка при зверненні до дискового кешу до повної ініціалізації</li>
-                <li>Конфігурацію підпису релізного APK</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.1.0 — 6 квітня 2026</h3>
-            <h4>Додано</h4>
-            <ul>
-                <li><strong>Перегляд фото</strong> — повноекранний перегляд зі свайпом та масштабуванням</li>
-                <li><strong>Завантаження/Видалення з перегляду</strong> — керування фото прямо з перегляду</li>
-                <li><strong>Передзавантаження зображень</strong> — ±2 сусідніх для плавного свайпу</li>
-                <li><strong>Дисковий кеш</strong> — постійний LRU кеш (150 зображень) між сеансами</li>
-                <li><strong>Історія підключень</strong> — збереження та відновлення камер</li>
-                <li><strong>Автопідключення</strong> — автоматичне підключення до останньої камери</li>
-                <li><strong>Статусні повідомлення</strong> — детальний прогрес підключення</li>
-                <li><strong>Версія</strong> — діалог з changelog та посиланням на сайт</li>
-            </ul>
-            <h4>Виправлено</h4>
-            <ul>
-                <li>Центрування контенту на екрані помилки</li>
-                <li>Перепідключення WiFi без зайвої навігації</li>
-                <li>Контекстні повідомлення завантаження</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.0.0 — 15 березня 2026</h3>
-            <h4>Перший реліз</h4>
-            <ul>
-                <li>Підключення до камер Olympus через WiFi (QR-код або SSID)</li>
-                <li>Перегляд фото у сітці або списку</li>
-                <li>Фільтрація за датами</li>
-                <li>Масовий вибір, завантаження та видалення файлів</li>
-                <li>Фільтр RAW/ORF</li>
-                <li>Діалоги прогресу завантаження та видалення</li>
-                <li>Прогресивне завантаження списку файлів</li>
-                <li>Підтримка Android та Web</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="feedback-form" id="feedback-uk">
-        <h2>Зворотній зв'язок</h2>
-        <p class="form-desc">Знайшли помилку, маєте питання чи пропозицію? Напишіть нам!</p>
-        <form action="https://formspree.io/f/xeogrgvr" method="POST" class="contact-form" data-lang="uk">
-            <div class="form-group">
-                <label for="name-uk">Ім'я</label>
-                <input type="text" id="name-uk" name="name" placeholder="Ваше ім'я" required>
-            </div>
-            <div class="form-group">
-                <label for="email-uk">Email</label>
-                <input type="email" id="email-uk" name="email" placeholder="your@email.com" required>
-            </div>
-            <div class="form-group">
-                <label for="message-uk">Повідомлення</label>
-                <textarea id="message-uk" name="message" placeholder="Опишіть помилку, задайте питання або поділіться ідеєю..." required></textarea>
-            </div>
-            <input type="hidden" name="_subject" value="Olympus View Feedback (UK)">
-            <button type="submit" class="form-submit">Надіслати</button>
-        </form>
-        <div class="form-success">Дякуємо! Ваше повідомлення надіслано.</div>
-    </div>
-</div>
-
-</div><!-- /lang-uk -->
-
-<!-- ==================== RUSSIAN ==================== -->
 <div id="lang-ru" class="lang-section">
-
-<section class="hero">
-    <h1>Olympus View — управление камерой через WiFi с удалением файлов</h1>
-    <p>Просматривайте, скачивайте и <strong>удаляйте фото</strong> на камерах Olympus и OM System через WiFi. Бесплатная альтернатива <strong>OI.Share</strong> с открытым кодом — для Android, Windows и браузера.</p>
-    <div class="hero-badges">
-        <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="badge badge-primary">Скачать Android APK</a>
-        <a href="#dl-ru" class="badge badge-outline">Windows</a>
-        <a href="#dl-ru" class="badge badge-outline">Web</a>
-        <a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener" class="badge badge-green">Open Source</a>
-    </div>
-</section>
-
+<section class="hero"><h1>Olympus View — управление камерой через WiFi с удалением файлов</h1><p>Просматривайте, скачивайте и <strong>удаляйте фото</strong> на камерах Olympus и OM System через WiFi. Бесплатная альтернатива <strong>OI.Share</strong> с открытым кодом — для Android, Windows и браузера.</p><div class="hero-badges"><a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="badge badge-primary">Скачать Android APK</a><a href="#dl-ru" class="badge badge-outline">Windows</a><a href="#dl-ru" class="badge badge-outline">Web</a><a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener" class="badge badge-green">Open Source</a></div></section>
 <div class="container">
-    <div class="advantage">
-        <h2>Почему не OI.Share? Olympus View vs OI.Share</h2>
-        <p style="margin-bottom:16px">Официальное приложение Olympus <strong>OI.Share</strong> имеет серьёзные ограничения. <strong>Olympus View</strong> — бесплатная альтернатива с открытым кодом — решает их:</p>
-        <ul>
-            <li><strong>Удаление файлов с камеры</strong> <span class="vs">— OI.Share не умеет удалять фото</span></li>
-            <li><strong>Массовое скачивание по датам</strong> <span class="vs">— OI.Share позволяет только по одному</span></li>
-            <li><strong>Фоновое скачивание на Android</strong> <span class="vs">— работает после сворачивания приложения или выключения экрана</span></li>
-            <li><strong>Метки уже скачанных файлов</strong> <span class="vs">— видны даже после перезапуска</span></li>
-            <li><strong>Фильтр RAW/ORF файлов</strong> <span class="vs">— OI.Share показывает все дубли</span></li>
-            <li><strong>Работает на Windows и в браузере</strong> <span class="vs">— OI.Share только мобильное</span></li>
-            <li><strong>Открытый исходный код</strong> <span class="vs">— у OI.Share закрытый исходный код</span></li>
-        </ul>
+    <div class="advantage"><h2>Почему не OI.Share? Olympus View vs OI.Share</h2><p style="margin-bottom:16px">Официальное приложение Olympus <strong>OI.Share</strong> имеет серьёзные ограничения. <strong>Olympus View</strong> — бесплатная альтернатива с открытым кодом — решает их:</p><ul><li><strong>Удаление файлов с камеры</strong> <span class="vs">— OI.Share не умеет удалять фото</span></li><li><strong>Массовое скачивание по датам</strong> <span class="vs">— OI.Share позволяет только по одному</span></li><li><strong>Фоновое скачивание на Android</strong> <span class="vs">— работает после сворачивания приложения или выключения экрана</span></li><li><strong>Метки уже скачанных файлов</strong> <span class="vs">— видны даже после перезапуска</span></li><li><strong>Фильтр RAW / JPG</strong> <span class="vs">— выберите RAW, JPG или оба типа</span></li><li><strong>Работает на Windows и в браузере</strong> <span class="vs">— OI.Share только мобильное</span></li><li><strong>Открытый исходный код</strong> <span class="vs">— у OI.Share закрытый исходный код</span></li></ul></div>
+    <h2>Поддерживаемые камеры</h2><div class="cameras"><div class="camera-tag">OM System OM-1</div><div class="camera-tag">OM System OM-1 Mark II</div><div class="camera-tag">OM System OM-5</div><div class="camera-tag">Olympus E-M1 Mark II</div><div class="camera-tag">Olympus E-M1 Mark III</div><div class="camera-tag">Olympus E-M5 Mark III</div><div class="camera-tag">Olympus E-M10 Mark III</div><div class="camera-tag">Olympus E-M10 Mark IV</div><div class="camera-tag">Olympus TG-6</div><div class="camera-tag">Olympus TG-7</div><div class="camera-tag">Olympus E-PL10</div><div class="camera-tag">Olympus PEN E-P7</div></div>
+    <h2>Возможности</h2><div class="features"><div class="feature-card"><div class="feature-icon">📱</div><h3>QR-код сканирование</h3><p>Отсканируйте QR-код с экрана камеры — приложение автоматически подключится к WiFi. Поддержка форматов OIS1 и OIS3.</p></div><div class="feature-card"><div class="feature-icon">🗑️</div><h3>Удаление файлов</h3><p>Выберите ненужные файлы и удалите их прямо с камеры. Освобождайте карту памяти без компьютера.</p></div><div class="feature-card"><div class="feature-icon">📅</div><h3>Выбор по датам</h3><p>Выделите один файл и нажмите кнопку — все файлы за ту же дату будут выбраны автоматически.</p></div><div class="feature-card"><div class="feature-icon">🖼️</div><h3>Фильтр RAW / JPG</h3><p>Выберите только RAW, только JPG или RAW + JPG. Выбранный режим сохраняется между запусками.</p></div><div class="feature-card"><div class="feature-icon">⬇️</div><h3>Массовое скачивание</h3><p>Скачивайте группы файлов с прогрессом. На Android фото сразу появляются в галерее.</p></div><div class="feature-card"><div class="feature-icon">⏬</div><h3>Фоновое скачивание</h3><p>На Android передача продолжается после сворачивания Olympus View или выключения экрана. Прогресс и завершение показываются в системных уведомлениях.</p></div><div class="feature-card"><div class="feature-icon">✅</div><h3>Уже скачано</h3><p>Успешно перенесённые файлы получают постоянную зелёную отметку, поэтому даже через несколько дней видно, что уже было скопировано.</p></div><div class="feature-card"><div class="feature-icon">💻</div><h3>Мультиплатформа</h3><p>Работает на Android, Windows и в любом браузере. Единый интерфейс на всех платформах.</p></div></div>
+    <h2>Скриншоты</h2><div class="screenshots"><div class="screenshot"><img src="img/gallery.jpg" alt="Olympus View — галерея фотографий с камеры OM-1 через WiFi, 3788 файлов" loading="lazy" width="300" height="533"><div class="screenshot-caption">Галерея фото — OM-1, 3788 файлов</div></div><div class="screenshot"><img src="img/connect.jpg" alt="Сканирование QR-кода камеры Olympus для подключения по WiFi" loading="lazy" width="300" height="533"><div class="screenshot-caption">QR сканирование и WiFi подключение</div></div></div>
+    <h2>Как использовать</h2><ol class="steps"><li>Включите WiFi на камере Olympus / OM System</li><li>На <strong>Android</strong>: откройте приложение и отсканируйте QR-код с экрана камеры</li><li>На <strong>Windows</strong>: подключитесь к WiFi камеры, затем откройте приложение</li><li>Список фотографий загрузится автоматически с превью</li><li><strong>Долгое нажатие</strong> на фото — режим выбора файлов</li><li>Используйте кнопки для массового выбора, фильтрации, скачивания и удаления. На Android выберите <strong>В фоне</strong>; скачанные файлы остаются отмеченными зелёным.</li></ol>
+    <h2 id="dl-ru">Скачать</h2><div class="downloads"><a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="download-card"><div class="download-icon">🤖</div><h3>Android</h3><p>Последний релиз APK<br>Прямая загрузка</p></a><a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Windows.zip" class="download-card"><div class="download-icon">🪟</div><h3>Windows</h3><p>Portable ZIP<br>Прямая загрузка</p></a><a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Web.zip" class="download-card"><div class="download-icon">🌐</div><h3>Web</h3><p>Web ZIP<br>Запуск в браузере</p></a></div>
+    <div class="opensource"><h2>Открытый исходный код</h2><p>Olympus View написан на Flutter/Dart. Исходный код полностью открыт — вы можете изучить его, модифицировать и собрать самостоятельно.</p><p><a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener">https://github.com/dpolarov/olympus-view-and-delete</a></p><div class="code-block">flutter pub get<br>flutter run</div></div>
+    <h2>Часто задаваемые вопросы</h2><div class="faq"><div class="faq-item"><h3>Можно ли удалить фото с камеры Olympus через OI.Share?</h3><p>Нет. Официальное приложение <strong>OI.Share не умеет удалять фотографии</strong> с камеры. Olympus View восполняет этот пробел — поддерживает прямое удаление файлов с карты памяти камеры через WiFi.</p></div><div class="faq-item"><h3>Как удалить фото с камеры Olympus через WiFi?</h3><p>Включите WiFi на камере → подключитесь через Olympus View по QR-коду (Android) или прямому WiFi (Windows/браузер) → зажмите фото для режима выбора → нажмите кнопку удаления.</p></div><div class="faq-item"><h3>Есть ли Web-версия?</h3><p>Да. Скачайте <strong>Web ZIP</strong>, запустите веб-сборку в браузере и подключите ПК к WiFi камеры.</p></div></div>
+    <h2>Технические детали</h2><h3>Стек</h3><p>Flutter 3 / Dart — Material 3 — OPC Communication Protocol</p><h3>Протокол камеры</h3><p style="margin-top:8px">Приложение общается с камерой по HTTP через WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Используется протокол OPC.</p><h3>Декодирование QR</h3><p style="margin-top:8px">Камеры Olympus и OM System используют проприетарный формат QR-кодов (OIS1, OIS3). Приложение декодирует их автоматически.</p>
+    <h2 id="changelog-ru">Журнал изменений</h2><div class="changelog">
+        <div class="changelog-version"><h3>v1.3.9 — 19 сентября 2026</h3><h4>Постоянный фильтр RAW / JPG / оба типа</h4><ul><li><strong>Три режима галереи</strong> — только RAW, только JPG или RAW + JPG.</li><li>RAW-режим распознаёт ORF, DNG и RAW; JPG-режим — JPG и JPEG.</li><li>Выбранный режим сохраняется и восстанавливается после перезапуска Olympus View.</li><li>Если сохранённого значения ещё нет, начальным остаётся режим только JPG.</li><li>Пользователи v1.3.6 и новее могут обновиться штатно через встроенный updater.</li><li>Версия: <strong>1.3.9+18</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.8 — 19 сентября 2026</h3><h4>Исправление загрузки RAW на Android</h4><ul><li><strong>Исправлено скачивание ORF/DNG/RAW</strong> — RAW-файлы теперь используют MediaStore.Images и могут сохраняться в DCIM/OlympusView как JPEG.</li><li>Исправление действует для обычной и фоновой загрузки.</li><li>После успешного сохранения RAW получает обычную постоянную зелёную метку скачанного файла.</li><li>Пользователи v1.3.6 и новее могут обновиться штатно через встроенный updater.</li><li>Версия: <strong>1.3.8+17</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.7 — 27 августа 2026</h3><h4>Надёжнее передача с камеры и расширенные интеграционные тесты</h4><ul><li><strong>Исправлена гонка загрузки миниатюр</strong> — проверка дискового кэша завершается до занятия сетевого слота камеры.</li><li><strong>Ограничен кэш полноэкранного превью</strong> при быстром листании.</li><li><strong>Безопаснее скачивание</strong> — ответы камеры с HTTP-кодом не 200 больше не сохраняются как файлы.</li><li><strong>Ошибочные и оборванные передачи не попадают в кэш</strong>.</li><li><strong>Интеграционные тесты на Android</strong> проверяют Olympus-камеру через реальные TCP-соединения.</li><li>Версия: <strong>1.3.7+16</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.6 — 16 августа 2026</h3><h4>Надёжное обновление, выбор скачанных файлов и production-подпись</h4><ul><li><strong>Для v1.3.5 и старше нужна одноразовая переустановка</strong> из-за перехода на постоянный production-сертификат.</li><li><strong>Видимый прогресс обновления</strong> и кнопка установки прямо в приложении.</li><li><strong>Выделить скачанные</strong> — выделяет файлы с сохранённой зелёной отметкой.</li><li><strong>Production-подпись</strong> для GitHub APK.</li><li>Версия: <strong>1.3.6+15</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.5 — 16 августа 2026</h3><h4>Сквозной тест автообновления</h4><ul><li><strong>Публичный тестовый релиз</strong> встроенного updater.</li><li><strong>Регрессионные тесты updater</strong>.</li><li>Версия: <strong>1.3.5+14</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.4 — 16 августа 2026</h3><h4>Загрузки Android, диагностика и надёжность превью</h4><ul><li><strong>Фоновые загрузки</strong> продолжаются после сворачивания приложения.</li><li><strong>Постоянные метки скачанных файлов</strong> сохраняются между запусками.</li><li><strong>Автообновление GitHub APK</strong>.</li><li>Релиз: <strong>1.3.4+13</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.2 — 15 августа 2026</h3><h4>Android / подготовка к Google Play</h4><ul><li><strong>APK и AAB успешно собираются</strong> в GitHub Actions.</li><li><strong>Поддержка страниц 16 КБ</strong>.</li><li><strong>Современное сохранение Android</strong> через MediaStore.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.1 — 29 мая 2026</h3><h4>Добавлено</h4><ul><li><strong>Выбор языка в приложении</strong> с сохранением между запусками.</li></ul></div>
+        <div class="changelog-version"><h3>v1.3.0 — 29 мая 2026</h3><h4>Изменено</h4><ul><li><strong>Единое логирование</strong>.</li><li><strong>Централизованная конфигурация</strong>.</li><li><strong>Безопасные для памяти миниатюры</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.2.0 — 17 апреля 2026</h3><h4>Добавлено</h4><ul><li><strong>Набор тестов</strong> — 61 юнит- и виджет-тест.</li></ul></div>
+        <div class="changelog-version"><h3>v1.1.0 — 6 апреля 2026</h3><h4>Добавлено</h4><ul><li><strong>Просмотр фото</strong> со свайпом и масштабированием.</li><li><strong>Дисковый кеш</strong> между сеансами.</li><li><strong>Автоподключение</strong>.</li></ul></div>
+        <div class="changelog-version"><h3>v1.0.0 — 15 марта 2026</h3><h4>Первый релиз</h4><ul><li>Подключение к камерам Olympus через WiFi.</li><li>Просмотр, скачивание и удаление файлов.</li><li>Поддержка Android и Web.</li></ul></div>
     </div>
+    <div class="feedback-form" id="feedback-ru"><h2>Обратная связь</h2><p class="form-desc">Нашли ошибку, есть вопрос или предложение? Напишите нам!</p><form action="https://formspree.io/f/xeogrgvr" method="POST" class="contact-form" data-lang="ru"><div class="form-group"><label for="name-ru">Имя</label><input type="text" id="name-ru" name="name" placeholder="Ваше имя" required></div><div class="form-group"><label for="email-ru">Email</label><input type="email" id="email-ru" name="email" placeholder="your@email.com" required></div><div class="form-group"><label for="message-ru">Сообщение</label><textarea id="message-ru" name="message" placeholder="Опишите ошибку, задайте вопрос или поделитесь идеей..." required></textarea></div><input type="hidden" name="_subject" value="Olympus View Feedback (RU)"><button type="submit" class="form-submit">Отправить</button></form><div class="form-success">Спасибо! Ваше сообщение отправлено.</div></div>
+</div></div>
 
-    <h2>Поддерживаемые камеры</h2>
-    <div class="cameras">
-        <div class="camera-tag">OM System OM-1</div>
-        <div class="camera-tag">OM System OM-1 Mark II</div>
-        <div class="camera-tag">OM System OM-5</div>
-        <div class="camera-tag">Olympus E-M1 Mark II</div>
-        <div class="camera-tag">Olympus E-M1 Mark III</div>
-        <div class="camera-tag">Olympus E-M5 Mark III</div>
-        <div class="camera-tag">Olympus E-M10 Mark III</div>
-        <div class="camera-tag">Olympus E-M10 Mark IV</div>
-        <div class="camera-tag">Olympus TG-6</div>
-        <div class="camera-tag">Olympus TG-7</div>
-        <div class="camera-tag">Olympus E-PL10</div>
-        <div class="camera-tag">Olympus PEN E-P7</div>
-    </div>
-
-    <h2>Возможности</h2>
-    <div class="features">
-        <div class="feature-card">
-            <div class="feature-icon">📱</div>
-            <h3>QR-код сканирование</h3>
-            <p>Отсканируйте QR-код с экрана камеры — приложение автоматически подключится к WiFi. Поддержка форматов OIS1 и OIS3.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">🗑️</div>
-            <h3>Удаление файлов</h3>
-            <p>Выберите ненужные файлы и удалите их прямо с камеры. Освобождайте карту памяти без компьютера.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">📅</div>
-            <h3>Выбор по датам</h3>
-            <p>Выделите один файл и нажмите кнопку — все файлы за ту же дату будут выбраны автоматически.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">🖼️</div>
-            <h3>RAW фильтр</h3>
-            <p>Скрывайте ORF/RAW файлы одной кнопкой, чтобы убрать дубли при съёмке в RAW+JPG.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">⬇️</div>
-            <h3>Массовое скачивание</h3>
-            <p>Скачивайте группы файлов с прогрессом. На Android фото сразу появляются в галерее.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">⏬</div>
-            <h3>Фоновое скачивание</h3>
-            <p>На Android передача продолжается после сворачивания Olympus View или выключения экрана. Прогресс и завершение показываются в системных уведомлениях.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">✅</div>
-            <h3>Уже скачано</h3>
-            <p>Успешно перенесённые файлы получают постоянную зелёную отметку, поэтому даже через несколько дней видно, что уже было скопировано.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">💻</div>
-            <h3>Мультиплатформа</h3>
-            <p>Работает на Android, Windows и в любом браузере. Единый интерфейс на всех платформах.</p>
-        </div>
-    </div>
-
-    <h2>Скриншоты</h2>
-    <div class="screenshots">
-        <div class="screenshot">
-            <img src="img/gallery.jpg" alt="Olympus View — галерея фотографий с камеры OM-1 через WiFi, 3788 файлов" loading="lazy" width="300" height="533">
-            <div class="screenshot-caption">Галерея фото — OM-1, 3788 файлов</div>
-        </div>
-        <div class="screenshot">
-            <img src="img/connect.jpg" alt="Сканирование QR-кода камеры Olympus для подключения по WiFi" loading="lazy" width="300" height="533">
-            <div class="screenshot-caption">QR сканирование и WiFi подключение</div>
-        </div>
-    </div>
-
-    <h2>Как использовать</h2>
-    <ol class="steps">
-        <li>Включите WiFi на камере Olympus / OM System</li>
-        <li>На <strong>Android</strong>: откройте приложение и отсканируйте QR-код с экрана камеры</li>
-        <li>На <strong>Windows</strong>: подключитесь к WiFi камеры, затем откройте приложение</li>
-        <li>Список фотографий загрузится автоматически с превью</li>
-        <li><strong>Долгое нажатие</strong> на фото — режим выбора файлов</li>
-        <li>Используйте кнопки для массового выбора, скачивания и удаления. На Android выберите <strong>В фоне</strong>; скачанные файлы остаются отмеченными зелёным.</li>
-    </ol>
-
-    <h2 id="dl-ru">Скачать</h2>
-    <div class="downloads">
-        <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk" class="download-card">
-            <div class="download-icon">🤖</div>
-            <h3>Android</h3>
-            <p>Последний релиз APK<br>Прямая загрузка</p>
-        </a>
-        <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Windows.zip" class="download-card">
-            <div class="download-icon">🪟</div>
-            <h3>Windows</h3>
-            <p>Portable ZIP<br>Прямая загрузка</p>
-        </a>
-        <a href="https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Web.zip" class="download-card">
-            <div class="download-icon">🌐</div>
-            <h3>Web</h3>
-            <p>Web ZIP<br>Запуск в браузере</p>
-        </a>
-    </div>
-
-    <div class="opensource">
-        <h2>Открытый исходный код</h2>
-        <p>Olympus View написан на Flutter/Dart. Исходный код полностью открыт — вы можете изучить его, модифицировать и собрать самостоятельно.</p>
-        <p><a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener">https://github.com/dpolarov/olympus-view-and-delete</a></p>
-        <div class="code-block">flutter pub get<br>flutter run</div>
-    </div>
-
-    <h2>Часто задаваемые вопросы</h2>
-    <div class="faq">
-        <div class="faq-item">
-            <h3>Можно ли удалить фото с камеры Olympus через OI.Share?</h3>
-            <p>Нет. Официальное приложение <strong>OI.Share не умеет удалять фотографии</strong> с камеры. Olympus View восполняет этот пробел — поддерживает прямое удаление файлов с карты памяти камеры через WiFi.</p>
-        </div>
-        <div class="faq-item">
-            <h3>Как удалить фото с камеры Olympus через WiFi?</h3>
-            <p>Включите WiFi на камере → подключитесь через Olympus View по QR-коду (Android) или прямому WiFi (Windows/браузер) → зажмите фото для режима выбора → нажмите кнопку удаления. Файлы удаляются прямо с камеры.</p>
-        </div>
-        <div class="faq-item">
-            <h3>Есть ли Web-версия?</h3>
-            <p>Да. Скачайте <strong>Web ZIP</strong>, запустите веб-сборку в браузере и подключите ПК к WiFi камеры. Нативный установщик для ПК не требуется.</p>
-        </div>
-    </div>
-
-    <h2>Технические детали</h2>
-    <h3>Стек</h3>
-    <p>Flutter 3 / Dart — Material 3 — OPC Communication Protocol</p>
-    <h3>Протокол камеры</h3>
-    <p style="margin-top:8px">Приложение общается с камерой по HTTP через WiFi (IP: <code style="background:#222;padding:2px 6px;border-radius:4px">192.168.0.10</code>). Используется протокол OPC (Olympus OPC Communication Protocol).</p>
-    <h3>Декодирование QR</h3>
-    <p style="margin-top:8px">Камеры Olympus и OM System используют проприетарный формат QR-кодов (OIS1, OIS3) с подстановочным шифром. Приложение декодирует их автоматически и извлекает SSID, пароль WiFi и информацию о Bluetooth.</p>
-
-    <h2 id="changelog-ru">Журнал изменений</h2>
-    <div class="changelog">
-        <div class="changelog-version">
-            <h3>v1.3.8 — 19 сентября 2026</h3>
-            <h4>Исправление загрузки RAW на Android</h4>
-            <ul>
-                <li><strong>Исправлено скачивание ORF/DNG/RAW</strong> — RAW-файлы теперь используют MediaStore.Images и могут сохраняться в DCIM/OlympusView как JPEG.</li>
-                <li>Исправление действует для обычной и фоновой загрузки.</li>
-                <li>После успешного сохранения RAW получает обычную постоянную зелёную метку скачанного файла.</li>
-                <li>Пользователи v1.3.6 и новее могут обновиться штатно через встроенный updater.</li>
-                <li>Версия: <strong>1.3.8+17</strong>.</li>
-            </ul>
-        </div>
-                        <div class="changelog-version">
-            <h3>v1.3.7 — 27 августа 2026</h3>
-            <h4>Надёжнее передача с камеры и расширенные интеграционные тесты</h4>
-            <ul>
-                <li><strong>Исправлена гонка загрузки миниатюр</strong> — проверка дискового кэша завершается до занятия сетевого слота камеры.</li>
-                <li><strong>Ограничен кэш полноэкранного превью</strong> при быстром листании.</li>
-                <li><strong>Безопаснее скачивание</strong> — ответы камеры с HTTP-кодом не 200 больше не сохраняются как файлы.</li>
-                <li><strong>Ошибочные и оборванные передачи не попадают в кэш</strong>.</li>
-                <li><strong>Интеграционные тесты на Android</strong> проверяют фальшивую Olympus-камеру через реальные TCP-соединения, файловый кэш и параллельность миниатюр.</li>
-                <li>Версия: <strong>1.3.7+16</strong>.</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.3.6 — 16 августа 2026</h3>
-            <h4>Надёжное обновление, выбор скачанных файлов и production-подпись</h4>
-            <ul>
-                <li><strong>Для v1.3.5 и старше нужна одноразовая переустановка</strong> — в v1.3.6 временный debug-сертификат заменён постоянным production-сертификатом. Удалите старый Olympus View и один раз установите v1.3.6; последующие обновления с GitHub снова будут ставиться поверх приложения.</li>
-                <li><strong>При этой переустановке сбросятся локальные настройки и история зелёных отметок</strong>; уже сохранённые на телефоне фотографии и файлы на камере не затрагиваются.</li>
-                <li><strong>Видимый прогресс обновления</strong>: скачано/всего МБ и проценты, статус ожидания интернета, повтор/отмена и кнопка установки прямо в приложении.</li>
-                <li><strong>Автоподключение к камере приостанавливается на время обновления</strong>, чтобы Wi-Fi камеры без интернета не останавливал загрузку APK.</li>
-                <li><strong>Выделить скачанные</strong> — новая зелёная кнопка в режиме выбора выделяет все файлы с сохранённой зелёной отметкой, после чего их можно удалить с камеры одной операцией.</li>
-                <li><strong>Production-подпись</strong> — GitHub APK теперь подписываются постоянным app-signing ключом; для Google Play используется отдельный upload key, а в Play App Signing передаётся тот же production app-signing key.</li>
-                <li>Версия: <strong>1.3.6+15</strong>.</li>
-            </ul>
-        </div>
-<div class="changelog-version">
-            <h3>v1.3.5 — 16 августа 2026</h3>
-            <h4>Сквозной тест автообновления</h4>
-            <ul>
-                <li><strong>Публичный тестовый релиз</strong> — установленная GitHub-версия 1.3.4 теперь может обнаружить, скачать и установить реальную более новую версию через встроенное обновление</li>
-                <li><strong>Регрессионные тесты updater</strong> проверяют сравнение версий, точный выбор APK, отсутствие APK и разбор release notes</li>
-                <li>Версия: <strong>1.3.5+14</strong>; в остальном поведение приложения такое же, как в 1.3.4</li>
-            </ul>
-        </div>
-<div class="changelog-version">
-            <h3>v1.3.4 — 16 августа 2026</h3>
-            <h4>Загрузки Android, диагностика и надёжность превью</h4>
-            <ul>
-                <li><strong>Фоновые загрузки</strong> продолжаются после сворачивания приложения или выключения экрана</li>
-                <li><strong>Постоянные метки скачанных файлов</strong> сохраняются между запусками и обычными обновлениями</li>
-                <li><strong>Автообновление GitHub APK</strong> проверяет прямые релизы; сборка Google Play не устанавливает внешние APK</li>
-                <li><strong>Диагностика во время работы</strong> показывает версию, build metadata, устройство, сеть, хранилище и состояние камеры без сохранённых Wi-Fi паролей</li>
-                <li><strong>Приоритет превью и парная предзагрузка</strong> делают просмотр стабильнее, пока загрузки делят соединение с камерой</li>
-                <li>Исправлены зависание превью, повторное использование скачанного JPEG, зелёные метки и устаревшие AOT-артефакты релиза</li>
-                <li>Релиз: <strong>1.3.4+13</strong>; Android CI успешно проходит анализ, тесты, APK/AAB, metadata, Play-policy и проверку 16 КБ</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.3.2 — 15 августа 2026</h3>
-            <h4>Android / подготовка к Google Play</h4>
-            <ul>
-                <li><strong>APK и AAB успешно собираются</strong> в GitHub Actions вместе с анализатором и тестами</li>
-                <li><strong>Поддержка страниц 16 КБ</strong> проверена для arm64-v8a и x86_64</li>
-                <li><strong>Современное сохранение Android</strong> — фото сохраняются через MediaStore в DCIM/OlympusView</li>
-                <li><strong>WiFi-разрешения Android 13+</strong> переведены на NEARBY_WIFI_DEVICES</li>
-                <li>Обновлены mobile scanner / ML Kit и Android toolchain для targetSdk 36</li>
-                <li>Перед публикацией workflow проверяет сертификат ключа подписи</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.3.1 — 29 мая 2026</h3>
-            <h4>Добавлено</h4>
-            <ul>
-                <li><strong>Выбор языка в приложении</strong> — переключайте интерфейс между системным, английским, русским и украинским прямо из панели приложения; выбор сохраняется между запусками</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.3.0 — 29 мая 2026</h3>
-            <h4>Изменено</h4>
-            <ul>
-                <li><strong>Единое логирование</strong> — вся диагностика проходит через единый кроссплатформенный логгер</li>
-                <li><strong>Централизованная конфигурация</strong> — сетевые таймауты и лимиты кеша/памяти вынесены в именованные константы</li>
-                <li><strong>Безопасные для памяти миниатюры</strong> — кеш в памяти теперь ограничен суммарным объёмом байтов (32 МиБ), а не только количеством записей</li>
-                <li>Обновлены зависимости и сборочная цепочка Android (compileSdk 36, AGP 8.9.1, Gradle 8.11.1)</li>
-            </ul>
-            <h4>Добавлено</h4>
-            <ul>
-                <li><strong>Расширенный набор тестов</strong> — 82 теста, включая покрытие сетевых ошибок и локализации</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.2.0 — 17 апреля 2026</h3>
-            <h4>Добавлено</h4>
-            <ul>
-                <li><strong>Набор тестов</strong> — 61 юнит- и виджет-тест на кеширование, удаление и листание</li>
-            </ul>
-            <h4>Изменено</h4>
-            <ul>
-                <li>Отложенная запись индекса дискового кеша для плавного просмотра</li>
-                <li>Усиленная санитизация имён скачиваемых файлов</li>
-                <li>Сериализованная запись истории подключений для предотвращения гонок</li>
-            </ul>
-            <h4>Исправлено</h4>
-            <ul>
-                <li>Падение при удалении последнего фото из просмотра</li>
-                <li>Гонка при обращении к дисковому кешу до полной инициализации</li>
-                <li>Конфигурацию подписи релизного APK</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.1.0 — 6 апреля 2026</h3>
-            <h4>Добавлено</h4>
-            <ul>
-                <li><strong>Просмотр фото</strong> — полноэкранный просмотр со свайпом и масштабированием</li>
-                <li><strong>Скачивание/Удаление из просмотра</strong> — управление фото прямо из превью</li>
-                <li><strong>Предзагрузка изображений</strong> — ±2 соседних для плавного свайпа</li>
-                <li><strong>Дисковый кеш</strong> — постоянный LRU кеш (150 изображений) между сеансами</li>
-                <li><strong>История подключений</strong> — сохранение и восстановление камер</li>
-                <li><strong>Автоподключение</strong> — автоматическое подключение к последней камере</li>
-                <li><strong>Статусные сообщения</strong> — детальный прогресс подключения</li>
-                <li><strong>Версия</strong> — диалог с changelog и ссылкой на сайт</li>
-            </ul>
-            <h4>Исправлено</h4>
-            <ul>
-                <li>Центрирование контента на экране ошибки</li>
-                <li>Переподключение WiFi без лишней навигации</li>
-                <li>Контекстные сообщения загрузки</li>
-            </ul>
-        </div>
-        <div class="changelog-version">
-            <h3>v1.0.0 — 15 марта 2026</h3>
-            <h4>Первый релиз</h4>
-            <ul>
-                <li>Подключение к камерам Olympus через WiFi (QR-код или SSID)</li>
-                <li>Просмотр фото в сетке или списке</li>
-                <li>Фильтрация по датам</li>
-                <li>Массовый выбор, скачивание и удаление файлов</li>
-                <li>Фильтр RAW/ORF</li>
-                <li>Диалоги прогресса скачивания и удаления</li>
-                <li>Прогрессивная загрузка списка файлов</li>
-                <li>Поддержка Android и Web</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="feedback-form" id="feedback-ru">
-        <h2>Обратная связь</h2>
-        <p class="form-desc">Нашли ошибку, есть вопрос или предложение? Напишите нам!</p>
-        <form action="https://formspree.io/f/xeogrgvr" method="POST" class="contact-form" data-lang="ru">
-            <div class="form-group">
-                <label for="name-ru">Имя</label>
-                <input type="text" id="name-ru" name="name" placeholder="Ваше имя" required>
-            </div>
-            <div class="form-group">
-                <label for="email-ru">Email</label>
-                <input type="email" id="email-ru" name="email" placeholder="your@email.com" required>
-            </div>
-            <div class="form-group">
-                <label for="message-ru">Сообщение</label>
-                <textarea id="message-ru" name="message" placeholder="Опишите ошибку, задайте вопрос или поделитесь идеей..." required></textarea>
-            </div>
-            <input type="hidden" name="_subject" value="Olympus View Feedback (RU)">
-            <button type="submit" class="form-submit">Отправить</button>
-        </form>
-        <div class="form-success">Спасибо! Ваше сообщение отправлено.</div>
-    </div>
-</div>
-
-</div><!-- /lang-ru -->
-
-<footer>
-    <p>Olympus View — open source app for Olympus / OM System cameras</p>
-    <p style="margin-top:8px">Flutter / Dart &bull; OPC Protocol &bull; <a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener" style="color:var(--accent)">GitHub</a> &bull; <a href="privacy.html" style="color:var(--accent)">Privacy Policy</a> &bull; <a href="index.md" style="color:var(--accent)">Markdown</a> &bull; <a href="llms.txt" style="color:var(--accent)">llms.txt</a></p>
-    <p style="margin-top:16px; font-size:0.78rem; opacity:0.7; max-width:720px; margin-left:auto; margin-right:auto;">
-        Olympus and OM System are trademarks of their respective owners. This is an unofficial application, not affiliated with, endorsed by, or sponsored by OM Digital Solutions.
-    </p>
-</footer>
-
+<footer><p>Olympus View — open source app for Olympus / OM System cameras</p><p style="margin-top:8px">Flutter / Dart &bull; OPC Protocol &bull; <a href="https://github.com/dpolarov/olympus-view-and-delete" target="_blank" rel="noopener" style="color:var(--accent)">GitHub</a> &bull; <a href="privacy.html" style="color:var(--accent)">Privacy Policy</a> &bull; <a href="index.md" style="color:var(--accent)">Markdown</a> &bull; <a href="llms.txt" style="color:var(--accent)">llms.txt</a></p><p style="margin-top:16px; font-size:0.78rem; opacity:0.7; max-width:720px; margin-left:auto; margin-right:auto;">Olympus and OM System are trademarks of their respective owners. This is an unofficial application, not affiliated with, endorsed by, or sponsored by OM Digital Solutions.</p></footer>
 <script>
 const langMeta = {
-  en: { htmlLang: 'en', title: 'Olympus View — WiFi File Manager for Olympus & OM System | Delete Photos, OI.Share Alternative', desc: 'Free app to manage Olympus and OM System cameras via WiFi. Delete photos, download in the background on Android, remember downloaded files, batch by date and filter RAW.' },
-  ru: { htmlLang: 'ru', title: 'Olympus View — управление камерой Olympus через WiFi с удалением фото | Альтернатива OI.Share', desc: 'Приложение для камер Olympus и OM System через WiFi: удаление фото, фоновое скачивание на Android, метки скачанных файлов, выбор по датам и RAW-фильтр.' },
-  uk: { htmlLang: 'uk', title: 'Olympus View — керування камерою Olympus через WiFi з видаленням фото | Альтернатива OI.Share', desc: 'Застосунок для камер Olympus та OM System через WiFi: видалення фото, фонове завантаження на Android, позначки завантажених файлів, вибір за датою та RAW-фільтр.' }
+  en: { htmlLang: 'en', title: 'Olympus View — WiFi File Manager for Olympus & OM System | Delete Photos, OI.Share Alternative', desc: 'Free app to manage Olympus and OM System cameras via WiFi. Delete photos, download in the background on Android, remember downloaded files, batch by date and filter RAW/JPG.' },
+  ru: { htmlLang: 'ru', title: 'Olympus View — управление камерой Olympus через WiFi с удалением фото | Альтернатива OI.Share', desc: 'Приложение для камер Olympus и OM System через WiFi: удаление фото, фоновое скачивание на Android, метки скачанных файлов, выбор по датам и фильтр RAW/JPG.' },
+  uk: { htmlLang: 'uk', title: 'Olympus View — керування камерою Olympus через WiFi з видаленням фото | Альтернатива OI.Share', desc: 'Застосунок для камер Olympus та OM System через WiFi: видалення фото, фонове завантаження на Android, позначки завантажених файлів, вибір за датою та фільтр RAW/JPG.' }
 };
-
 function switchLang(lang) {
     document.querySelectorAll('.lang-section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.lang-bar button').forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-pressed', 'false');
-    });
+    document.querySelectorAll('.lang-bar button').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
     document.getElementById('lang-' + lang).classList.add('active');
     const activeButton = document.querySelector('.lang-bar button[onclick*="\'' + lang + '\'"]');
-    activeButton.classList.add('active');
-    activeButton.setAttribute('aria-pressed', 'true');
-
-    // Update html lang attribute for accessibility & SEO crawlers
+    activeButton.classList.add('active'); activeButton.setAttribute('aria-pressed', 'true');
     document.documentElement.lang = langMeta[lang].htmlLang;
-
-    // Update title and meta description for social sharing
     document.title = langMeta[lang].title;
-    const descTag = document.querySelector('meta[name="description"]');
-    if (descTag) descTag.setAttribute('content', langMeta[lang].desc);
-
-    // Update URL without reload
-    const url = new URL(window.location);
-    if (lang === 'en') { url.searchParams.delete('lang'); } else { url.searchParams.set('lang', lang); }
-    window.history.replaceState({}, '', url);
+    const descTag = document.querySelector('meta[name="description"]'); if (descTag) descTag.setAttribute('content', langMeta[lang].desc);
+    const url = new URL(window.location); if (lang === 'en') { url.searchParams.delete('lang'); } else { url.searchParams.set('lang', lang); } window.history.replaceState({}, '', url);
 }
-
-// Auto-detect language from URL param on load
-(function() {
-    const p = new URLSearchParams(window.location.search).get('lang');
-    if (p && ['ru', 'uk'].includes(p)) { switchLang(p); }
-})();
-
-// Convert .changelog-version blocks into collapsible <details>.
-// The newest (first) stays open; older ones start collapsed.
-(function(){
-    document.querySelectorAll('.changelog').forEach(function(cl){
-        const versions = cl.querySelectorAll(':scope > .changelog-version');
-        versions.forEach(function(v, idx){
-            const details = document.createElement('details');
-            details.className = v.className;
-            if (idx === 0) details.open = true;
-            const h3 = v.querySelector('h3');
-            const summary = document.createElement('summary');
-            if (h3) summary.appendChild(h3);
-            details.appendChild(summary);
-            while (v.firstChild) details.appendChild(v.firstChild);
-            v.replaceWith(details);
-        });
-    });
-})();
-
-// Add a Copy button to every .code-block
-(function(){
-    document.querySelectorAll('.code-block').forEach(function(block){
-        if (block.querySelector('.copy-btn')) return;
-        const text = block.innerText.trim();
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'copy-btn';
-        btn.textContent = 'Copy';
-        btn.addEventListener('click', function(){
-            navigator.clipboard.writeText(text).then(function(){
-                btn.textContent = 'Copied';
-                setTimeout(function(){ btn.textContent = 'Copy'; }, 1500);
-            }).catch(function(){
-                btn.textContent = 'Error';
-                setTimeout(function(){ btn.textContent = 'Copy'; }, 1500);
-            });
-        });
-        block.appendChild(btn);
-    });
-})();
-
-// Feedback form — AJAX submit via Formspree
-document.querySelectorAll('.contact-form').forEach(form => {
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const btn = form.querySelector('.form-submit');
-        const successDiv = form.parentElement.querySelector('.form-success');
-        const origText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = '...';
-
-        fetch(form.action, {
-            method: 'POST',
-            body: new FormData(form),
-            headers: { 'Accept': 'application/json' }
-        }).then(r => {
-            if (r.ok) {
-                form.style.display = 'none';
-                successDiv.style.display = 'block';
-            } else {
-                btn.textContent = origText;
-                btn.disabled = false;
-                alert('Error sending message. Please try again.');
-            }
-        }).catch(() => {
-            btn.textContent = origText;
-            btn.disabled = false;
-            alert('Network error. Please try again.');
-        });
-    });
-});
+(function() { const p = new URLSearchParams(window.location.search).get('lang'); if (p && ['ru', 'uk'].includes(p)) { switchLang(p); } })();
+(function(){ document.querySelectorAll('.changelog').forEach(function(cl){ const versions = cl.querySelectorAll(':scope > .changelog-version'); versions.forEach(function(v, idx){ const details = document.createElement('details'); details.className = v.className; if (idx === 0) details.open = true; const h3 = v.querySelector('h3'); const summary = document.createElement('summary'); if (h3) summary.appendChild(h3); details.appendChild(summary); while (v.firstChild) details.appendChild(v.firstChild); v.replaceWith(details); }); }); })();
+(function(){ document.querySelectorAll('.code-block').forEach(function(block){ if (block.querySelector('.copy-btn')) return; const text = block.innerText.trim(); const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'copy-btn'; btn.textContent = 'Copy'; btn.addEventListener('click', function(){ navigator.clipboard.writeText(text).then(function(){ btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1500); }).catch(function(){ btn.textContent = 'Error'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1500); }); }); block.appendChild(btn); }); })();
+document.querySelectorAll('.contact-form').forEach(form => { form.addEventListener('submit', function(e) { e.preventDefault(); const btn = form.querySelector('.form-submit'); const successDiv = form.parentElement.querySelector('.form-success'); const origText = btn.textContent; btn.disabled = true; btn.textContent = '...'; fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'Accept': 'application/json' } }).then(r => { if (r.ok) { form.style.display = 'none'; successDiv.style.display = 'block'; } else { btn.textContent = origText; btn.disabled = false; alert('Error sending message. Please try again.'); } }).catch(() => { btn.textContent = origText; btn.disabled = false; alert('Network error. Please try again.'); }); }); });
 </script>
 </body>
 </html>

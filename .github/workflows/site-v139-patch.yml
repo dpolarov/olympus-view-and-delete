@@ -1,0 +1,68 @@
+name: Patch v1.3.9 website
+
+on:
+  push:
+    branches:
+      - site/v1.3.9
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message != 'Update website for v1.3.9'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: site/v1.3.9
+          fetch-depth: 0
+
+      - name: Apply minimal v1.3.9 website patch
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('docs/index.html')
+          text = path.read_text(encoding='utf-8')
+
+          replacements = [
+              ('"softwareVersion": "1.3.8"', '"softwareVersion": "1.3.9"', 1),
+              ('"releaseNotes": "https://github.com/dpolarov/olympus-view-and-delete/releases/tag/v1.3.8"', '"releaseNotes": "https://github.com/dpolarov/olympus-view-and-delete/releases/tag/v1.3.9"', 1),
+              ('"RAW/ORF file filter"', '"Persistent RAW / JPG / RAW + JPG filter"', 1),
+              ('<h3>RAW Filter</h3>\n            <p>Hide ORF/RAW files with one button to remove duplicates when shooting RAW+JPG.</p>', '<h3>File Type Filter</h3>\n            <p>Choose RAW only, JPG only, or RAW + JPG. The selected mode is remembered between app launches.</p>', 1),
+              ('<h3>RAW фільтр</h3>\n            <p>Приховуйте ORF/RAW файли однією кнопкою, щоб прибрати дублі при зйомці в RAW+JPG.</p>', '<h3>Фільтр RAW / JPG</h3>\n            <p>Вибирайте лише RAW, лише JPG або RAW + JPG. Обраний режим зберігається між запусками застосунку.</p>', 1),
+              ('<h3>RAW фильтр</h3>\n            <p>Скрывайте ORF/RAW файлы одной кнопкой, чтобы убрать дубли при съёмке в RAW+JPG.</p>', '<h3>Фильтр RAW / JPG</h3>\n            <p>Выбирайте только RAW, только JPG или RAW + JPG. Выбранный режим сохраняется между запусками приложения.</p>', 1),
+          ]
+
+          for old, new, expected in replacements:
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(f'Expected {expected} occurrence(s), found {count}: {old[:80]}')
+              text = text.replace(old, new, expected)
+
+          blocks = {
+              '<h2 id="changelog-en">Changelog</h2>\n    <div class="changelog">\n': '''<h2 id="changelog-en">Changelog</h2>\n    <div class="changelog">\n        <div class="changelog-version">\n            <h3>v1.3.9 — September 19, 2026</h3>\n            <h4>Persistent RAW / JPG / Both filter</h4>\n            <ul>\n                <li><strong>Three-state file type filter</strong> — choose RAW only, JPG only, or RAW + JPG.</li>\n                <li>RAW mode includes ORF, DNG and RAW; JPG mode includes JPG and JPEG.</li>\n                <li>The selected mode is saved and restored on the next app launch.</li>\n                <li>Existing installs default to JPG only when no saved choice exists, matching previous behavior.</li>\n                <li>Version: <strong>1.3.9+18</strong>.</li>\n            </ul>\n        </div>\n''',
+              '<h2 id="changelog-uk">Журнал змін</h2>\n    <div class="changelog">\n': '''<h2 id="changelog-uk">Журнал змін</h2>\n    <div class="changelog">\n        <div class="changelog-version">\n            <h3>v1.3.9 — 19 вересня 2026</h3>\n            <h4>Постійний фільтр RAW / JPG / обидва</h4>\n            <ul>\n                <li><strong>Три режими фільтра файлів</strong> — лише RAW, лише JPG або RAW + JPG.</li>\n                <li>RAW охоплює ORF, DNG і RAW; JPG охоплює JPG та JPEG.</li>\n                <li>Обраний режим зберігається та відновлюється під час наступного запуску.</li>\n                <li>Для наявних інсталяцій без збереженого вибору типовим залишається режим лише JPG.</li>\n                <li>Версія: <strong>1.3.9+18</strong>.</li>\n            </ul>\n        </div>\n''',
+              '<h2 id="changelog-ru">Журнал изменений</h2>\n    <div class="changelog">\n': '''<h2 id="changelog-ru">Журнал изменений</h2>\n    <div class="changelog">\n        <div class="changelog-version">\n            <h3>v1.3.9 — 19 сентября 2026</h3>\n            <h4>Постоянный фильтр RAW / JPG / оба</h4>\n            <ul>\n                <li><strong>Три режима фильтра файлов</strong> — только RAW, только JPG или RAW + JPG.</li>\n                <li>RAW включает ORF, DNG и RAW; JPG включает JPG и JPEG.</li>\n                <li>Выбранный режим сохраняется и восстанавливается при следующем запуске.</li>\n                <li>Для существующих установок без сохранённого выбора по умолчанию остаётся режим только JPG.</li>\n                <li>Версия: <strong>1.3.9+18</strong>.</li>\n            </ul>\n        </div>\n''',
+          }
+
+          for marker, replacement in blocks.items():
+              count = text.count(marker)
+              if count != 1:
+                  raise SystemExit(f'Expected one changelog marker, found {count}: {marker[:60]}')
+              text = text.replace(marker, replacement, 1)
+
+          path.write_text(text, encoding='utf-8', newline='')
+
+      - name: Remove one-shot workflow and push patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/site-v139-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html .github/workflows/site-v139-patch.yml
+          git diff --cached --check
+          git commit -m "Update website for v1.3.9"
+          git push origin HEAD:site/v1.3.9

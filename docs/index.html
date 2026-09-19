@@ -68,11 +68,11 @@
       "url": "https://dpolarov.github.io/olympus-view-and-delete/",
       "downloadUrl": "https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk",
       "sameAs": "https://github.com/dpolarov/olympus-view-and-delete",
-      "softwareVersion": "1.3.8",
+      "softwareVersion": "1.3.9",
       "datePublished": "2026-03-15",
       "dateModified": "2026-09-19",
       "isAccessibleForFree": true,
-      "releaseNotes": "https://github.com/dpolarov/olympus-view-and-delete/releases/tag/v1.3.8",
+      "releaseNotes": "https://github.com/dpolarov/olympus-view-and-delete/releases/tag/v1.3.9",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -87,7 +87,7 @@
         "Batch download photos by date",
         "Background downloads on Android with completion notifications",
         "Persistent markers for files already downloaded",
-        "RAW/ORF file filter",
+        "Persistent RAW / JPG / RAW + JPG filter",
         "QR code WiFi connection (OIS1, OIS3)",
         "Multi-platform: Android, Windows, Web browser"
       ],
@@ -827,8 +827,8 @@
         </div>
         <div class="feature-card">
             <div class="feature-icon">🖼️</div>
-            <h3>RAW Filter</h3>
-            <p>Hide ORF/RAW files with one button to remove duplicates when shooting RAW+JPG.</p>
+            <h3>File Type Filter</h3>
+            <p>Choose RAW only, JPG only, or RAW + JPG. The selected mode is remembered between app launches.</p>
         </div>
         <div class="feature-card">
             <div class="feature-icon">⬇️</div>
@@ -926,6 +926,17 @@
 
     <h2 id="changelog-en">Changelog</h2>
     <div class="changelog">
+        <div class="changelog-version">
+            <h3>v1.3.9 — September 19, 2026</h3>
+            <h4>Persistent RAW / JPG / Both filter</h4>
+            <ul>
+                <li><strong>Three-state file type filter</strong> — choose RAW only, JPG only, or RAW + JPG.</li>
+                <li>RAW mode includes ORF, DNG and RAW; JPG mode includes JPG and JPEG.</li>
+                <li>The selected mode is saved and restored on the next app launch.</li>
+                <li>Existing installs default to JPG only when no saved choice exists, matching previous behavior.</li>
+                <li>Version: <strong>1.3.9+18</strong>.</li>
+            </ul>
+        </div>
         <div class="changelog-version">
             <h3>v1.3.8 — September 19, 2026</h3>
             <h4>Android RAW download hotfix</h4>
@@ -1161,8 +1172,8 @@
         </div>
         <div class="feature-card">
             <div class="feature-icon">🖼️</div>
-            <h3>RAW фільтр</h3>
-            <p>Приховуйте ORF/RAW файли однією кнопкою, щоб прибрати дублі при зйомці в RAW+JPG.</p>
+            <h3>Фільтр RAW / JPG</h3>
+            <p>Вибирайте лише RAW, лише JPG або RAW + JPG. Обраний режим зберігається між запусками застосунку.</p>
         </div>
         <div class="feature-card">
             <div class="feature-icon">⬇️</div>
@@ -1244,6 +1255,17 @@
 
     <h2 id="changelog-uk">Журнал змін</h2>
     <div class="changelog">
+        <div class="changelog-version">
+            <h3>v1.3.9 — 19 вересня 2026</h3>
+            <h4>Постійний фільтр RAW / JPG / обидва</h4>
+            <ul>
+                <li><strong>Три режими фільтра файлів</strong> — лише RAW, лише JPG або RAW + JPG.</li>
+                <li>RAW охоплює ORF, DNG і RAW; JPG охоплює JPG та JPEG.</li>
+                <li>Обраний режим зберігається та відновлюється під час наступного запуску.</li>
+                <li>Для наявних інсталяцій без збереженого вибору типовим залишається режим лише JPG.</li>
+                <li>Версія: <strong>1.3.9+18</strong>.</li>
+            </ul>
+        </div>
         <div class="changelog-version">
             <h3>v1.3.8 — 19 вересня 2026</h3>
             <h4>Виправлення завантаження RAW на Android</h4>
@@ -1479,8 +1501,8 @@
         </div>
         <div class="feature-card">
             <div class="feature-icon">🖼️</div>
-            <h3>RAW фильтр</h3>
-            <p>Скрывайте ORF/RAW файлы одной кнопкой, чтобы убрать дубли при съёмке в RAW+JPG.</p>
+            <h3>Фильтр RAW / JPG</h3>
+            <p>Выбирайте только RAW, только JPG или RAW + JPG. Выбранный режим сохраняется между запусками приложения.</p>
         </div>
         <div class="feature-card">
             <div class="feature-icon">⬇️</div>
@@ -1578,6 +1600,17 @@
 
     <h2 id="changelog-ru">Журнал изменений</h2>
     <div class="changelog">
+        <div class="changelog-version">
+            <h3>v1.3.9 — 19 сентября 2026</h3>
+            <h4>Постоянный фильтр RAW / JPG / оба</h4>
+            <ul>
+                <li><strong>Три режима фильтра файлов</strong> — только RAW, только JPG или RAW + JPG.</li>
+                <li>RAW включает ORF, DNG и RAW; JPG включает JPG и JPEG.</li>
+                <li>Выбранный режим сохраняется и восстанавливается при следующем запуске.</li>
+                <li>Для существующих установок без сохранённого выбора по умолчанию остаётся режим только JPG.</li>
+                <li>Версия: <strong>1.3.9+18</strong>.</li>
+            </ul>
+        </div>
         <div class="changelog-version">
             <h3>v1.3.8 — 19 сентября 2026</h3>
             <h4>Исправление загрузки RAW на Android</h4>

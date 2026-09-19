@@ -441,7 +441,7 @@ class MainActivity : FlutterActivity() {
 
     private fun isGalleryImage(filename: String): Boolean {
         return when (filename.substringAfterLast('.', "").lowercase()) {
-            "jpg", "jpeg", "png", "gif", "webp", "heic", "heif" -> true
+            "jpg", "jpeg", "png", "gif", "webp", "heic", "heif", "orf", "dng", "raw" -> true
             else -> false
         }
     }

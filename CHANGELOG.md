@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **Persistent three-state file type filter**: the gallery can now show **RAW only**, **JPG only**, or **RAW + JPG** instead of the previous two-state RAW toggle.
+- RAW mode includes `.ORF`, `.DNG`, and `.RAW`; JPG mode includes `.JPG` and `.JPEG`.
+- The selected file type mode is saved in `SharedPreferences` and restored on the next app launch. Existing installs with no saved value default to **JPG only**, matching the previous behavior.
+- Added regression tests for file-extension filtering and persisted filter restoration.
+
 ## [1.3.8] - 2026-09-19
 
 ### Fixed

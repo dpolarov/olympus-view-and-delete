@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.3.8] - 2026-09-19
+
+### Fixed
+- **Android RAW downloads to DCIM**: Olympus `.ORF`, Adobe `.DNG`, and generic `.RAW` files are now stored through `MediaStore.Images` instead of `MediaStore.Files`, allowing Android 10+ to save them into `DCIM/OlympusView` just like JPEG files.
+- The same RAW MediaStore routing is used by both foreground and background downloads.
+- A RAW file is marked as downloaded only after the save completes successfully, so the existing green downloaded marker stays consistent with files actually written to the device.
+
+### Changed
+- Version set to **1.3.8+17**.
+- This is a normal in-app update for users already on **1.3.6 or newer** and uses the existing permanent production signing identity.
+
 ## [1.3.7] - 2026-08-27
 
 ### Android signing compatibility

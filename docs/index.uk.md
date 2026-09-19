@@ -2,7 +2,7 @@
 
 > Olympus View дозволяє переглядати, завантажувати та видаляти фотографії на сумісних камерах Olympus та OM System через локальну WiFi-мережу камери. Це неофіційна кросплатформна альтернатива OI.Share для Android, Windows і Web.
 
-**Поточна Android-версія:** v1.3.7+16 — 27 серпня 2026  
+**Поточна Android-версія:** v1.3.8+17 — 19 вересня 2026  
 **Вихідний код:** https://github.com/dpolarov/olympus-view-and-delete  
 **Останній реліз:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest  
 **Android APK:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk
@@ -106,6 +106,15 @@ Android не дозволяє APK з іншим підписом замінит�
 Політика конфіденційності:
 
 https://dpolarov.github.io/olympus-view-and-delete/privacy.md
+
+## Що нового у v1.3.8
+
+- Виправлено завантаження RAW-файлів Olympus **ORF** до `DCIM/OlympusView` на Android.
+- ORF, DNG і RAW тепер зберігаються через колекцію зображень Android MediaStore, як JPEG, тому помилка `Primary directory DCIM not allowed` більше не виникає.
+- Виправлення діє і для звичайного, і для фонового завантаження.
+- Після успішного збереження RAW отримує ту саму постійну зелену позначку завантаженого файлу, що й JPEG.
+- Користувачі **v1.3.6 і новіше** можуть оновитися штатно через вбудований updater.
+- Версія **1.3.8+17**.
 
 ## Що нового у v1.3.7
 

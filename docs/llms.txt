@@ -4,9 +4,9 @@
 
 Olympus View is an unofficial community project and is not affiliated with, endorsed by, or sponsored by OM Digital Solutions, Olympus Corporation, or OM System.
 
-Current stable Android release: **v1.3.7 (build 16), released August 27, 2026**.
+Current stable Android release: **v1.3.8 (build 17), released September 19, 2026**.
 
-Release v1.3.7 improves camera-transfer reliability: thumbnail disk-cache lookup now completes before consuming camera network slots, full-screen preview cache stays bounded during rapid paging, non-200 download responses are rejected, and failed or truncated transfers are prevented from poisoning persistent caches. New Android integration tests exercise a fake Olympus camera over real TCP sockets and verify failure paths, filesystem cache persistence, and thumbnail concurrency.
+Release v1.3.8 fixes Android RAW storage: Olympus ORF, Adobe DNG, and generic RAW files now save to DCIM/OlympusView through MediaStore.Images in both foreground and background downloads. This avoids Android scoped-storage rejection of DCIM for generic MediaStore files and restores the normal persistent green downloaded marker after a successful RAW save.
 
 Important upgrade note: direct APK users already on v1.3.6 or newer can update normally. Users on v1.3.5 or older must still perform the one-time uninstall/reinstall introduced by v1.3.6 because that release switched to the permanent production Android signing certificate.
 

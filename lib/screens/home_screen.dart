@@ -18,6 +18,7 @@ import '../services/camera_api.dart';
 import '../services/connection_history.dart';
 import '../services/download_history.dart';
 import '../services/file_saver.dart' as file_saver;
+import '../services/file_type_filter.dart';
 import '../services/locale_controller.dart';
 import '../services/thumbnail_manager.dart';
 import '../version.dart';
@@ -64,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen>
   DateTime? _filterTo;
 
   bool _gridView = true;
-  bool _showRaw = false;
+  FileTypeFilter _fileTypeFilter = FileTypeFilter.jpg;
 
   int _loadGeneration = 0;
   Timer? _batchFlushTimer;
@@ -107,6 +108,8 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _startApp() async {
+    await _loadFileTypeFilter();
+    if (!mounted) return;
     await _refreshDownloadedHistory();
 
     final existingUpdate = await AppUpdateService.getUpdateDownloadStatus();
@@ -139,6 +142,45 @@ class _HomeScreenState extends State<HomeScreen>
     final keys = await DownloadHistory.load();
     if (!mounted) return;
     setState(() => _downloadedKeys = keys);
+  }
+
+  Future<void> _loadFileTypeFilter() async {
+    final filter = await FileTypeFilterPreferences.load();
+    if (!mounted) return;
+    setState(() => _fileTypeFilter = filter);
+  }
+
+  Future<void> _setFileTypeFilter(FileTypeFilter filter) async {
+    if (filter == _fileTypeFilter) return;
+    setState(() {
+      _fileTypeFilter = filter;
+      _applyFilter();
+    });
+    await FileTypeFilterPreferences.save(filter);
+  }
+
+  String _fileTypeFilterLabel(FileTypeFilter filter) {
+    switch (filter) {
+      case FileTypeFilter.raw:
+        return _localizedText(
+          en: 'RAW only', ru: 'Только RAW', uk: 'Лише RAW');
+      case FileTypeFilter.jpg:
+        return _localizedText(
+          en: 'JPG only', ru: 'Только JPG', uk: 'Лише JPG');
+      case FileTypeFilter.both:
+        return 'RAW + JPG';
+    }
+  }
+
+  IconData _fileTypeFilterIcon(FileTypeFilter filter) {
+    switch (filter) {
+      case FileTypeFilter.raw:
+        return Icons.raw_on;
+      case FileTypeFilter.jpg:
+        return Icons.image_outlined;
+      case FileTypeFilter.both:
+        return Icons.photo_library_outlined;
+    }
   }
 
   String _localizedText({
@@ -569,14 +611,9 @@ class _HomeScreenState extends State<HomeScreen>
     } else {
       files = List.from(_allFiles);
     }
-    if (!_showRaw) {
-      files = files.where((f) {
-        final ext = f.filename.toLowerCase();
-        return !ext.endsWith('.orf') &&
-            !ext.endsWith('.raw') &&
-            !ext.endsWith('.dng');
-      }).toList();
-    }
+    files = files
+        .where((f) => fileMatchesTypeFilter(f.filename, _fileTypeFilter))
+        .toList();
     _filteredFiles = files;
   }
 
@@ -1478,16 +1515,24 @@ class _HomeScreenState extends State<HomeScreen>
               icon: Icon(_gridView ? Icons.view_list : Icons.grid_view),
               onPressed: () => setState(() => _gridView = !_gridView),
             ),
-            IconButton(
-              icon: Icon(
-                _showRaw ? Icons.raw_on : Icons.raw_off,
-                color: _showRaw ? const Color(0xFFE94560) : null,
+            PopupMenuButton<FileTypeFilter>(
+              icon: Icon(_fileTypeFilterIcon(_fileTypeFilter)),
+              tooltip: _localizedText(
+                en: 'File type filter',
+                ru: 'Фильтр типа файлов',
+                uk: 'Фільтр типу файлів',
               ),
-              tooltip: _showRaw ? 'Hide RAW files' : 'Show RAW files',
-              onPressed: () => setState(() {
-                _showRaw = !_showRaw;
-                _applyFilter();
-              }),
+              onSelected: (filter) =>
+                  unawaited(_setFileTypeFilter(filter)),
+              itemBuilder: (context) => FileTypeFilter.values
+                  .map(
+                    (filter) => CheckedPopupMenuItem<FileTypeFilter>(
+                      value: filter,
+                      checked: filter == _fileTypeFilter,
+                      child: Text(_fileTypeFilterLabel(filter)),
+                    ),
+                  )
+                  .toList(),
             ),
             IconButton(
               icon: const Icon(Icons.refresh),

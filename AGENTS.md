@@ -147,11 +147,15 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Release Process
 
-For **every release**, updating release metadata is mandatory and must be part of the same release change:
+Use one release path only. Do not add one-off release workflows, temporary release scripts, or alternate publishing paths.
+
+For **every release**:
 - Bump the application version/build in `pubspec.yaml` and `lib/version.dart`.
 - Add the new release section to `CHANGELOG.md`.
 - Update the public website release information and changelog in `docs/index.html`, `docs/index.md`, `docs/index.ru.md`, and `docs/index.uk.md`.
 - Update `docs/llms.txt` so its current stable version and release summary match the new release.
 - Keep historical release entries intact; add a new latest entry instead of rewriting old release history.
-- Before publishing, verify that the GitHub Release notes, `CHANGELOG.md`, and website describe the same version and changes.
-
+- Merge the release changes to `master` and make sure normal CI is green.
+- Create and push tag `vX.Y.Z` on the intended `master` commit. The tag version must match the version in `pubspec.yaml`.
+- Publishing must be handled only by `.github/workflows/release.yml`, which is triggered by the `v*` tag push and rejects tags that do not point to a commit contained in `master`.
+- GitHub Release notes, `CHANGELOG.md`, and the website must describe the same version and changes.

@@ -246,9 +246,14 @@ void main() {
     expect(failedVisible, isTrue,
         reason: 'a dead camera must surface the error state, not hang');
     expect(
+      camera.requests.any((r) => r.contains('/get_screennail.cgi')),
+      isTrue,
+      reason: 'the preferred screennail preview must be attempted over HTTP',
+    );
+    expect(
       camera.requests.any((r) => r.contains('/get_resizeimg.cgi')),
       isTrue,
-      reason: 'the preview must actually have been attempted over HTTP',
+      reason: 'the 1920 resize fallback must run when screennail fails',
     );
 
     expect(

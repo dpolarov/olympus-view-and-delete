@@ -2,7 +2,7 @@
 
 > Manage, download, and delete photos on Olympus and OM System cameras over the camera's local WiFi network. Olympus View is an unofficial cross-platform alternative to OI.Share for Android, Windows, and Web.
 
-**Current Android release:** v1.3.9+18 — September 19, 2026  
+**Current Android release:** v1.3.10+19 — September 20, 2026  
 **Source:** https://github.com/dpolarov/olympus-view-and-delete  
 **Latest release:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest  
 **Android APK:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk
@@ -49,7 +49,7 @@ On Android, scan the QR code displayed by the camera. Olympus View decodes Olymp
 
 ### Browse photos
 
-Load the camera's photo list with thumbnails and browse in grid or list form. The app traverses camera folders and supports date filtering.
+Load the camera's photo list with thumbnails and browse in grid or list form. The app traverses camera folders and supports date filtering. Large grid tiles use a higher-quality 480 px camera preview, while the smaller thumbnail endpoint remains available as a fallback.
 
 ### Delete files from the camera
 
@@ -65,7 +65,7 @@ Choose **RAW only**, **JPG only**, or **RAW + JPG**. RAW includes ORF, DNG and g
 
 ### Download files
 
-Download selected photos with progress information. On Android, downloaded photos are saved to user-accessible media storage and appear in the gallery.
+Download selected photos with progress information. On Android, downloaded photos are saved to user-accessible media storage and appear in the gallery. ORF, DNG and RAW files use the Android image MediaStore collection so they can be saved to `DCIM/OlympusView` like JPEG files.
 
 ### Background download on Android
 
@@ -139,6 +139,7 @@ Common OPC endpoints used by the project include:
 
 - File list: `GET /get_imglist.cgi?DIR=/DCIM`
 - Thumbnail: `GET /get_thumbnail.cgi?DIR=<path>`
+- Higher-quality grid preview: `GET /get_resizeimg.cgi?DIR=<path>&size=480`
 - Delete: `GET /exec_erase.cgi?DIR=<path>`
 - Download: `GET /<path>`
 - Play mode: `GET /switch_cammode.cgi?mode=play`
@@ -155,6 +156,17 @@ Olympus View has no user accounts, advertising, developer analytics backend, or 
 Full privacy policy:
 
 https://dpolarov.github.io/olympus-view-and-delete/privacy.md
+
+## v1.3.10 highlights
+
+- The **About** dialog now shows the actual recent release changes instead of an old generic feature list.
+- The in-app changelog now mentions the Android RAW/ORF/DNG download fix and the persistent **RAW only / JPG only / RAW + JPG** file-type filter, including restoration of the last selected mode.
+- The in-app changelog is localized for English, Russian and Ukrainian and must stay synchronized with the repository and website changelogs for future releases.
+- Grid thumbnails now request a **480 px camera preview** first, with the small camera thumbnail kept as a fallback.
+- A fresh `grid480` cache identity prevents older low-resolution cached thumbnails from being reused after the update.
+- Gallery scaling now uses high-quality filtering.
+- Users on **v1.3.6 or newer** can update normally through the built-in updater.
+- Version: **1.3.10+19**.
 
 ## v1.3.9 highlights
 

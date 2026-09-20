@@ -174,12 +174,13 @@ class _GridItem extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   _CameraThumbnail(
-                    url: file.thumbnailUrl,
-                    fallbackUrl: file.resizeImgUrl(480),
+                    url: file.resizeImgUrl(480),
+                    fallbackUrl: file.thumbnailUrl,
                     index: index,
-                    // Include size + FAT timestamp so a camera filename reused
-                    // after deletion/format cannot inherit an old cached image.
-                    imagePath: file.downloadHistoryKey,
+                    // Grid tiles are large enough that the camera's tiny
+                    // thumbnail endpoint looks soft. Use a separate cache key
+                    // so old low-resolution cached thumbnails are not reused.
+                    imagePath: '${file.downloadHistoryKey}|grid480',
                   ),
                   if (selected)
                     Positioned(
@@ -386,14 +387,15 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
     var bytes = await ThumbnailManager.instance
         .load(widget.url, widget.index, imagePath: widget.imagePath);
 
-    // Some camera firmwares occasionally fail get_thumbnail.cgi for a single
-    // file. Fall back to the resize endpoint instead of leaving a permanent
-    // broken tile.
+    // Some camera firmwares occasionally fail the preferred image endpoint for
+    // a single file. Fall back to the alternate endpoint instead of leaving a
+    // permanent broken tile. Do not write fallback bytes into the preferred
+    // disk-cache identity: a transient failure must not make a low-resolution
+    // fallback persist across future launches.
     if (bytes == null && widget.fallbackUrl != widget.url) {
       bytes = await ThumbnailManager.instance.load(
         widget.fallbackUrl,
         widget.index,
-        imagePath: widget.imagePath,
       );
     }
 
@@ -435,7 +437,7 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
       fit: widget.fit,
       cacheWidth: 480,
       gaplessPlayback: true,
-      filterQuality: FilterQuality.medium,
+      filterQuality: FilterQuality.high,
       errorBuilder: (_, __, ___) => _brokenImage(),
     );
   }

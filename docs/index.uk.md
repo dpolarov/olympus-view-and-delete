@@ -2,7 +2,7 @@
 
 > Olympus View дозволяє переглядати, завантажувати та видаляти фотографії на сумісних камерах Olympus та OM System через локальну WiFi-мережу камери. Це неофіційна кросплатформна альтернатива OI.Share для Android, Windows і Web.
 
-**Поточна Android-версія:** v1.3.9+18 — 19 вересня 2026  
+**Поточна Android-версія:** v1.3.10+19 — 20 вересня 2026  
 **Вихідний код:** https://github.com/dpolarov/olympus-view-and-delete  
 **Останній реліз:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest  
 **Android APK:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk
@@ -18,6 +18,7 @@ Olympus View не пов'язаний з OM Digital Solutions, Olympus Corporati
 - Постійні зелені позначки вже завантажених файлів.
 - Кнопка **«Вибрати завантажені»**, яка вибирає всі видимі файли із зеленою позначкою для подальшого масового видалення з камери.
 - Трирежимний фільтр файлів: **лише RAW**, **лише JPG** або **RAW + JPG**.
+- Якісніші 480-px превʼю у великій сітці галереї.
 - QR-підключення на Android із підтримкою форматів OIS1 та OIS3.
 - Робота на Android, Windows і в браузері.
 
@@ -94,6 +95,7 @@ Android не дозволяє APK з іншим підписом замінит�
 
 - список файлів: `GET /get_imglist.cgi?DIR=/DCIM`
 - мініатюра: `GET /get_thumbnail.cgi?DIR=<path>`
+- превʼю сітки підвищеної якості: `GET /get_resizeimg.cgi?DIR=<path>&size=480`
 - видалення: `GET /exec_erase.cgi?DIR=<path>`
 - завантаження: `GET /<path>`
 - режим перегляду: `GET /switch_cammode.cgi?mode=play`
@@ -106,6 +108,17 @@ Android не дозволяє APK з іншим підписом замінит�
 Політика конфіденційності:
 
 https://dpolarov.github.io/olympus-view-and-delete/privacy.md
+
+## Що нового у v1.3.10
+
+- Вікно **About** тепер показує реальні останні зміни замість старого загального списку можливостей.
+- Changelog у застосунку містить виправлення завантаження RAW/ORF/DNG на Android і фільтр **лише RAW / лише JPG / RAW + JPG** зі збереженням останнього режиму.
+- Changelog у застосунку локалізовано англійською, російською та українською і надалі він має синхронно оновлюватися разом із `CHANGELOG.md`, сайтом і GitHub Release notes.
+- Великі плитки галереї тепер спочатку запитують **480-px preview** камери, а мала thumbnail залишається резервним варіантом.
+- Новий cache identity `grid480` не дозволяє після оновлення використовувати старі низькоякісні мініатюри з кешу.
+- Для масштабування мініатюр використовується висока якість фільтрації Flutter.
+- Користувачі **v1.3.6 і новіше** можуть оновитися штатно через вбудований updater.
+- Версія **1.3.10+19**.
 
 ## Що нового у v1.3.9
 

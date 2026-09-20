@@ -1,6 +1,15 @@
 # Changelog
 
-## [Unreleased]
+## [1.3.10] - 2026-09-20
+
+### Changed
+- **In-app About changelog** now shows the actual recent release changes instead of the old generic feature list. It includes the Android RAW/ORF/DNG download fix, the persistent **RAW only / JPG only / RAW + JPG** filter, restored filter choice across app launches, and the gallery thumbnail-quality improvement.
+- The About changelog is localized for English, Russian, and Ukrainian and is now part of the release checklist so it must stay synchronized with `CHANGELOG.md`, the website, GitHub Release notes, and `docs/llms.txt`.
+- **Higher-quality gallery thumbnails**: large grid tiles now request the camera's `get_resizeimg.cgi` 480 px image first instead of stretching the much smaller `get_thumbnail.cgi` image. The small thumbnail endpoint remains as a fallback if the resize request fails.
+- Grid preview cache keys are versioned separately (`grid480`) so devices do not keep reusing older low-resolution cached thumbnails after updating.
+- Gallery images use high-quality Flutter filtering when scaling the 480 px preview into the grid tile.
+- Version set to **1.3.10+19**.
+- Users already on **v1.3.6 or newer** can install this release as a normal in-app update using the existing permanent production signing identity.
 
 ## [1.3.9] - 2026-09-19
 

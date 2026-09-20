@@ -784,6 +784,23 @@ class _HomeScreenState extends State<HomeScreen>
         'Olympus and OM System are trademarks of their respective owners. '
             'This is an unofficial app, not affiliated with or endorsed by '
             'OM Digital Solutions.';
+    final changelog = _localizedText(
+      en: '• Fixed Android RAW/ORF/DNG downloads to DCIM/OlympusView\n'
+          '• Added persistent RAW only / JPG only / RAW + JPG filtering\n'
+          '• Restores the last selected file type mode on the next launch\n'
+          '• Improved gallery thumbnail quality with 480 px camera previews\n'
+          '• Uses the small camera thumbnail as a fallback if preview loading fails',
+      ru: '• Исправлено скачивание RAW/ORF/DNG в DCIM/OlympusView на Android\n'
+          '• Добавлен выбор: только RAW / только JPG / RAW + JPG\n'
+          '• Последний выбранный режим восстанавливается после перезапуска\n'
+          '• Улучшено качество миниатюр в галерее: превью камеры 480 px\n'
+          '• Маленькая миниатюра камеры используется как запасной вариант',
+      uk: '• Виправлено завантаження RAW/ORF/DNG до DCIM/OlympusView на Android\n'
+          '• Додано вибір: лише RAW / лише JPG / RAW + JPG\n'
+          '• Останній вибраний режим відновлюється після перезапуску\n'
+          '• Покращено якість мініатюр у галереї: превʼю камери 480 px\n'
+          '• Мала мініатюра камери використовується як резервний варіант',
+    );
     showAboutDialog(
       context: context,
       applicationName: appName,
@@ -799,16 +816,7 @@ class _HomeScreenState extends State<HomeScreen>
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         const SizedBox(height: 8),
-        const Text(
-          '• Background downloads with Android notifications\n'
-          '• Persistent green markers for downloaded files\n'
-          '• GitHub APK auto-update with release notes\n'
-          '• More reliable thumbnails with validation and retries\n'
-          '• Full-screen preview with swipe & zoom\n'
-          '• Batch download and delete directly from the camera\n'
-          '• Auto-connect and saved-camera quick reconnect',
-          style: TextStyle(fontSize: 13),
-        ),
+        Text(changelog, style: const TextStyle(fontSize: 13)),
         const SizedBox(height: 16),
         GestureDetector(
           onTap: () => launchUrl(

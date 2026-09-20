@@ -389,12 +389,13 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
 
     // Some camera firmwares occasionally fail the preferred image endpoint for
     // a single file. Fall back to the alternate endpoint instead of leaving a
-    // permanent broken tile.
+    // permanent broken tile. Do not write fallback bytes into the preferred
+    // disk-cache identity: a transient failure must not make a low-resolution
+    // fallback persist across future launches.
     if (bytes == null && widget.fallbackUrl != widget.url) {
       bytes = await ThumbnailManager.instance.load(
         widget.fallbackUrl,
         widget.index,
-        imagePath: widget.imagePath,
       );
     }
 

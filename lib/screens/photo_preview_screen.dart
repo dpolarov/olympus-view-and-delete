@@ -17,7 +17,8 @@ import '../services/preview_preload_plan.dart';
 import '../services/service_config.dart';
 import '../services/thumbnail_manager.dart';
 
-/// Full-screen photo preview loaded via get_resizeimg (high quality).
+/// Full-screen photo preview prefers the camera's screennail image and falls
+/// back to a 1920 px resize request when screennail is unavailable.
 class PhotoPreviewScreen extends StatefulWidget {
   final CameraFile file;
   final List<CameraFile> files;
@@ -233,7 +234,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
         _error.remove(key);
         if (isCompleteCameraJpeg(bytes)) {
           // The downloaded original is also a valid full-screen preview. Reuse
-          // it immediately rather than leaving a failed resize request spinning.
+          // it immediately rather than leaving a failed preview request spinning.
           _imageCache[key] = bytes;
         }
       });
@@ -329,8 +330,11 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
     }
   }
 
-  Future<Uint8List?> _fetchPreview(CameraFile file) async {
-    final url = file.resizeImgUrl(kPreviewImageSize);
+  Future<Uint8List?> _fetchPreviewFromUrl(
+    CameraFile file,
+    String url,
+    String source,
+  ) async {
     for (var attempt = 1; attempt <= _maxPreviewAttempts; attempt++) {
       try {
         final resp = await _client.get(
@@ -351,20 +355,20 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
             return bytes;
           }
           AppLogger.debug(
-            'incomplete preview for ${file.fullPath} '
+            'incomplete $source preview for ${file.fullPath} '
             '(${bytes.lengthInBytes} bytes, attempt $attempt)',
             name: 'photo_preview',
           );
         } else {
           AppLogger.debug(
-            'preview HTTP ${resp.statusCode} for ${file.fullPath} '
+            '$source preview HTTP ${resp.statusCode} for ${file.fullPath} '
             '(attempt $attempt)',
             name: 'photo_preview',
           );
         }
       } catch (e) {
         AppLogger.debug(
-          'preview fetch failed for ${file.fullPath} '
+          '$source preview fetch failed for ${file.fullPath} '
           '(attempt $attempt): $e',
           name: 'photo_preview',
         );
@@ -375,6 +379,26 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       }
     }
     return null;
+  }
+
+  Future<Uint8List?> _fetchPreview(CameraFile file) async {
+    final screennail = await _fetchPreviewFromUrl(
+      file,
+      file.screennailUrl,
+      'screennail',
+    );
+    if (screennail != null) return screennail;
+
+    AppLogger.debug(
+      'screennail unavailable for ${file.fullPath}; '
+      'falling back to resize $kPreviewImageSize',
+      name: 'photo_preview',
+    );
+    return _fetchPreviewFromUrl(
+      file,
+      file.resizeImgUrl(kPreviewImageSize),
+      'resize-$kPreviewImageSize',
+    );
   }
 
   Future<void> _loadImage(

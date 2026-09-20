@@ -3,11 +3,13 @@
 ## [1.3.10] - 2026-09-20
 
 ### Changed
-- **In-app About changelog** now shows the actual recent release changes instead of the old generic feature list. It includes the Android RAW/ORF/DNG download fix, the persistent **RAW only / JPG only / RAW + JPG** filter, restored filter choice across app launches, and the gallery thumbnail-quality improvement.
+- **In-app About changelog** now shows the actual recent release changes instead of the old generic feature list. It includes the Android RAW/ORF/DNG download fix, the persistent **RAW only / JPG only / RAW + JPG** filter, restored filter choice across app launches, and the preview-quality improvements.
 - The About changelog is localized for English, Russian, and Ukrainian and is now part of the release checklist so it must stay synchronized with `CHANGELOG.md`, the website, GitHub Release notes, and `docs/llms.txt`.
-- **Higher-quality gallery thumbnails**: large grid tiles now request the camera's `get_resizeimg.cgi` 480 px image first instead of stretching the much smaller `get_thumbnail.cgi` image. The small thumbnail endpoint remains as a fallback if the resize request fails.
-- Grid preview cache keys are versioned separately (`grid480`) so devices do not keep reusing older low-resolution cached thumbnails after updating.
-- Gallery images use high-quality Flutter filtering when scaling the 480 px preview into the grid tile.
+- **Higher-quality gallery grid previews**: large grid tiles now request the camera-supported `get_resizeimg.cgi?size=1024` image instead of stretching the tiny `get_thumbnail.cgi` response. The thumbnail endpoint remains as a fallback when the 1024 preview cannot be loaded.
+- Grid preview cache keys are versioned separately as `grid1024` so older low-resolution cached thumbnails are not reused after updating.
+- Gallery images use high-quality Flutter filtering when scaling the 1024 px preview into the grid tile.
+- **Faster full-screen previews**: the viewer now prefers `get_screennail.cgi`, which provides a substantially faster high-resolution preview on OM System cameras, and falls back to the existing `get_resizeimg.cgi?size=1920` request if screennail is unavailable.
+- The compact 72×72 list view continues to use the small `get_thumbnail.cgi` endpoint to avoid unnecessary Wi-Fi traffic.
 - Version set to **1.3.10+19**.
 - Users already on **v1.3.6 or newer** can install this release as a normal in-app update using the existing permanent production signing identity.
 

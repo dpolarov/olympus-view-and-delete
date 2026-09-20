@@ -174,13 +174,14 @@ class _GridItem extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   _CameraThumbnail(
-                    url: file.resizeImgUrl(480),
+                    url: file.resizeImgUrl(1024),
                     fallbackUrl: file.thumbnailUrl,
                     index: index,
-                    // Grid tiles are large enough that the camera's tiny
-                    // thumbnail endpoint looks soft. Use a separate cache key
-                    // so old low-resolution cached thumbnails are not reused.
-                    imagePath: '${file.downloadHistoryKey}|grid480',
+                    // Large grid tiles use a camera-supported 1024 px preview
+                    // instead of stretching the tiny 160x120 thumbnail.
+                    // Version the cache identity so older low-resolution or
+                    // invalid 480-preview entries are never reused.
+                    imagePath: '${file.downloadHistoryKey}|grid1024',
                   ),
                   if (selected)
                     Positioned(
@@ -284,7 +285,7 @@ class _ListItem extends StatelessWidget {
               height: 72,
               child: _CameraThumbnail(
                 url: file.thumbnailUrl,
-                fallbackUrl: file.resizeImgUrl(480),
+                fallbackUrl: file.resizeImgUrl(1024),
                 index: index,
                 imagePath: file.downloadHistoryKey,
                 fit: BoxFit.cover,
@@ -435,7 +436,7 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
     return Image.memory(
       _bytes!,
       fit: widget.fit,
-      cacheWidth: 480,
+      cacheWidth: 1024,
       gaplessPlayback: true,
       filterQuality: FilterQuality.high,
       errorBuilder: (_, __, ___) => _brokenImage(),

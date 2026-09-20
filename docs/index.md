@@ -49,7 +49,7 @@ On Android, scan the QR code displayed by the camera. Olympus View decodes Olymp
 
 ### Browse photos
 
-Load the camera's photo list with thumbnails and browse in grid or list form. The app traverses camera folders and supports date filtering. Large grid tiles use a higher-quality 480 px camera preview, while the smaller thumbnail endpoint remains available as a fallback.
+Load the camera's photo list with thumbnails and browse in grid or list form. The app traverses camera folders and supports date filtering. Large grid tiles request a camera-supported 1024 px resized preview; the small thumbnail endpoint remains available as a fallback. Full-screen viewing prefers the camera's screennail preview and falls back to a 1920 px resize request.
 
 ### Delete files from the camera
 
@@ -138,8 +138,10 @@ Olympus View communicates directly with the camera over HTTP on the local camera
 Common OPC endpoints used by the project include:
 
 - File list: `GET /get_imglist.cgi?DIR=/DCIM`
-- Thumbnail: `GET /get_thumbnail.cgi?DIR=<path>`
-- Higher-quality grid preview: `GET /get_resizeimg.cgi?DIR=<path>&size=480`
+- Thumbnail / compact list preview: `GET /get_thumbnail.cgi?DIR=<path>`
+- Higher-quality grid preview: `GET /get_resizeimg.cgi?DIR=<path>&size=1024`
+- Preferred full-screen preview: `GET /get_screennail.cgi?DIR=<path>`
+- Full-screen fallback: `GET /get_resizeimg.cgi?DIR=<path>&size=1920`
 - Delete: `GET /exec_erase.cgi?DIR=<path>`
 - Download: `GET /<path>`
 - Play mode: `GET /switch_cammode.cgi?mode=play`
@@ -162,9 +164,11 @@ https://dpolarov.github.io/olympus-view-and-delete/privacy.md
 - The **About** dialog now shows the actual recent release changes instead of an old generic feature list.
 - The in-app changelog now mentions the Android RAW/ORF/DNG download fix and the persistent **RAW only / JPG only / RAW + JPG** file-type filter, including restoration of the last selected mode.
 - The in-app changelog is localized for English, Russian and Ukrainian and must stay synchronized with the repository and website changelogs for future releases.
-- Grid thumbnails now request a **480 px camera preview** first, with the small camera thumbnail kept as a fallback.
-- A fresh `grid480` cache identity prevents older low-resolution cached thumbnails from being reused after the update.
-- Gallery scaling now uses high-quality filtering.
+- Large gallery tiles now use a camera-supported **1024 px resized preview**, with the small 160×120 thumbnail kept as a fallback.
+- A fresh `grid1024` cache identity prevents older low-resolution cached thumbnails from being reused after the update.
+- Full-screen viewing now prefers **`get_screennail.cgi`** for faster high-resolution previews and falls back to the existing **1920 px resize** endpoint when needed.
+- The compact 72×72 list continues to use the small thumbnail endpoint to minimize Wi-Fi traffic.
+- Gallery scaling uses high-quality filtering.
 - Users on **v1.3.6 or newer** can update normally through the built-in updater.
 - Version: **1.3.10+19**.
 

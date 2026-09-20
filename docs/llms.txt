@@ -4,9 +4,9 @@
 
 Olympus View is an unofficial community project and is not affiliated with, endorsed by, or sponsored by OM Digital Solutions, Olympus Corporation, or OM System.
 
-Current stable Android release: **v1.3.10 (build 19), released September 20, 2026**.
+Current stable Android release: **v1.3.11 (build 20), released September 20, 2026**.
 
-Release v1.3.10 fixes the in-app About changelog so it reports the actual recent release changes, including the Android RAW/ORF/DNG download fix and the persistent RAW only / JPG only / RAW + JPG filter with restoration of the last selected mode. Large gallery tiles now request a camera-supported 1024 px `get_resizeimg.cgi` preview and fall back to the small thumbnail endpoint, using a fresh `grid1024` cache identity so older low-resolution cached thumbnails are not reused. Full-screen viewing now prefers `get_screennail.cgi` for faster high-resolution previews and falls back to the existing 1920 px resize request when screennail is unavailable. The compact list continues to use small thumbnails, and gallery scaling uses high-quality Flutter filtering.
+Release v1.3.11 fixes OM-1 gallery preview compatibility after v1.3.10 requested unsupported resize size 480. Large gallery tiles now request the camera-supported 1024 px `get_resizeimg.cgi` preview and fall back to the small thumbnail endpoint, using a fresh `grid1024` cache identity so old 160×120 thumbnails and failed/obsolete 480-preview entries are not reused. Full-screen viewing now prefers `get_screennail.cgi` for faster high-resolution previews and falls back to the existing 1920 px resize request when screennail is unavailable. The compact list continues to use small thumbnails.
 
 Important upgrade note: direct APK users already on v1.3.6 or newer can update normally. Users on v1.3.5 or older must still perform the one-time uninstall/reinstall introduced by v1.3.6 because that release switched to the permanent production Android signing certificate.
 

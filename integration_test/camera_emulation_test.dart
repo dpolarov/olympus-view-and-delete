@@ -93,9 +93,9 @@ void main() {
         reason: 'paging should advance the preview header');
     expect(find.text('P1010002.JPG'), findsOneWidget);
     expect(
-      camera.requests.any((r) => r.startsWith('/get_resizeimg.cgi')),
+      camera.requests.any((r) => r.startsWith('/get_screennail.cgi')),
       isTrue,
-      reason: 'previews should be fetched from the camera endpoint',
+      reason: 'full-screen previews should prefer the screennail endpoint',
     );
 
     // 5. Close the preview back to the gallery. The preview's AppBar uses a

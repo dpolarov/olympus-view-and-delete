@@ -2,7 +2,7 @@
 
 > Manage, download, and delete photos on Olympus and OM System cameras over the camera's local WiFi network. Olympus View is an unofficial cross-platform alternative to OI.Share for Android, Windows, and Web.
 
-**Current Android release:** v1.3.10+19 — September 20, 2026  
+**Current Android release:** v1.3.11+20 — September 20, 2026  
 **Source:** https://github.com/dpolarov/olympus-view-and-delete  
 **Latest release:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest  
 **Android APK:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk
@@ -159,15 +159,22 @@ Full privacy policy:
 
 https://dpolarov.github.io/olympus-view-and-delete/privacy.md
 
+## v1.3.11 highlights
+
+- Fixed **OM-1 gallery preview compatibility**: v1.3.10 requested resize size 480, but OM-1 advertises 1024, 1600, 1920 and 2048. Grid tiles now use the supported **1024 px resize preview** with the small thumbnail as fallback.
+- The grid cache identity is now `grid1024`, preventing old 160×120 thumbnails and failed/obsolete 480-preview entries from being reused.
+- Full-screen viewing now prefers **`get_screennail.cgi`** and falls back to **`get_resizeimg.cgi?size=1920`** when needed.
+- The compact 72×72 list continues to use the small thumbnail endpoint to minimize Wi-Fi traffic.
+- Users on **v1.3.6 or newer** can update normally through the built-in updater.
+- Version: **1.3.11+20**.
+
 ## v1.3.10 highlights
 
 - The **About** dialog now shows the actual recent release changes instead of an old generic feature list.
-- The in-app changelog now mentions the Android RAW/ORF/DNG download fix and the persistent **RAW only / JPG only / RAW + JPG** file-type filter, including restoration of the last selected mode.
+- The in-app changelog mentions the Android RAW/ORF/DNG download fix and the persistent **RAW only / JPG only / RAW + JPG** file-type filter, including restoration of the last selected mode.
 - The in-app changelog is localized for English, Russian and Ukrainian and must stay synchronized with the repository and website changelogs for future releases.
-- Large gallery tiles now use a camera-supported **1024 px resized preview**, with the small 160×120 thumbnail kept as a fallback.
-- A fresh `grid1024` cache identity prevents older low-resolution cached thumbnails from being reused after the update.
-- Full-screen viewing now prefers **`get_screennail.cgi`** for faster high-resolution previews and falls back to the existing **1920 px resize** endpoint when needed.
-- The compact 72×72 list continues to use the small thumbnail endpoint to minimize Wi-Fi traffic.
+- Large gallery tiles request a **480 px resized preview** first, with the small thumbnail kept as a fallback.
+- A fresh `grid480` cache identity prevents older low-resolution cached thumbnails from being reused after the update.
 - Gallery scaling uses high-quality filtering.
 - Users on **v1.3.6 or newer** can update normally through the built-in updater.
 - Version: **1.3.10+19**.

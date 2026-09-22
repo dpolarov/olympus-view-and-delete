@@ -32,6 +32,7 @@ Olympus View не пов'язаний з OM Digital Solutions, Olympus Corporati
 - OM System OM-5
 - Olympus E-M1 Mark II
 - Olympus E-M1 Mark III
+- Olympus E-M5 Mark II
 - Olympus E-M5 Mark III
 - Olympus E-M10 Mark III
 - Olympus E-M10 Mark IV

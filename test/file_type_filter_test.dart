@@ -36,6 +36,16 @@ void main() {
 
     expect(fileMatchesTypeFilter('P0001.JPG', FileTypeFilter.both), isTrue);
     expect(fileMatchesTypeFilter('P0001.ORF', FileTypeFilter.both), isTrue);
-    expect(fileMatchesTypeFilter('P0001.MP4', FileTypeFilter.both), isFalse);
+  });
+
+  test('video files stay visible for every still-photo filter', () {
+    for (final filter in FileTypeFilter.values) {
+      expect(fileMatchesTypeFilter('P0001.MOV', filter), isTrue);
+      expect(fileMatchesTypeFilter('P0001.MP4', filter), isTrue);
+      expect(fileMatchesTypeFilter('P0001.M4V', filter), isTrue);
+      expect(fileMatchesTypeFilter('P0001.AVI', filter), isTrue);
+      expect(fileMatchesTypeFilter('P0001.MTS', filter), isTrue);
+      expect(fileMatchesTypeFilter('P0001.M2TS', filter), isTrue);
+    }
   });
 }

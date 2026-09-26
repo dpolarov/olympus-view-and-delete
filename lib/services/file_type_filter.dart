@@ -27,6 +27,18 @@ bool fileMatchesTypeFilter(String filename, FileTypeFilter filter) {
       lower.endsWith('.raw') ||
       lower.endsWith('.dng');
   final jpg = lower.endsWith('.jpg') || lower.endsWith('.jpeg');
+  final video =
+      lower.endsWith('.mov') ||
+      lower.endsWith('.mp4') ||
+      lower.endsWith('.m4v') ||
+      lower.endsWith('.avi') ||
+      lower.endsWith('.mts') ||
+      lower.endsWith('.m2ts');
+
+  // The RAW/JPG selector filters still photos only. Camera video files must
+  // remain visible regardless of the selected still-image format, matching
+  // the pre-v1.3.9 gallery behaviour where only RAW files were hidden.
+  if (video) return true;
 
   switch (filter) {
     case FileTypeFilter.raw:

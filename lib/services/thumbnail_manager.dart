@@ -274,12 +274,10 @@ class ThumbnailManager {
             // immediately afterwards, every image that was shown is already on
             // disk instead of relying on a best-effort fire-and-forget write.
             await ImageDiskCache.instance.put(req.imagePath, 'thumb', bytes);
-          } catch (e, st) {
+          } catch (e) {
             AppLogger.debug(
               'thumb disk cache put failed: $e',
               name: 'thumbnail_manager',
-              error: e,
-              stackTrace: st,
             );
           }
         }

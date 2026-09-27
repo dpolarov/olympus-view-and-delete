@@ -46,7 +46,7 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 20));
 
     var completedWhilePaused = false;
-    resultFuture.then((_) => completedWhilePaused = true);
+    unawaited(resultFuture.then((_) => completedWhilePaused = true));
     await Future<void>.delayed(Duration.zero);
     expect(completedWhilePaused, isFalse);
     expect(calls, 1);

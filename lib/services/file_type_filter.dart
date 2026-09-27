@@ -42,13 +42,6 @@ bool isVideoCameraFile(String filename) {
       lower.endsWith('.m2ts');
 }
 
-/// OM System cameras reliably expose the small thumbnail endpoint for RAW and
-/// movie files. High-resolution resize previews are primarily intended for
-/// JPEG stills and can fail for RAW/movie paths on some bodies (including
-/// OM-1), so those file types should try the thumbnail endpoint first.
-bool prefersThumbnailGridPreview(String filename) =>
-    isRawCameraFile(filename) || isVideoCameraFile(filename);
-
 bool fileMatchesTypeFilter(String filename, FileTypeFilter filter) {
   final raw = isRawCameraFile(filename);
   final jpg = isJpgCameraFile(filename);

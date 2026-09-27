@@ -7,6 +7,7 @@ import 'l10n/l10n.dart';
 import 'screens/debug_info_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/locale_controller.dart';
+import 'widgets/camera_wifi_lifecycle_guard.dart';
 import 'widgets/four_finger_debug_trigger.dart';
 
 final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
@@ -87,9 +88,11 @@ class OlympusApp extends StatelessWidget {
             onTriggered: _openDebugInfo,
             child: child ?? const SizedBox.shrink(),
           ),
-          home: HomeScreen(
-            localeController: localeController,
-            onOpenDiagnostics: _openDebugInfo,
+          home: CameraWifiLifecycleGuard(
+            child: HomeScreen(
+              localeController: localeController,
+              onOpenDiagnostics: _openDebugInfo,
+            ),
           ),
         );
       },

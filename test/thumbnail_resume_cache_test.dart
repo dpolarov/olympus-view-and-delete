@@ -58,6 +58,34 @@ void main() {
     expect(calls, 2);
   });
 
+  test('overlapping pause owners must both resume before HTTP restarts',
+      () async {
+    var calls = 0;
+    final client = MockClient((_) async {
+      calls++;
+      return http.Response.bytes(_validJpeg(), 200);
+    });
+    final manager = ThumbnailManager.forTesting(client: client);
+
+    manager.pauseNetwork();
+    manager.pauseNetwork();
+    final resultFuture = manager.load(
+      'http://192.168.0.10/get_thumbnail.cgi?DIR=/DCIM/B.JPG',
+      0,
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(calls, 0);
+
+    manager.resumeNetwork();
+    await Future<void>.delayed(Duration.zero);
+    expect(calls, 0);
+
+    manager.resumeNetwork();
+    final result = await resultFuture.timeout(const Duration(seconds: 1));
+    expect(result, equals(_validJpeg()));
+    expect(calls, 1);
+  });
+
   test('successful thumbnail is on disk before load completes', () async {
     final root = await Directory.systemTemp.createTemp('olympus_thumb_cache_');
     PathProviderPlatform.instance = FakePathProvider(root.path);

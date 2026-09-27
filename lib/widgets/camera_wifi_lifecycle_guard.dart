@@ -7,6 +7,7 @@ import 'package:wifi_iot/wifi_iot.dart';
 
 import '../services/app_logger.dart';
 import '../services/camera_api.dart';
+import '../services/connection_history.dart';
 import '../services/thumbnail_manager.dart';
 
 /// Keeps gallery image traffic tied to the camera Wi-Fi session.
@@ -105,6 +106,21 @@ class _CameraWifiLifecycleGuardState extends State<CameraWifiLifecycleGuard>
     }
   }
 
+  Future<void> _loadSavedCameraSsid() async {
+    if (_cameraSsid != null) return;
+    try {
+      final history = await ConnectionHistory.load();
+      if (history.isEmpty) return;
+      final saved = _normalizeSsid(history.first.ssid);
+      if (saved.isNotEmpty) _cameraSsid = saved;
+    } catch (e) {
+      AppLogger.debug(
+        'saved camera SSID lookup failed: $e',
+        name: 'camera_wifi_lifecycle',
+      );
+    }
+  }
+
   Future<void> _verifyAndResume() async {
     if (!_pausedForLifecycle || _checking) return;
     _checking = true;
@@ -113,7 +129,16 @@ class _CameraWifiLifecycleGuardState extends State<CameraWifiLifecycleGuard>
       if (capture != null) await capture;
       _captureFuture = null;
 
-      if (!_supportsWifiCheck || _cameraSsid == null) {
+      if (!_supportsWifiCheck) {
+        _resumeThumbnailNetwork();
+        return;
+      }
+
+      // Android can switch Wi-Fi very quickly after the app becomes inactive,
+      // before the asynchronous SSID capture above finishes. The most recently
+      // used saved camera is a safe fallback for that race.
+      await _loadSavedCameraSsid();
+      if (_cameraSsid == null) {
         _resumeThumbnailNetwork();
         return;
       }

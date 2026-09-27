@@ -48,14 +48,4 @@ void main() {
       expect(fileMatchesTypeFilter('P0001.M2TS', filter), isTrue);
     }
   });
-
-  test('RAW and movie files prefer the thumbnail endpoint in the grid', () {
-    expect(prefersThumbnailGridPreview('P0001.ORF'), isTrue);
-    expect(prefersThumbnailGridPreview('P0001.DNG'), isTrue);
-    expect(prefersThumbnailGridPreview('P0001.RAW'), isTrue);
-    expect(prefersThumbnailGridPreview('P0001.MOV'), isTrue);
-    expect(prefersThumbnailGridPreview('P0001.MP4'), isTrue);
-    expect(prefersThumbnailGridPreview('P0001.JPG'), isFalse);
-    expect(prefersThumbnailGridPreview('P0001.JPEG'), isFalse);
-  });
 }

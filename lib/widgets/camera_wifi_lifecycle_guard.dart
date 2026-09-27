@@ -88,21 +88,19 @@ class _CameraWifiLifecycleGuardState extends State<CameraWifiLifecycleGuard>
   Future<void> _captureCameraWifi() async {
     if (!_supportsWifiCheck) return;
     try {
-      // Only remember an SSID when the camera is actually reachable on it.
-      // This prevents an unrelated internet Wi-Fi from becoming the expected
-      // camera network while the updater or another screen is active.
+      // Remember the SSID only if the Olympus/OM camera endpoint is actually
+      // reachable on it. An unrelated internet Wi-Fi must never become the
+      // expected camera network just because the app was backgrounded there.
       final reachable = await _api.testConnection(
         timeout: const Duration(milliseconds: 1500),
       );
       if (!reachable) return;
       final ssid = _normalizeSsid(await WiFiForIoTPlugin.getSSID());
       if (ssid.isNotEmpty) _cameraSsid = ssid;
-    } catch (e, st) {
+    } catch (e) {
       AppLogger.debug(
         'camera WiFi capture failed: $e',
         name: 'camera_wifi_lifecycle',
-        error: e,
-        stackTrace: st,
       );
     }
   }
@@ -133,21 +131,31 @@ class _CameraWifiLifecycleGuardState extends State<CameraWifiLifecycleGuard>
   Future<bool> _cameraWifiIsRestored() async {
     try {
       final current = _normalizeSsid(await WiFiForIoTPlugin.getSSID());
-      if (current.isEmpty || current != _cameraSsid) {
+      if (current.isEmpty) {
         await WiFiForIoTPlugin.forceWifiUsage(false);
         return false;
       }
 
+      // Bind camera HTTP traffic to Wi-Fi before probing. If the SSID changed,
+      // only accept it as a new camera session when the camera endpoint really
+      // answers there; otherwise keep thumbnail traffic paused.
       await WiFiForIoTPlugin.forceWifiUsage(true);
-      return _api.testConnection(
+      final reachable = await _api.testConnection(
         timeout: const Duration(milliseconds: 1500),
       );
-    } catch (e, st) {
+      if (!reachable) {
+        await WiFiForIoTPlugin.forceWifiUsage(false);
+        return false;
+      }
+
+      if (current != _cameraSsid) {
+        _cameraSsid = current;
+      }
+      return true;
+    } catch (e) {
       AppLogger.debug(
         'camera WiFi resume check failed: $e',
         name: 'camera_wifi_lifecycle',
-        error: e,
-        stackTrace: st,
       );
       return false;
     }

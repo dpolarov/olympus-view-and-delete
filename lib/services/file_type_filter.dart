@@ -20,20 +20,39 @@ class FileTypeFilterPreferences {
   }
 }
 
-bool fileMatchesTypeFilter(String filename, FileTypeFilter filter) {
+bool isRawCameraFile(String filename) {
   final lower = filename.toLowerCase();
-  final raw =
-      lower.endsWith('.orf') ||
+  return lower.endsWith('.orf') ||
       lower.endsWith('.raw') ||
       lower.endsWith('.dng');
-  final jpg = lower.endsWith('.jpg') || lower.endsWith('.jpeg');
-  final video =
-      lower.endsWith('.mov') ||
+}
+
+bool isJpgCameraFile(String filename) {
+  final lower = filename.toLowerCase();
+  return lower.endsWith('.jpg') || lower.endsWith('.jpeg');
+}
+
+bool isVideoCameraFile(String filename) {
+  final lower = filename.toLowerCase();
+  return lower.endsWith('.mov') ||
       lower.endsWith('.mp4') ||
       lower.endsWith('.m4v') ||
       lower.endsWith('.avi') ||
       lower.endsWith('.mts') ||
       lower.endsWith('.m2ts');
+}
+
+/// OM System cameras reliably expose the small thumbnail endpoint for RAW and
+/// movie files. High-resolution resize previews are primarily intended for
+/// JPEG stills and can fail for RAW/movie paths on some bodies (including
+/// OM-1), so those file types should try the thumbnail endpoint first.
+bool prefersThumbnailGridPreview(String filename) =>
+    isRawCameraFile(filename) || isVideoCameraFile(filename);
+
+bool fileMatchesTypeFilter(String filename, FileTypeFilter filter) {
+  final raw = isRawCameraFile(filename);
+  final jpg = isJpgCameraFile(filename);
+  final video = isVideoCameraFile(filename);
 
   // The RAW/JPG selector filters still photos only. Camera video files must
   // remain visible regardless of the selected still-image format, matching

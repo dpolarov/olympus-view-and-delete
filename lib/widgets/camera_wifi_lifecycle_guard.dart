@@ -156,27 +156,23 @@ class _CameraWifiLifecycleGuardState extends State<CameraWifiLifecycleGuard>
   Future<bool> _cameraWifiIsRestored() async {
     try {
       final current = _normalizeSsid(await WiFiForIoTPlugin.getSSID());
-      if (current.isEmpty) {
+      final expected = _cameraSsid;
+      if (current.isEmpty || expected == null || current != expected) {
         await WiFiForIoTPlugin.forceWifiUsage(false);
         return false;
       }
 
-      // Bind camera HTTP traffic to Wi-Fi before probing. If the SSID changed,
-      // only accept it as a new camera session when the camera endpoint really
-      // answers there; otherwise keep thumbnail traffic paused.
+      // Only after confirming the same camera SSID do we bind HTTP traffic to
+      // Wi-Fi and probe the camera. This prevents requests from leaking onto an
+      // internet/home network that Android selected while the app was hidden.
       await WiFiForIoTPlugin.forceWifiUsage(true);
       final reachable = await _api.testConnection(
         timeout: const Duration(milliseconds: 1500),
       );
       if (!reachable) {
         await WiFiForIoTPlugin.forceWifiUsage(false);
-        return false;
       }
-
-      if (current != _cameraSsid) {
-        _cameraSsid = current;
-      }
-      return true;
+      return reachable;
     } catch (e) {
       AppLogger.debug(
         'camera WiFi resume check failed: $e',

@@ -32,7 +32,7 @@ class ThumbnailManager {
   static const int _maxMemBytes = kMaxMemThumbBytes;
   int _active = 0;
   int _generation = 0;
-  bool _networkPaused = false;
+  int _networkPauseCount = 0;
   final List<_Request> _queue = [];
   // LinkedHashMap keeps insertion order — we use it for LRU by re-inserting
   // on access (see [load]).
@@ -45,23 +45,30 @@ class ThumbnailManager {
   int _visibleStart = 0;
   int _visibleEnd = 20;
 
+  bool get _networkPaused => _networkPauseCount > 0;
+
   /// Update the currently visible item range so the queue can prioritize.
   void updateVisibleRange(int start, int end) {
     _visibleStart = start;
     _visibleEnd = end;
   }
 
-  /// Pause starting new camera thumbnail HTTP requests. Active requests are
-  /// allowed to finish, but queued work waits. Full-screen preview uses this so
-  /// the camera can prioritize what the user is actively viewing/downloading.
+  /// Pause starting new camera thumbnail HTTP requests.
+  ///
+  /// Pauses are reference-counted because full-screen preview and app lifecycle
+  /// handling can overlap. Active requests may finish; if one fails while the
+  /// network is paused, it is queued for retry instead of being reported as a
+  /// permanent broken image.
   void pauseNetwork() {
-    _networkPaused = true;
+    _networkPauseCount++;
   }
 
-  /// Resume queued thumbnail work after full-screen preview closes.
+  /// Release one network pause. Queued work resumes only after every owner that
+  /// paused thumbnail traffic has released its pause.
   void resumeNetwork() {
-    if (!_networkPaused) return;
-    _networkPaused = false;
+    if (_networkPauseCount == 0) return;
+    _networkPauseCount--;
+    if (_networkPaused) return;
     _processQueue();
   }
 
@@ -91,7 +98,8 @@ class ThumbnailManager {
     );
     _queue.add(request);
 
-    // Try disk cache first.
+    // Try disk cache first even while network traffic is paused. This lets
+    // already-cached previews remain available after the camera Wi-Fi drops.
     if (imagePath.isNotEmpty) {
       unawaited(_tryDiskCache(request));
     } else {
@@ -238,6 +246,12 @@ class ThumbnailManager {
         );
       }
 
+      // If the app/background lifecycle paused network traffic while this
+      // request was already active, stop retrying on whatever Wi-Fi Android
+      // switched to. _fetch() will park the request until the camera network is
+      // verified again.
+      if (_networkPaused) return null;
+
       if (attempt < _maxAttempts) {
         await Future.delayed(Duration(milliseconds: 150 * attempt));
       }
@@ -246,6 +260,7 @@ class ThumbnailManager {
   }
 
   Future<void> _fetch(_Request req) async {
+    var requeued = false;
     try {
       final bytes = await _fetchValidBytes(req.url);
       if (req.generation != _generation) return;
@@ -253,33 +268,43 @@ class ThumbnailManager {
       if (bytes != null) {
         _putInMemCache(req.url, bytes);
         if (req.imagePath.isNotEmpty) {
-          unawaited(ImageDiskCache.instance
-              .put(req.imagePath, 'thumb', bytes)
-              .catchError((Object e, StackTrace st) {
-            AppLogger.debug('thumb disk cache put failed: $e',
-                name: 'thumbnail_manager');
-          }));
+          try {
+            // A thumbnail is considered successfully loaded only after its
+            // persistent cache write completes. If Android backgrounds the app
+            // immediately afterwards, every image that was shown is already on
+            // disk instead of relying on a best-effort fire-and-forget write.
+            await ImageDiskCache.instance.put(req.imagePath, 'thumb', bytes);
+          } catch (e) {
+            AppLogger.debug(
+              'thumb disk cache put failed: $e',
+              name: 'thumbnail_manager',
+            );
+          }
         }
         if (!req.completer.isCompleted) req.completer.complete(bytes);
+      } else if (_networkPaused && !req.completer.isCompleted) {
+        _queue.add(req);
+        requeued = true;
       } else if (!req.completer.isCompleted) {
         req.completer.complete(null);
       }
     } finally {
       _active--;
       if (_active < 0) _active = 0;
-      if (_inflight[req.url] == req.completer) {
+      if (!requeued && _inflight[req.url] == req.completer) {
         _inflight.remove(req.url);
       }
       _processQueue();
     }
   }
 
-  /// Clear all cache and pending requests.
+  /// Clear all in-memory cache and pending requests.
   ///
-  /// Active HTTP calls are allowed to finish, but [_generation] prevents their
-  /// old responses from entering a freshly reloaded gallery. We intentionally
-  /// keep [_active] unchanged so old requests cannot make the concurrency
-  /// counter negative when they complete.
+  /// Persistent disk-cached images are intentionally retained. Active HTTP
+  /// calls are allowed to finish, but [_generation] prevents their old
+  /// responses from entering a freshly reloaded gallery. We intentionally keep
+  /// [_active] unchanged so old requests cannot make the concurrency counter
+  /// negative when they complete.
   void clear() {
     _generation++;
     _cache.clear();

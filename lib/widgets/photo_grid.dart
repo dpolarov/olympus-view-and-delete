@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../constants.dart';
 import '../services/camera_api.dart';
-import '../services/file_type_filter.dart';
 import '../services/thumbnail_manager.dart';
 
 BoxDecoration _itemDecoration({
@@ -157,13 +156,6 @@ class _GridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final thumbnailFirst = prefersThumbnailGridPreview(file.filename);
-    final primaryUrl =
-        thumbnailFirst ? file.thumbnailUrl : file.resizeImgUrl(1024);
-    final fallbackUrl =
-        thumbnailFirst ? file.resizeImgUrl(1024) : file.thumbnailUrl;
-    final cacheVariant = thumbnailFirst ? 'gridthumb' : 'grid1024';
-
     return GestureDetector(
       onTap: selectionMode ? onTap : onPreview,
       onLongPress: onLongPress,
@@ -182,16 +174,14 @@ class _GridItem extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   _CameraThumbnail(
-                    url: primaryUrl,
-                    fallbackUrl: fallbackUrl,
+                    url: file.resizeImgUrl(1024),
+                    fallbackUrl: file.thumbnailUrl,
                     index: index,
-                    // JPEG stills use the sharper 1024 px resize preview.
-                    // RAW and movie files use get_thumbnail.cgi first because
-                    // OM-1 can reject resize requests for those file paths.
-                    // Keep the cache variants separate so a previous failed or
-                    // low-resolution strategy is not reused after updating.
-                    imagePath:
-                        '${file.downloadHistoryKey}|$cacheVariant',
+                    // Large grid tiles use a camera-supported 1024 px preview
+                    // instead of stretching the tiny 160x120 thumbnail.
+                    // Version the cache identity so older low-resolution or
+                    // invalid 480-preview entries are never reused.
+                    imagePath: '${file.downloadHistoryKey}|grid1024',
                   ),
                   if (selected)
                     Positioned(

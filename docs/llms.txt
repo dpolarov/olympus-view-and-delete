@@ -4,9 +4,9 @@
 
 Olympus View is an unofficial community project and is not affiliated with, endorsed by, or sponsored by OM Digital Solutions, Olympus Corporation, or OM System.
 
-Current stable Android release: **v1.3.12 (build 21), released September 28, 2026**.
+Current stable Android release: **v1.3.13 (build 22), released September 28, 2026**.
 
-Release v1.3.12 makes camera video files visible independently of the RAW/JPG still-photo filter, makes gallery preview loading resilient to Android Wi-Fi changes while the app is backgrounded, retries interrupted preview requests, persists successfully loaded previews before completion, and increases the persistent preview cache from 150 to 1000 entries. The build stack is updated to Flutter 3.47.5 / Dart 3.13, Gradle 8.14, Android Gradle Plugin 8.11.1, Kotlin 2.2.20, Java/Kotlin 17 and compileSdk 37, with all direct package dependencies refreshed and the lockfile regenerated.
+Release v1.3.13 is the first public release after v1.3.11. It includes the v1.3.12 development changes plus the final video fixes: camera video files remain visible independently of the RAW/JPG still-photo filter; movie grid previews use the camera's higher-quality screennail first-frame JPEG and are persistently cached, including the low-resolution fallback; preview loading survives Android background/Wi-Fi changes and retries interrupted requests; the persistent preview cache is increased from 150 to 1000 entries; Android foreground and background video downloads use MediaStore.Video with correct MIME types; and downloaded-video history is committed before background completion so successful videos receive the persistent green downloaded marker. The build stack is Flutter 3.47.5 / Dart 3.13, Gradle 9.3.1, Android Gradle Plugin 9.1.1, Kotlin 2.4.20, Java/Kotlin 17, compileSdk 37 and targetSdk 36.
 
 Important upgrade note: direct APK users already on v1.3.6 or newer can update normally. Users on v1.3.5 or older must still perform the one-time uninstall/reinstall introduced by v1.3.6 because that release switched to the permanent production Android signing certificate.
 

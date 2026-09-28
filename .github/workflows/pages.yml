@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 env:
-  FLUTTER_VERSION: "3.44.7"
+  FLUTTER_VERSION: "3.47.5"
   APP_BASE_HREF: "/olympus-view-and-delete/app/"
   CLOUDFLARE_WEB_ANALYTICS_TOKEN: "bd434797397f404aa34ff341f3ae1aaf"
 

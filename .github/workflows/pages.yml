@@ -70,6 +70,89 @@ jobs:
           cp -a build/web/. _site/app/
           touch _site/.nojekyll
 
+      - name: Synchronize current release on landing page
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          page = Path('_site/index.html')
+          fragment_file = Path('_site/current-release.html')
+          changelog = Path('CHANGELOG.md').read_text(encoding='utf-8')
+          text = page.read_text(encoding='utf-8')
+          fragments = fragment_file.read_text(encoding='utf-8')
+
+          version_match = re.search(r'^version:\s*([^+\s]+)\+(\d+)\s*$', Path('pubspec.yaml').read_text(encoding='utf-8'), re.M)
+          if not version_match:
+              raise SystemExit('Could not read version from pubspec.yaml')
+          version, build = version_match.groups()
+
+          release_match = re.search(rf'^## \[{re.escape(version)}\] - (\d{{4}}-\d{{2}}-\d{{2}})$', changelog, re.M)
+          if not release_match:
+              raise SystemExit(f'CHANGELOG.md has no dated section for {version}')
+          release_date = release_match.group(1)
+
+          declared_version = re.search(r'<!-- RELEASE_VERSION:([^ ]+) -->', fragments)
+          declared_date = re.search(r'<!-- RELEASE_DATE:([^ ]+) -->', fragments)
+          if not declared_version or declared_version.group(1) != version:
+              raise SystemExit('current-release.html version does not match pubspec.yaml')
+          if not declared_date or declared_date.group(1) != release_date:
+              raise SystemExit('current-release.html date does not match CHANGELOG.md')
+
+          def section(lang):
+              match = re.search(
+                  rf'<!-- RELEASE_{lang}_BEGIN -->\s*(.*?)\s*<!-- RELEASE_{lang}_END -->',
+                  fragments,
+                  re.S,
+              )
+              if not match:
+                  raise SystemExit(f'Missing {lang} release fragment')
+              return match.group(1)
+
+          anchors = {
+              'EN': '<h2 id="changelog-en">Changelog</h2>\n    <div class="changelog">',
+              'RU': '<h2 id="changelog-ru">Журнал изменений</h2>\n    <div class="changelog">',
+              'UK': '<h2 id="changelog-uk">Журнал змін</h2>\n    <div class="changelog">',
+          }
+          for lang, anchor in anchors.items():
+              count = text.count(anchor)
+              if count != 1:
+                  raise SystemExit(f'Expected one {lang} changelog anchor, found {count}')
+              text = text.replace(anchor, f'{anchor}\n{section(lang)}', 1)
+
+          # Keep machine-readable landing-page release metadata synchronized
+          # without rewriting historical changelog entries in docs/index.html.
+          text, count = re.subn(
+              r'"softwareVersion":\s*"[^"]+"',
+              f'"softwareVersion": "{version}"',
+              text,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit('Could not update softwareVersion JSON-LD')
+          text, count = re.subn(
+              r'"dateModified":\s*"[^"]+"',
+              f'"dateModified": "{release_date}"',
+              text,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit('Could not update dateModified JSON-LD')
+          text, count = re.subn(
+              r'"releaseNotes":\s*"https://github\.com/dpolarov/olympus-view-and-delete/releases/tag/v[^"]+"',
+              f'"releaseNotes": "https://github.com/dpolarov/olympus-view-and-delete/releases/tag/v{version}"',
+              text,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit('Could not update releaseNotes JSON-LD')
+
+          page.write_text(text, encoding='utf-8')
+          print(f'Landing page release synchronized: v{version}+{build} ({release_date})')
+          PY
+
       - name: Point landing page Web cards at hosted app
         shell: bash
         run: |
@@ -132,6 +215,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          version="$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml | head -n 1)"
+          build="$(sed -n 's/^version: [^+]*+\([0-9][0-9]*\).*/\1/p' pubspec.yaml | head -n 1)"
           test -s _site/index.html
           test -s _site/llms.txt
           test -s _site/app/index.html
@@ -139,6 +224,10 @@ jobs:
           grep -Fq '<base href="/olympus-view-and-delete/app/">' _site/app/index.html
           grep -Fq 'https://dpolarov.github.io/olympus-view-and-delete/app/' _site/index.html
           ! grep -Fq 'releases/latest/download/OlympusView-Web.zip' _site/index.html
+          grep -Fq "v${version}" _site/index.html
+          grep -Fq "${version}+${build}" _site/index.html
+          grep -Fq "\"softwareVersion\": \"${version}\"" _site/index.html
+          grep -Fq "releases/tag/v${version}" _site/index.html
           grep -Fq 'G-W01S13EG7K' _site/index.html
           grep -Fq "$CLOUDFLARE_WEB_ANALYTICS_TOKEN" _site/index.html
           grep -Fq "$CLOUDFLARE_WEB_ANALYTICS_TOKEN" _site/app/index.html

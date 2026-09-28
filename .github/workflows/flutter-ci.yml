@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   FLUTTER_VERSION: "3.47.5"
@@ -30,6 +30,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -41,15 +43,20 @@ jobs:
       - name: Upgrade dependencies
         run: flutter pub upgrade --major-versions
 
-      - name: Export upgraded dependency lock
-        uses: actions/upload-artifact@v6
-        with:
-          name: upgraded-dependency-lock
-          path: |
-            pubspec.yaml
-            pubspec.lock
-          if-no-files-found: error
-          retention-days: 1
+      - name: Commit resolved dependency lock
+        if: github.event_name == 'pull_request' && github.head_ref == 'chore/flutter-3.47-android-toolchain'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- pubspec.yaml pubspec.lock; then
+            echo "Dependency files are already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml pubspec.lock
+          git commit -m "Refresh dependency lock"
+          git push origin HEAD:${GITHUB_HEAD_REF}
 
       - name: Analyze
         run: flutter analyze

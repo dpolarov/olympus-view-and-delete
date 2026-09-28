@@ -4,9 +4,9 @@
 
 Olympus View is an unofficial community project and is not affiliated with, endorsed by, or sponsored by OM Digital Solutions, Olympus Corporation, or OM System.
 
-Current stable Android release: **v1.3.12 (build 21), released September 28, 2026**.
+Current stable Android release: **v1.3.13 (build 22), released September 28, 2026**.
 
-Release v1.3.12 makes camera video files visible independently of the RAW/JPG still-photo filter, makes gallery preview loading resilient to Android Wi-Fi changes while the app is backgrounded, retries interrupted preview requests, persists successfully loaded previews before completion, and increases the persistent preview cache from 150 to 1000 entries. The build stack is updated to Flutter 3.47.5 / Dart 3.13, Gradle 8.14, Android Gradle Plugin 8.11.1, Kotlin 2.2.20, Java/Kotlin 17 and compileSdk 37, with all direct package dependencies refreshed and the lockfile regenerated.
+Release v1.3.13 is the next public release after v1.3.11 and includes the changes prepared in the unpublished v1.3.12 build. Camera videos remain visible in every RAW/JPG still-photo filter mode. Video grid previews use the camera's `get_screennail.cgi` first-frame JPEG for higher quality and are persisted in the disk cache, including the small-thumbnail fallback, so gallery reopen does not re-download them unnecessarily. Android foreground and background video downloads use `MediaStore.Video` with the correct MIME type, and downloaded-history synchronization ensures videos and the final background item receive the persistent green marker. Gallery preview loading is resilient to Android Wi-Fi/background transitions, interrupted requests retry, and the persistent preview cache is increased from 150 to 1000 entries. The final build stack is Flutter 3.47.5 / Dart 3.13, Gradle 9.3.1, Android Gradle Plugin 9.1.1, Kotlin 2.4.20, Java/Kotlin 17 and compileSdk 37 with targetSdk 36.
 
 Important upgrade note: direct APK users already on v1.3.6 or newer can update normally. Users on v1.3.5 or older must still perform the one-time uninstall/reinstall introduced by v1.3.6 because that release switched to the permanent production Android signing certificate.
 

@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.3.13] - 2026-09-28
+
+This is the first public release after **v1.3.11**. It includes the v1.3.12 development changes plus the video preview/download fixes completed for v1.3.13.
+
+### Added
+- **Camera video files are fully integrated into the gallery**: MOV, MP4, M4V, AVI, MTS, and M2TS remain visible independently of the RAW/JPG still-photo filter.
+- **Higher-quality video previews**: movie grid tiles use the camera's `get_screennail.cgi` JPEG first-frame preview instead of stretching the small thumbnail whenever possible.
+- **Persistent video-preview caching**: both the normal screennail path and the low-resolution `get_thumbnail.cgi` fallback are stored in the persistent preview cache, so video previews are not downloaded again on every gallery visit.
+
+### Fixed
+- **Camera Wi-Fi background/resume handling**: gallery preview traffic pauses when Olympus View leaves the foreground and resumes only after the saved camera Wi-Fi and camera endpoint are available again, preventing broken preview tiles when Android switches networks.
+- Preview requests interrupted by a Wi-Fi change are retained for retry instead of becoming permanent broken-image results.
+- Successfully loaded gallery previews are persisted to disk before the load is considered complete, so cached previews remain available after leaving the camera network.
+- **Android video downloads** now use `MediaStore.Video` with the correct video MIME type in both foreground and background download paths instead of being stored as generic files.
+- **Downloaded-video green markers** are now reliable: download-history writes are committed synchronously before the Android background worker finishes, and the UI performs a final history refresh after completion so the last successful file is also marked.
+
+### Changed
+- Increased the persistent image-preview disk cache from **150 to 1000 entries**.
+- Updated the build stack to **Flutter 3.47.5 / Dart 3.13**, **Gradle 9.3.1**, **Android Gradle Plugin 9.1.1**, **Kotlin 2.4.20**, **Java/Kotlin 17**, and **compileSdk 37** while keeping targetSdk 36.
+- Updated direct Flutter/Dart dependencies to current compatible stable versions and refreshed the dependency lock.
+- CI validates analyze/tests, Android APK/AAB, Windows, Web, packaged Dart AOT metadata, Android 16 KB page-size compatibility, and Play-flavor policy checks.
+- Version set to **1.3.13+22**.
+- Users already on **v1.3.6 or newer** can install this release as a normal in-app update using the existing permanent production signing identity.
+
 ## [1.3.12] - 2026-09-28
 
 ### Added
@@ -67,7 +91,7 @@
 ## [1.3.7] - 2026-08-27
 
 ### Android signing compatibility
-- Users already on **1.3.6 or newer** can update normally. Users on **1.3.5 or older** still need the one-time uninstall/reinstall introduced by 1.3.6 because those older APKs were signed with the temporary legacy certificate.
+- Users already on **1.3.6 or newer** can update normally. Users on **v1.3.5 or older** still need the one-time uninstall/reinstall introduced by v1.3.6 because those older APKs were signed with the temporary legacy certificate.
 
 ### Added
 - **On-device camera integration tests** with an in-process fake Olympus camera over real TCP sockets. The new suite covers gallery/preview browsing, real filesystem cache persistence, thumbnail concurrency, HTTP failures and camera disconnects/truncated transfers.

@@ -2,7 +2,7 @@
 
 > Manage, download, and delete photos on Olympus and OM System cameras over the camera's local WiFi network. Olympus View is an unofficial cross-platform alternative to OI.Share for Android, Windows, and Web.
 
-**Current Android release:** v1.3.11+20 — September 20, 2026  
+**Current Android release:** v1.3.12+21 — September 28, 2026  
 **Source:** https://github.com/dpolarov/olympus-view-and-delete  
 **Latest release:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest  
 **Android APK:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk
@@ -18,7 +18,7 @@ Olympus View focuses on camera file management:
 - Keep Android downloads running in the background while the app is minimized or the screen is off.
 - Remember successfully downloaded files with persistent green markers.
 - Select all currently visible files carrying the downloaded marker, making it easy to remove already-copied photos from the camera in one batch.
-- Choose whether the gallery shows **RAW only**, **JPG only**, or **RAW + JPG** when shooting paired files.
+- Choose whether the gallery shows **RAW only**, **JPG only**, or **RAW + JPG** when shooting paired files; camera video files remain visible in every still-photo filter mode.
 - Run on Android, Windows, and in a browser.
 - Inspect and build the source code yourself.
 
@@ -48,13 +48,13 @@ The implementation communicates with cameras using the Olympus OPC communication
 
 On Android, scan the QR code displayed by the camera. Olympus View decodes Olympus/OM System OIS1 and OIS3 QR formats and extracts the camera WiFi connection information.
 
-### Browse photos
+### Browse photos and videos
 
-Load the camera's photo list with thumbnails and browse in grid or list form. The app traverses camera folders and supports date filtering. Large grid tiles request a camera-supported 1024 px resized preview; the small thumbnail endpoint remains available as a fallback. Full-screen viewing prefers the camera's screennail preview and falls back to a 1920 px resize request.
+Load the camera's file list with previews and browse in grid or list form. The app traverses camera folders and supports date filtering. Large grid tiles request a camera-supported 1024 px resized preview; the small thumbnail endpoint remains available as a fallback. Full-screen viewing prefers the camera's screennail preview and falls back to a 1920 px resize request. MOV, MP4, M4V, AVI, MTS and M2TS files remain visible independently of the RAW/JPG still-photo filter.
 
 ### Delete files from the camera
 
-Long-press a photo to enter selection mode, select one or more files, and delete them directly from the camera memory card over WiFi.
+Long-press a file to enter selection mode, select one or more files, and delete them directly from the camera memory card over WiFi.
 
 ### Select by date
 
@@ -62,19 +62,19 @@ Select a file and use date-based selection to select files from the same date in
 
 ### RAW / JPG file-type filter
 
-Choose **RAW only**, **JPG only**, or **RAW + JPG**. RAW includes ORF, DNG and generic RAW files; JPG includes JPG and JPEG. The selected mode is saved and restored the next time Olympus View starts.
+Choose **RAW only**, **JPG only**, or **RAW + JPG**. RAW includes ORF, DNG and generic RAW files; JPG includes JPG and JPEG. The selected mode is saved and restored the next time Olympus View starts. Video files are not hidden by this still-photo filter.
 
 ### Download files
 
-Download selected photos with progress information. On Android, downloaded photos are saved to user-accessible media storage and appear in the gallery. ORF, DNG and RAW files use the Android image MediaStore collection so they can be saved to `DCIM/OlympusView` like JPEG files.
+Download selected photos and videos with progress information. On Android, downloaded photos are saved to user-accessible media storage and appear in the gallery. ORF, DNG and RAW files use the Android image MediaStore collection so they can be saved to `DCIM/OlympusView` like JPEG files.
 
 ### Background download on Android
 
 Android transfers can continue while Olympus View is minimized or the screen is off. System notifications report progress and completion.
 
-### Persistent downloaded markers
+### Persistent downloaded markers and preview cache
 
-Successfully transferred files receive a green downloaded marker that survives normal app restarts and updates. In selection mode, **Select downloaded** selects all currently visible green-marked files so they can be deleted from the camera after they have been safely copied.
+Successfully transferred files receive a green downloaded marker that survives normal app restarts and updates. In selection mode, **Select downloaded** selects all currently visible green-marked files so they can be deleted from the camera after they have been safely copied. Gallery previews are cached persistently; v1.3.12 raises the cache from 150 to 1000 entries and makes background/Wi-Fi transitions retry interrupted preview requests instead of leaving broken tiles.
 
 ### In-app GitHub update flow
 
@@ -87,11 +87,11 @@ The Google Play flavor disables external APK self-install/update behavior.
 1. Enable WiFi on the Olympus / OM System camera.
 2. Android: open Olympus View and scan the QR code displayed by the camera.
 3. Windows/Web: connect the computer to the camera's WiFi network and open Olympus View.
-4. Wait for the file list and thumbnails to load.
-5. Long-press a photo to enter file-selection mode.
+4. Wait for the file list and previews to load.
+5. Long-press a file to enter file-selection mode.
 6. Use selection tools for date-based selection or downloaded-file selection.
 7. Download selected files, or delete selected files from the camera.
-8. Open the file-type filter and choose **RAW only**, **JPG only**, or **RAW + JPG**. Olympus View remembers the choice for the next launch.
+8. Open the file-type filter and choose **RAW only**, **JPG only**, or **RAW + JPG**. Olympus View remembers the choice for the next launch; video files remain visible.
 
 ## Downloads
 
@@ -127,9 +127,10 @@ After v1.3.6 has been installed, later direct APK releases use the same permanen
 
 ### Application
 
-- Flutter / Dart
+- Flutter 3.47.5 / Dart 3.13
 - Material 3 UI
 - Android package: `com.flynew.photomanager`
+- Android build stack: Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20, Java/Kotlin 17, compileSdk 37, targetSdk 36.
 - Android direct APK and Google Play flavors are built separately.
 
 ### Camera protocol
@@ -159,6 +160,17 @@ Olympus View has no user accounts, advertising, developer analytics backend, or 
 Full privacy policy:
 
 https://dpolarov.github.io/olympus-view-and-delete/privacy.md
+
+## v1.3.12 highlights
+
+- Camera **video files** (MOV, MP4, M4V, AVI, MTS and M2TS) are visible independently of the RAW/JPG still-photo filter.
+- Gallery preview traffic pauses while the app is in the background and resumes only after the saved camera Wi-Fi and camera endpoint are available again; interrupted requests retry instead of becoming broken tiles.
+- Successfully loaded previews are persisted before completion, and the persistent preview cache capacity is increased from **150 to 1000 entries**.
+- Build stack updated to **Flutter 3.47.5 / Dart 3.13, Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20, Java/Kotlin 17 and compileSdk 37**.
+- All direct Flutter/Dart dependencies were updated to current compatible stable versions and the dependency lock was refreshed.
+- Full CI validates analyze/tests, Android APK/AAB, Windows, Web, Dart AOT metadata, Android 16 KB compatibility and Play-flavor policy checks.
+- Users on **v1.3.6 or newer** can update normally through the built-in updater.
+- Version: **1.3.12+21**.
 
 ## v1.3.11 highlights
 

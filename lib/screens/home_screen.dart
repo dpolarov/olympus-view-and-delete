@@ -785,24 +785,27 @@ class _HomeScreenState extends State<HomeScreen>
             'This is an unofficial app, not affiliated with or endorsed by '
             'OM Digital Solutions.';
     final changelog = _localizedText(
-      en: '• Fixed Android RAW/ORF/DNG downloads to DCIM/OlympusView\n'
-          '• Added persistent RAW only / JPG only / RAW + JPG filtering\n'
-          '• Restores the last selected file type mode on the next launch\n'
-          '• Gallery grid now uses camera-supported 1024 px previews\n'
-          '• Full-screen preview prefers fast high-resolution screennail images\n'
-          '• Uses thumbnail / 1920 resize fallbacks when needed',
-      ru: '• Исправлено скачивание RAW/ORF/DNG в DCIM/OlympusView на Android\n'
-          '• Добавлен выбор: только RAW / только JPG / RAW + JPG\n'
-          '• Последний выбранный режим восстанавливается после перезапуска\n'
-          '• Сетка галереи использует поддерживаемые камерой превью 1024 px\n'
-          '• Полноэкранный просмотр сначала использует быстрый screennail высокого качества\n'
-          '• При необходимости используются thumbnail / resize 1920',
-      uk: '• Виправлено завантаження RAW/ORF/DNG до DCIM/OlympusView на Android\n'
-          '• Додано вибір: лише RAW / лише JPG / RAW + JPG\n'
-          '• Останній вибраний режим відновлюється після перезапуску\n'
-          '• Сітка галереї використовує підтримувані камерою превʼю 1024 px\n'
-          '• Повноекранний перегляд спочатку використовує швидкий screennail високої якості\n'
-          '• За потреби використовуються thumbnail / resize 1920',
+      en: '• Video files stay visible independently of the RAW/JPG photo filter\n'
+          '• Movie grid previews now use high-quality screennail first frames\n'
+          '• Video previews and thumbnail fallbacks are persistently cached\n'
+          '• Preview loading survives Android background and Wi-Fi changes\n'
+          '• Android movie downloads use MediaStore.Video with correct MIME types\n'
+          '• Successful background video downloads reliably receive green markers\n'
+          '• Persistent preview cache increased to 1000 entries',
+      ru: '• Видео остаётся видимым независимо от фильтра RAW/JPG для фотографий\n'
+          '• Превью видео в сетке используют качественный первый кадр screennail\n'
+          '• Превью видео и запасные thumbnail сохраняются в постоянном кэше\n'
+          '• Загрузка превью восстанавливается после фона и переключения Wi-Fi\n'
+          '• Видео на Android сохраняется через MediaStore.Video с правильным MIME\n'
+          '• Успешно скачанное в фоне видео надёжно получает зелёную метку\n'
+          '• Постоянный кэш превью увеличен до 1000 записей',
+      uk: '• Відео залишається видимим незалежно від фільтра RAW/JPG для фото\n'
+          '• Превʼю відео в сітці використовують якісний перший кадр screennail\n'
+          '• Превʼю відео та запасні thumbnail зберігаються в постійному кеші\n'
+          '• Завантаження превʼю відновлюється після фону та перемикання Wi-Fi\n'
+          '• Відео на Android зберігається через MediaStore.Video з правильним MIME\n'
+          '• Успішно завантажене у фоні відео надійно отримує зелену позначку\n'
+          '• Постійний кеш превʼю збільшено до 1000 записів',
     );
     showAboutDialog(
       context: context,

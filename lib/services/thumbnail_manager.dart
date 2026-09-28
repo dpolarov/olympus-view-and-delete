@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'app_logger.dart';
 import 'camera_api.dart' show cameraIp;
 import 'camera_image_validator.dart';
+import 'file_type_filter.dart';
 import 'image_cache.dart';
 import 'service_config.dart';
 
@@ -72,6 +73,34 @@ class ThumbnailManager {
     _processQueue();
   }
 
+  /// Stable disk-cache identity for the low-resolution video fallback.
+  ///
+  /// Grid video previews normally have an explicit cache identity and use the
+  /// camera's screennail endpoint. If that endpoint fails, PhotoGrid falls back
+  /// to get_thumbnail.cgi without passing an imagePath. Persist that fallback
+  /// too, so a problematic video never needs to re-download its tiny thumbnail
+  /// on every gallery visit.
+  String _effectiveImagePath(String url, String imagePath) {
+    if (imagePath.isNotEmpty) return imagePath;
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.path.endsWith('/get_thumbnail.cgi')) return '';
+    final cameraPath = uri.queryParameters['DIR'];
+    if (cameraPath == null || !isVideoCameraFile(cameraPath)) return '';
+    return '$cameraPath|video-thumbnail-v1';
+  }
+
+  /// Olympus get_resizeimg is a still-image endpoint. For a movie the OPC
+  /// protocol defines get_screennail as the JPEG preview and uses the movie's
+  /// first frame. Keep the original URL as the in-memory/cache request key, but
+  /// issue the network request to get_screennail for video files.
+  String _effectiveFetchUrl(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.path.endsWith('/get_resizeimg.cgi')) return url;
+    final cameraPath = uri.queryParameters['DIR'];
+    if (cameraPath == null || !isVideoCameraFile(cameraPath)) return url;
+    return '${uri.scheme}://${uri.authority}/get_screennail.cgi?DIR=$cameraPath';
+  }
+
   /// Request a thumbnail. Returns cached data immediately if available.
   /// [imagePath] is a stable cache identity for the camera file.
   Future<Uint8List?> load(String url, int index, {String imagePath = ''}) {
@@ -85,22 +114,23 @@ class ThumbnailManager {
       return _inflight[url]!.future;
     }
 
+    final cacheImagePath = _effectiveImagePath(url, imagePath);
     final completer = Completer<Uint8List?>();
     _inflight[url] = completer;
     final request = _Request(
       url: url,
       index: index,
       completer: completer,
-      imagePath: imagePath,
+      imagePath: cacheImagePath,
       generation: _generation,
       // No imagePath means there is no disk lookup to wait for.
-      diskChecked: imagePath.isEmpty,
+      diskChecked: cacheImagePath.isEmpty,
     );
     _queue.add(request);
 
     // Try disk cache first even while network traffic is paused. This lets
     // already-cached previews remain available after the camera Wi-Fi drops.
-    if (imagePath.isNotEmpty) {
+    if (cacheImagePath.isNotEmpty) {
       unawaited(_tryDiskCache(request));
     } else {
       _processQueue();
@@ -209,10 +239,11 @@ class ThumbnailManager {
   }
 
   Future<Uint8List?> _fetchValidBytes(String url) async {
+    final fetchUrl = _effectiveFetchUrl(url);
     for (var attempt = 1; attempt <= _maxAttempts; attempt++) {
       try {
         final resp = await _client.get(
-          Uri.parse(url),
+          Uri.parse(fetchUrl),
           headers: {
             'User-Agent': 'OI.Share v2',
             'Host': cameraIp,
@@ -229,19 +260,19 @@ class ThumbnailManager {
             return bytes;
           }
           AppLogger.debug(
-            'incomplete thumbnail response for $url '
+            'incomplete thumbnail response for $fetchUrl '
             '(${bytes.lengthInBytes} bytes, attempt $attempt)',
             name: 'thumbnail_manager',
           );
         } else {
           AppLogger.debug(
-            'thumbnail HTTP ${resp.statusCode} for $url (attempt $attempt)',
+            'thumbnail HTTP ${resp.statusCode} for $fetchUrl (attempt $attempt)',
             name: 'thumbnail_manager',
           );
         }
       } catch (e) {
         AppLogger.debug(
-          'thumbnail fetch failed for $url (attempt $attempt): $e',
+          'thumbnail fetch failed for $fetchUrl (attempt $attempt): $e',
           name: 'thumbnail_manager',
         );
       }

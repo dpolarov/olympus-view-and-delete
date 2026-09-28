@@ -1,0 +1,60 @@
+<!-- Current release fragments injected into docs/index.html by pages.yml. -->
+<!-- RELEASE_VERSION:1.3.13 -->
+<!-- RELEASE_DATE:2026-09-28 -->
+
+<!-- RELEASE_EN_BEGIN -->
+        <div class="changelog-version">
+            <h3>v1.3.13 — September 28, 2026</h3>
+            <h4>Video previews, persistent cache &amp; reliable Android video downloads</h4>
+            <ul>
+                <li><strong>First public release after v1.3.11</strong> — includes the v1.3.12 development changes plus the final video fixes completed for v1.3.13.</li>
+                <li>Camera videos (MOV, MP4, M4V, AVI, MTS and M2TS) remain visible independently of the RAW/JPG still-photo filter.</li>
+                <li><strong>Higher-quality movie previews</strong> use the camera's <code>get_screennail.cgi</code> first-frame JPEG instead of stretching the small thumbnail whenever possible.</li>
+                <li>Movie screennails and the low-resolution thumbnail fallback are <strong>persistently cached</strong>, so video previews are not downloaded again on every gallery visit.</li>
+                <li>Preview requests survive Android background/Wi-Fi changes and retry interrupted camera requests instead of leaving broken tiles.</li>
+                <li>The persistent preview cache now keeps up to <strong>1000 entries</strong>.</li>
+                <li>Foreground and background movie downloads on Android use <strong>MediaStore.Video with the correct MIME type</strong>.</li>
+                <li>Background download history is committed before completion and refreshed once more in the UI, so successful videos — including the last item in a batch — receive the persistent green downloaded marker.</li>
+                <li>Build stack: Flutter 3.47.5 / Dart 3.13, Gradle 9.3.1, AGP 9.1.1, Kotlin 2.4.20, Java/Kotlin 17, compileSdk 37 and targetSdk 36.</li>
+                <li>Version: <strong>1.3.13+22</strong>.</li>
+            </ul>
+        </div>
+<!-- RELEASE_EN_END -->
+
+<!-- RELEASE_RU_BEGIN -->
+        <div class="changelog-version">
+            <h3>v1.3.13 — 28 сентября 2026</h3>
+            <h4>Превью видео, постоянный кэш и надёжное скачивание видео на Android</h4>
+            <ul>
+                <li><strong>Первый публичный релиз после v1.3.11</strong> — включает изменения v1.3.12 и финальные исправления видео, завершённые в v1.3.13.</li>
+                <li>Видео с камеры (MOV, MP4, M4V, AVI, MTS и M2TS) остаётся видимым независимо от RAW/JPG-фильтра фотографий.</li>
+                <li><strong>Более качественные превью видео</strong> используют первый JPEG-кадр <code>get_screennail.cgi</code> вместо растягивания маленькой thumbnail, когда камера это поддерживает.</li>
+                <li>Screennail видео и запасная маленькая thumbnail <strong>сохраняются в постоянном кэше</strong>, поэтому превью не перекачиваются при каждом открытии галереи.</li>
+                <li>Запросы превью восстанавливаются после ухода Android в фон и переключения Wi-Fi; прерванные запросы повторяются вместо broken-image плиток.</li>
+                <li>Постоянный кэш превью увеличен до <strong>1000 записей</strong>.</li>
+                <li>Обычное и фоновое скачивание видео на Android использует <strong>MediaStore.Video с правильным MIME-типом</strong>.</li>
+                <li>История фоновых загрузок записывается до завершения worker и затем ещё раз обновляется в UI, поэтому успешно скачанное видео, включая последний файл в пачке, получает постоянную зелёную метку.</li>
+                <li>Build stack: Flutter 3.47.5 / Dart 3.13, Gradle 9.3.1, AGP 9.1.1, Kotlin 2.4.20, Java/Kotlin 17, compileSdk 37, targetSdk 36.</li>
+                <li>Версия: <strong>1.3.13+22</strong>.</li>
+            </ul>
+        </div>
+<!-- RELEASE_RU_END -->
+
+<!-- RELEASE_UK_BEGIN -->
+        <div class="changelog-version">
+            <h3>v1.3.13 — 28 вересня 2026</h3>
+            <h4>Превʼю відео, постійний кеш і надійне завантаження відео на Android</h4>
+            <ul>
+                <li><strong>Перший публічний реліз після v1.3.11</strong> — містить зміни v1.3.12 і фінальні виправлення відео, завершені у v1.3.13.</li>
+                <li>Відео з камери (MOV, MP4, M4V, AVI, MTS і M2TS) залишається видимим незалежно від RAW/JPG-фільтра фотографій.</li>
+                <li><strong>Якісніші превʼю відео</strong> використовують перший JPEG-кадр <code>get_screennail.cgi</code> замість розтягування малої thumbnail, коли камера це підтримує.</li>
+                <li>Screennail відео та резервна мала thumbnail <strong>зберігаються у постійному кеші</strong>, тому превʼю не завантажуються заново при кожному відкритті галереї.</li>
+                <li>Запити превʼю відновлюються після переходу Android у фон і перемикання Wi-Fi; перервані запити повторюються замість broken-image плиток.</li>
+                <li>Постійний кеш превʼю збільшено до <strong>1000 записів</strong>.</li>
+                <li>Звичайне та фонове завантаження відео на Android використовує <strong>MediaStore.Video з правильним MIME-типом</strong>.</li>
+                <li>Історія фонових завантажень записується до завершення worker і потім ще раз оновлюється в UI, тому успішно завантажене відео, включно з останнім файлом у пакеті, отримує постійну зелену позначку.</li>
+                <li>Build stack: Flutter 3.47.5 / Dart 3.13, Gradle 9.3.1, AGP 9.1.1, Kotlin 2.4.20, Java/Kotlin 17, compileSdk 37, targetSdk 36.</li>
+                <li>Версія: <strong>1.3.13+22</strong>.</li>
+            </ul>
+        </div>
+<!-- RELEASE_UK_END -->

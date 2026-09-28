@@ -2,7 +2,7 @@
 
 > Manage, download, and delete photos on Olympus and OM System cameras over the camera's local WiFi network. Olympus View is an unofficial cross-platform alternative to OI.Share for Android, Windows, and Web.
 
-**Current Android release:** v1.3.12+21 — September 28, 2026  
+**Current Android release:** v1.3.13+22 — September 28, 2026  
 **Source:** https://github.com/dpolarov/olympus-view-and-delete  
 **Latest release:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest  
 **Android APK:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk
@@ -50,7 +50,7 @@ On Android, scan the QR code displayed by the camera. Olympus View decodes Olymp
 
 ### Browse photos and videos
 
-Load the camera's file list with previews and browse in grid or list form. The app traverses camera folders and supports date filtering. Large grid tiles request a camera-supported 1024 px resized preview; the small thumbnail endpoint remains available as a fallback. Full-screen viewing prefers the camera's screennail preview and falls back to a 1920 px resize request. MOV, MP4, M4V, AVI, MTS and M2TS files remain visible independently of the RAW/JPG still-photo filter.
+Load the camera's file list with previews and browse in grid or list form. The app traverses camera folders and supports date filtering. Large still-image grid tiles request a camera-supported 1024 px resized preview; movie grid tiles prefer the camera's `get_screennail.cgi` JPEG first-frame preview. The small thumbnail endpoint remains available as a fallback. Full-screen viewing prefers the camera's screennail preview and falls back to a 1920 px resize request. MOV, MP4, M4V, AVI, MTS and M2TS files remain visible independently of the RAW/JPG still-photo filter.
 
 ### Delete files from the camera
 
@@ -66,15 +66,15 @@ Choose **RAW only**, **JPG only**, or **RAW + JPG**. RAW includes ORF, DNG and g
 
 ### Download files
 
-Download selected photos and videos with progress information. On Android, downloaded photos are saved to user-accessible media storage and appear in the gallery. ORF, DNG and RAW files use the Android image MediaStore collection so they can be saved to `DCIM/OlympusView` like JPEG files.
+Download selected photos and videos with progress information. On Android, downloaded photos and videos are saved to user-accessible media storage. ORF, DNG and RAW files use the Android image MediaStore collection, while camera movies use `MediaStore.Video` with the appropriate video MIME type. Both are stored under `DCIM/OlympusView`.
 
 ### Background download on Android
 
-Android transfers can continue while Olympus View is minimized or the screen is off. System notifications report progress and completion.
+Android transfers can continue while Olympus View is minimized or the screen is off. System notifications report progress and completion. Download history is committed before the background worker finishes, and the app performs a final history refresh so the last successful file receives its persistent green marker too.
 
 ### Persistent downloaded markers and preview cache
 
-Successfully transferred files receive a green downloaded marker that survives normal app restarts and updates. In selection mode, **Select downloaded** selects all currently visible green-marked files so they can be deleted from the camera after they have been safely copied. Gallery previews are cached persistently; v1.3.12 raises the cache from 150 to 1000 entries and makes background/Wi-Fi transitions retry interrupted preview requests instead of leaving broken tiles.
+Successfully transferred files receive a green downloaded marker that survives normal app restarts and updates. In selection mode, **Select downloaded** selects all currently visible green-marked files so they can be deleted from the camera after they have been safely copied. Gallery previews are cached persistently; v1.3.13 keeps up to 1000 entries, persists movie previews and their thumbnail fallback, and makes background/Wi-Fi transitions retry interrupted preview requests instead of leaving broken tiles.
 
 ### In-app GitHub update flow
 
@@ -130,7 +130,7 @@ After v1.3.6 has been installed, later direct APK releases use the same permanen
 - Flutter 3.47.5 / Dart 3.13
 - Material 3 UI
 - Android package: `com.flynew.photomanager`
-- Android build stack: Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20, Java/Kotlin 17, compileSdk 37, targetSdk 36.
+- Android build stack: Gradle 9.3.1, AGP 9.1.1, Kotlin 2.4.20, Java/Kotlin 17, compileSdk 37, targetSdk 36.
 - Android direct APK and Google Play flavors are built separately.
 
 ### Camera protocol
@@ -141,8 +141,8 @@ Common OPC endpoints used by the project include:
 
 - File list: `GET /get_imglist.cgi?DIR=/DCIM`
 - Thumbnail / compact list preview: `GET /get_thumbnail.cgi?DIR=<path>`
-- Higher-quality grid preview: `GET /get_resizeimg.cgi?DIR=<path>&size=1024`
-- Preferred full-screen preview: `GET /get_screennail.cgi?DIR=<path>`
+- Higher-quality still-image grid preview: `GET /get_resizeimg.cgi?DIR=<path>&size=1024`
+- Preferred movie grid / full-screen preview: `GET /get_screennail.cgi?DIR=<path>`
 - Full-screen fallback: `GET /get_resizeimg.cgi?DIR=<path>&size=1920`
 - Delete: `GET /exec_erase.cgi?DIR=<path>`
 - Download: `GET /<path>`
@@ -161,16 +161,30 @@ Full privacy policy:
 
 https://dpolarov.github.io/olympus-view-and-delete/privacy.md
 
-## v1.3.12 highlights
+## v1.3.13 highlights
 
-- Camera **video files** (MOV, MP4, M4V, AVI, MTS and M2TS) are visible independently of the RAW/JPG still-photo filter.
+This is the first public release after **v1.3.11**. It includes the v1.3.12 development changes plus the final video fixes completed for v1.3.13.
+
+- Camera **video files** (MOV, MP4, M4V, AVI, MTS and M2TS) remain visible independently of the RAW/JPG still-photo filter.
+- Movie grid tiles use the camera's higher-quality **`get_screennail.cgi` first-frame JPEG** instead of stretching the small thumbnail whenever possible.
+- Movie screennails and the low-resolution thumbnail fallback are **persistently cached**, so video previews are not downloaded again on every gallery visit.
 - Gallery preview traffic pauses while the app is in the background and resumes only after the saved camera Wi-Fi and camera endpoint are available again; interrupted requests retry instead of becoming broken tiles.
-- Successfully loaded previews are persisted before completion, and the persistent preview cache capacity is increased from **150 to 1000 entries**.
-- Build stack updated to **Flutter 3.47.5 / Dart 3.13, Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20, Java/Kotlin 17 and compileSdk 37**.
-- All direct Flutter/Dart dependencies were updated to current compatible stable versions and the dependency lock was refreshed.
-- Full CI validates analyze/tests, Android APK/AAB, Windows, Web, Dart AOT metadata, Android 16 KB compatibility and Play-flavor policy checks.
+- Successfully loaded previews are persisted before completion, and the persistent preview cache capacity is **1000 entries**.
+- Android foreground and background movie downloads use **`MediaStore.Video` with correct MIME types**.
+- Download history is committed before the Android background worker completes, followed by a final UI refresh, so successful videos — including the last file in a background batch — receive the persistent green downloaded marker.
+- Build stack: **Flutter 3.47.5 / Dart 3.13, Gradle 9.3.1, AGP 9.1.1, Kotlin 2.4.20, Java/Kotlin 17, compileSdk 37, targetSdk 36**.
 - Users on **v1.3.6 or newer** can update normally through the built-in updater.
-- Version: **1.3.12+21**.
+- Version: **1.3.13+22**.
+
+## v1.3.12 development snapshot
+
+v1.3.12 was not published as a GitHub Release; its development changes are included in v1.3.13.
+
+- Camera video files became visible independently of the RAW/JPG still-photo filter.
+- Preview background/resume handling and retry behavior were hardened.
+- Successfully loaded previews began being persisted before completion.
+- The persistent preview cache was increased from 150 to 1000 entries.
+- Flutter/Dart dependencies and the Android build stack were refreshed during development.
 
 ## v1.3.11 highlights
 

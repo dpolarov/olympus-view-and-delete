@@ -372,10 +372,12 @@ class MainActivity : FlutterActivity() {
 
     private fun saveWithMediaStore(filename: String, bytes: ByteArray): String {
         val mimeType = mimeTypeFor(filename)
-        val collection = if (isGalleryImage(filename)) {
-            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        } else {
-            MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        val collection = when {
+            isGalleryImage(filename) ->
+                MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            isGalleryVideo(filename) ->
+                MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            else -> MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         }
 
         val values = ContentValues().apply {
@@ -446,6 +448,13 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun isGalleryVideo(filename: String): Boolean {
+        return when (filename.substringAfterLast('.', "").lowercase()) {
+            "mov", "mp4", "m4v", "avi", "mts", "m2ts" -> true
+            else -> false
+        }
+    }
+
     private fun mimeTypeFor(filename: String): String {
         return when (filename.substringAfterLast('.', "").lowercase()) {
             "jpg", "jpeg" -> "image/jpeg"
@@ -456,6 +465,10 @@ class MainActivity : FlutterActivity() {
             "orf" -> "image/x-olympus-orf"
             "dng" -> "image/x-adobe-dng"
             "raw" -> "image/x-raw"
+            "mov" -> "video/quicktime"
+            "mp4", "m4v" -> "video/mp4"
+            "avi" -> "video/x-msvideo"
+            "mts", "m2ts" -> "video/mp2t"
             else -> "application/octet-stream"
         }
     }

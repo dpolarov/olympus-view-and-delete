@@ -25,7 +25,7 @@ const int kPreviewImageSize = 1920;
 // --- Caching / memory (image_cache, thumbnail_manager) ---
 
 /// Max number of images kept in the persistent disk cache (all variants).
-const int kMaxCacheImages = 150;
+const int kMaxCacheImages = 1000;
 
 /// Debounce window before flushing the disk-cache LRU index to storage.
 const Duration kLruSaveDebounce = Duration(seconds: 2);

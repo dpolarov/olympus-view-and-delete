@@ -785,24 +785,30 @@ class _HomeScreenState extends State<HomeScreen>
             'This is an unofficial app, not affiliated with or endorsed by '
             'OM Digital Solutions.';
     final changelog = _localizedText(
-      en: '• Fixed Android RAW/ORF/DNG downloads to DCIM/OlympusView\n'
-          '• Added persistent RAW only / JPG only / RAW + JPG filtering\n'
-          '• Restores the last selected file type mode on the next launch\n'
-          '• Gallery grid now uses camera-supported 1024 px previews\n'
-          '• Full-screen preview prefers fast high-resolution screennail images\n'
-          '• Uses thumbnail / 1920 resize fallbacks when needed',
-      ru: '• Исправлено скачивание RAW/ORF/DNG в DCIM/OlympusView на Android\n'
-          '• Добавлен выбор: только RAW / только JPG / RAW + JPG\n'
-          '• Последний выбранный режим восстанавливается после перезапуска\n'
-          '• Сетка галереи использует поддерживаемые камерой превью 1024 px\n'
-          '• Полноэкранный просмотр сначала использует быстрый screennail высокого качества\n'
-          '• При необходимости используются thumbnail / resize 1920',
-      uk: '• Виправлено завантаження RAW/ORF/DNG до DCIM/OlympusView на Android\n'
-          '• Додано вибір: лише RAW / лише JPG / RAW + JPG\n'
-          '• Останній вибраний режим відновлюється після перезапуску\n'
-          '• Сітка галереї використовує підтримувані камерою превʼю 1024 px\n'
-          '• Повноекранний перегляд спочатку використовує швидкий screennail високої якості\n'
-          '• За потреби використовуються thumbnail / resize 1920',
+      en: '• Videos stay visible in RAW/JPG filter modes\n'
+          '• Video grid previews use higher-quality screennail first frames\n'
+          '• Video previews and thumbnail fallbacks are cached persistently\n'
+          '• Preview requests retry safely after Android Wi-Fi/background changes\n'
+          '• Android video downloads use MediaStore.Video with correct MIME types\n'
+          '• Videos and the final background item reliably get green downloaded markers\n'
+          '• Persistent preview cache increased to 1000 entries\n'
+          '• Build stack updated for compileSdk 37',
+      ru: '• Видео остаётся видимым при любом RAW/JPG-фильтре\n'
+          '• Превью видео использует качественный первый кадр screennail\n'
+          '• Превью видео и thumbnail fallback сохраняются в постоянный кэш\n'
+          '• Превью корректно повторяются после смены Wi-Fi/возврата из фона\n'
+          '• Видео на Android сохраняется через MediaStore.Video с правильным MIME\n'
+          '• Видео и последний файл фоновой очереди надёжно получают зелёную галочку\n'
+          '• Постоянный кэш превью увеличен до 1000 записей\n'
+          '• Build stack обновлён для compileSdk 37',
+      uk: '• Відео залишається видимим у всіх режимах RAW/JPG-фільтра\n'
+          '• Превʼю відео використовує якісний перший кадр screennail\n'
+          '• Превʼю відео та thumbnail fallback зберігаються у постійному кеші\n'
+          '• Запити превʼю коректно повторюються після зміни Wi-Fi/повернення з фону\n'
+          '• Відео на Android зберігається через MediaStore.Video з правильним MIME\n'
+          '• Відео та останній файл фонової черги надійно отримують зелену позначку\n'
+          '• Постійний кеш превʼю збільшено до 1000 записів\n'
+          '• Build stack оновлено для compileSdk 37',
     );
     showAboutDialog(
       context: context,

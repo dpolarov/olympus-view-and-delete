@@ -38,8 +38,18 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Install dependencies
-        run: flutter pub get
+      - name: Upgrade dependencies
+        run: flutter pub upgrade --major-versions
+
+      - name: Export upgraded dependency lock
+        uses: actions/upload-artifact@v6
+        with:
+          name: upgraded-dependency-lock
+          path: |
+            pubspec.yaml
+            pubspec.lock
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Analyze
         run: flutter analyze

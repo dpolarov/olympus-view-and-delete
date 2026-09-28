@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 env:
-  FLUTTER_VERSION: "3.44.7"
+  FLUTTER_VERSION: "3.47.5"
   LEGACY_DEBUG_CERT_SHA256: "3786a41c932c63183fc36dd388cb6be397775392d3bf6e7f4fb16dc28cae841e"
 
 jobs:

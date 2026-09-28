@@ -14,7 +14,10 @@ class DownloadHistoryStore(context: Context) {
         synchronized(lock) {
             val updated = getKeys().toMutableSet()
             updated.add(key)
-            prefs.edit().putStringSet(KEY_DOWNLOADED, updated).apply()
+            // The background service marks a file immediately before it can
+            // report completion. Use a synchronous commit so Flutter cannot
+            // observe the completed worker before the final key is durable.
+            prefs.edit().putStringSet(KEY_DOWNLOADED, updated).commit()
         }
     }
 

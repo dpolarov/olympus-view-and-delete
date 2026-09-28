@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.3.13] - 2026-09-28
+
+This is the next public release after **v1.3.11** and includes the changes prepared in the unpublished v1.3.12 build.
+
+### Added
+- **Camera video files stay visible in every still-photo filter mode**. MOV, MP4, M4V, AVI, MTS, and M2TS files are shown regardless of whether the gallery is set to RAW only, JPG only, or RAW + JPG.
+- Added regression coverage for video preview routing and persistent video-preview caching.
+
+### Fixed
+- **Higher-quality video previews**: gallery previews for camera videos now request the camera's `get_screennail.cgi` first-frame JPEG instead of depending on the still-image `get_resizeimg.cgi` endpoint and falling back to a tiny thumbnail.
+- **Persistent video-preview cache**: successfully loaded video previews are stored on disk, including the low-resolution `get_thumbnail.cgi` fallback, so reopening the gallery no longer re-downloads the same movie thumbnails every time.
+- **Reliable preview recovery after Android Wi-Fi/background changes**: gallery preview traffic pauses while the app is backgrounded, resumes only after the saved camera Wi-Fi and camera endpoint are available again, and retries interrupted requests instead of leaving permanently broken tiles.
+- **Android video downloads use `MediaStore.Video`** with the correct MIME type for MOV/MP4/M4V/AVI/MTS/M2TS instead of generic `MediaStore.Files`, for both foreground and background downloads.
+- **Downloaded green markers are reliable for videos and the final background item**: download-history writes are committed before the background worker finishes, and the UI refreshes the final history state after completion.
+- Successfully loaded gallery previews are persisted before completion so cached previews remain available after leaving the camera network.
+
+### Changed
+- Increased the persistent image-preview disk cache from **150 to 1000 entries**.
+- Updated the build stack to **Flutter 3.47.5 / Dart 3.13**, **Gradle 9.3.1**, **Android Gradle Plugin 9.1.1**, **Kotlin 2.4.20**, **Java/Kotlin 17**, and **compileSdk 37** while keeping targetSdk 36.
+- Updated direct Flutter/Dart dependencies and refreshed the dependency lock.
+- CI validates analyze/tests, Android APK/AAB, Windows, Web, packaged Dart AOT metadata, Android 16 KB page-size compatibility, and Play-flavor policy checks.
+- Version set to **1.3.13+22**.
+- Users already on **v1.3.6 or newer** can install this release as a normal in-app update using the existing permanent production signing identity.
+
 ## [1.3.12] - 2026-09-28
 
 ### Added

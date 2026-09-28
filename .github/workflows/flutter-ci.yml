@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 env:
-  FLUTTER_VERSION: "3.44.7"
+  FLUTTER_VERSION: "3.47.5"
 
 concurrency:
   group: flutter-ci-${{ github.workflow }}-${{ github.ref }}
@@ -53,8 +53,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      # CI artifacts are never published. Real release builds restore
-      # the persistent Android signing key from repository secrets.
       ORG_GRADLE_PROJECT_allowDebugReleaseSigning: "true"
     steps:
       - name: Checkout
@@ -169,9 +167,6 @@ jobs:
   windows:
     name: Windows x64
     needs: quality
-    # permission_handler_windows 0.2.x still uses MSVC experimental coroutines;
-    # VS2026 turns that deprecation into a hard error. Keep release builds on
-    # the VS2022 toolchain until the permission plugin is upgraded.
     runs-on: windows-2022
     timeout-minutes: 35
     steps:
@@ -278,9 +273,9 @@ jobs:
           test -s build/web/main.dart.js
 
       - name: Add Web run instructions
-        shell: bash
+        shell: pwsh
         run: |
-          cat > build/web/README.txt <<'EOF'
+          $text = @'
           Olympus View Web
           =================
 
@@ -296,7 +291,8 @@ jobs:
 
           Connect the computer to the camera WiFi before using Olympus View.
           Browser security/CORS rules may still depend on the browser and camera firmware.
-          EOF
+          '@
+          Set-Content -Path build/web/README.txt -Value $text
 
       - name: Package Web ZIP
         shell: bash

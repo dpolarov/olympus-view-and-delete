@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.3.12] - 2026-09-28
+
+### Added
+- **Video files are visible in the gallery** independently of the RAW/JPG still-photo filter. Olympus View recognizes MOV, MP4, M4V, AVI, MTS, and M2TS camera files.
+
+### Fixed
+- **Camera Wi-Fi background/resume handling**: gallery preview traffic pauses when Olympus View leaves the foreground and resumes only after the saved camera Wi-Fi and camera endpoint are available again, preventing broken preview tiles when Android switches networks.
+- Preview requests interrupted by a Wi-Fi change are retained for retry instead of becoming permanent broken-image results.
+- Successfully loaded gallery previews are persisted to disk before the load is considered complete, so cached previews remain available after leaving the camera network.
+
+### Changed
+- Increased the persistent image-preview disk cache from **150 to 1000 entries**.
+- Updated the build stack to **Flutter 3.47.5 / Dart 3.13**, **Gradle 8.14**, **Android Gradle Plugin 8.11.1**, **Kotlin 2.2.20**, **Java/Kotlin 17**, and **compileSdk 37** while keeping targetSdk 36.
+- Updated all direct Flutter/Dart dependencies to current compatible stable versions and refreshed the complete dependency lock with `flutter pub upgrade --major-versions`.
+- CI validates analyze/tests, Android APK/AAB, Windows, Web, packaged Dart AOT metadata, Android 16 KB page-size compatibility, and Play-flavor policy checks on the upgraded stack.
+- Version set to **1.3.12+21**.
+- Users already on **v1.3.6 or newer** can install this release as a normal in-app update using the existing permanent production signing identity.
+
 ## [1.3.11] - 2026-09-20
 
 ### Fixed

@@ -5,6 +5,13 @@ analyzer:
     # Logging must go through AppLogger, never raw print(). Treat as a hard error.
     avoid_print: error
   exclude:
+    - "build/**"
+    - "android/**"
+    - "ios/**"
+    - "linux/**"
+    - "macos/**"
+    - "windows/**"
+    - "web/**"
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "lib/l10n/**"
@@ -24,5 +31,9 @@ linter:
     prefer_const_constructors: true
     prefer_const_declarations: true
     directives_ordering: true
+    # Flutter 3.47/flutter_lints 6 add these style-only rules. Existing callback
+    # placeholders and protocol examples are intentional and remain readable.
+    unnecessary_underscores: false
+    unintended_html_in_doc_comment: false
     # API documentation: encourage doc comments on public members
     public_member_api_docs: false

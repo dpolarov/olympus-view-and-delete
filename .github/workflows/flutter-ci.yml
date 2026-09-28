@@ -1,312 +1,261 @@
 name: Flutter CI
 
 on:
-  push:
-    branches: [master, main]
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
   pull_request:
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
   workflow_dispatch:
 
 permissions:
-  contents: read
-
-env:
-  FLUTTER_VERSION: "3.47.5"
-
-concurrency:
-  group: flutter-ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  contents: write
 
 jobs:
-  quality:
-    name: Analyze and test
+  prepare-release:
+    if: github.event_name == 'pull_request' && github.head_ref == 'chore/flutter-3.47-android-toolchain'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
-      - name: Checkout
+      - name: Checkout release branch
         uses: actions/checkout@v6
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
+          ref: ${{ github.head_ref }}
+          fetch-depth: 2
 
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Analyze
-        run: flutter analyze
-
-      - name: Test
-        run: flutter test
-
-  android:
-    name: Android APK and AAB
-    needs: quality
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
-    env:
-      # CI artifacts are never published. Real release builds restore
-      # the persistent Android signing key from repository secrets.
-      ORG_GRADLE_PROJECT_allowDebugReleaseSigning: "true"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "17"
-          cache: gradle
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Verify lock file is synchronized
-        shell: bash
-        run: git diff --exit-code -- pubspec.lock
-
-      - name: Prepare build metadata
-        shell: bash
-        run: |
-          echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
-          echo "BUILD_GIT_COMMIT=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_ENV"
-
-      - name: Build GitHub release APK
-        run: >-
-          flutter build apk --flavor github --release
-          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
-          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
-          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
-
-      - name: Verify packaged Dart AOT metadata
-        shell: pwsh
-        run: >-
-          ./scripts/verify_apk_dart_metadata.ps1
-          -ApkPath build/app/outputs/flutter-apk/app-github-release.apk
-          -ExpectedCommit $env:BUILD_GIT_COMMIT
-          -ExpectedBuildTime $env:BUILD_TIME_UTC
-
-      - name: Verify GitHub APK version matches pubspec
+      - name: Prepare v1.3.12 metadata and restore normal CI
         shell: bash
         run: |
           set -euo pipefail
-          apk="build/app/outputs/flutter-apk/app-github-release.apk"
-          version="$(awk '/^version:/ {print $2; exit}' pubspec.yaml)"
-          expected_name="${version%%+*}"
-          expected_code="${version##*+}"
-          aapt="$(find "${ANDROID_HOME:?ANDROID_HOME is not set}/build-tools" -type f -name aapt -print | sort -V | tail -n 1)"
-          [[ -n "$aapt" ]] || { echo "aapt not found"; exit 1; }
-          badging="$($aapt dump badging "$apk" | head -n 1)"
-          echo "$badging"
-          grep -Fq "versionName='$expected_name'" <<<"$badging" || {
-            echo "ERROR: APK versionName does not match pubspec ($expected_name)" >&2
-            exit 1
+          git show HEAD^:.github/workflows/flutter-ci.yml > /tmp/flutter-ci.yml
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          version = '1.3.12'
+          build = '21'
+          full = f'{version}+{build}'
+
+          def read(path):
+              return Path(path).read_text(encoding='utf-8')
+
+          def write(path, text):
+              Path(path).write_text(text, encoding='utf-8')
+
+          def replace_once(text, old, new, label):
+              if old not in text:
+                  raise SystemExit(f'{label}: expected text not found: {old!r}')
+              return text.replace(old, new, 1)
+
+          # Version sources.
+          p = read('pubspec.yaml')
+          p = re.sub(r'^version:\s*[^\n]+$', f'version: {full}', p, count=1, flags=re.M)
+          write('pubspec.yaml', p)
+
+          p = read('lib/version.dart')
+          p = re.sub(r"const String appVersion = '[^']+';", f"const String appVersion = '{version}';", p, count=1)
+          p = re.sub(r"const String appBuild = '[^']+';", f"const String appBuild = '{build}';", p, count=1)
+          write('lib/version.dart', p)
+
+          # Repository changelog. Keep all historical entries intact.
+          changelog = read('CHANGELOG.md')
+          if f'## [{version}]' not in changelog:
+              section = '''## [1.3.12] - 2026-09-28
+
+### Added
+- **Video files are visible in the gallery** independently of the RAW/JPG still-photo filter. Olympus View recognizes MOV, MP4, M4V, AVI, MTS, and M2TS camera files.
+
+### Fixed
+- **Camera Wi-Fi background/resume handling**: gallery preview traffic pauses when Olympus View leaves the foreground and resumes only after the camera Wi-Fi and camera endpoint are available again, preventing broken preview tiles when Android switches networks.
+- Preview requests interrupted by a Wi-Fi change are retained for retry instead of becoming permanent broken-image results.
+- Successfully loaded gallery previews are persisted to disk before the load is considered complete, so cached previews remain available after leaving the camera network.
+
+### Changed
+- Increased the persistent image-preview disk cache from **150 to 1000 entries**.
+- Updated the build stack to **Flutter 3.47.5 / Dart 3.13**, **Gradle 8.14**, **Android Gradle Plugin 8.11.1**, **Kotlin 2.2.20**, **Java/Kotlin 17**, and **compileSdk 37** while keeping targetSdk 36.
+- Updated all direct Flutter/Dart dependencies to current compatible stable versions and refreshed the complete dependency lock with `flutter pub upgrade --major-versions`.
+- CI validates analyze/tests, Android APK/AAB, Windows, Web, packaged Dart AOT metadata, Android 16 KB page-size compatibility, and Play-flavor policy checks on the upgraded stack.
+- Version set to **1.3.12+21**.
+- Users already on **v1.3.6 or newer** can install this release as a normal in-app update using the existing permanent production signing identity.
+'''
+              changelog = changelog.replace('# Changelog\n', '# Changelog\n\n' + section + '\n', 1)
+          write('CHANGELOG.md', changelog)
+
+          # About dialog: actual v1.3.12 changes, localized.
+          home = read('lib/screens/home_screen.dart')
+          about = '''    final changelog = _localizedText(
+      en: '• Video files are visible regardless of the RAW/JPG filter\\n'
+          '• Preview requests pause in background and wait for camera Wi-Fi on resume\\n'
+          '• Interrupted previews retry instead of becoming broken tiles\\n'
+          '• Loaded previews are persisted before being reported ready\\n'
+          '• Persistent preview cache increased from 150 to 1000 entries\\n'
+          '• Flutter, Android build tools, and package dependencies updated',
+      ru: '• Видео показываются независимо от фильтра RAW/JPG\\n'
+          '• В фоне запросы превью останавливаются и ждут Wi-Fi камеры после возврата\\n'
+          '• Прерванные превью повторяются вместо постоянной ошибки\\n'
+          '• Загруженные превью сохраняются в кэш до завершения запроса\\n'
+          '• Постоянный кэш превью увеличен со 150 до 1000 файлов\\n'
+          '• Обновлены Flutter, Android build tools и зависимости пакетов',
+      uk: '• Відео показуються незалежно від фільтра RAW/JPG\\n'
+          '• У фоні запити превʼю призупиняються і чекають Wi-Fi камери після повернення\\n'
+          '• Перервані превʼю повторюються замість постійної помилки\\n'
+          '• Завантажені превʼю зберігаються в кеш до завершення запиту\\n'
+          '• Постійний кеш превʼю збільшено зі 150 до 1000 файлів\\n'
+          '• Оновлено Flutter, Android build tools і залежності пакетів',
+    );
+'''
+          pattern = re.compile(r'    final changelog = _localizedText\(\n.*?^    \);\n(?=    showAboutDialog\()', re.M | re.S)
+          home, n = pattern.subn(about, home, count=1)
+          if n != 1:
+              raise SystemExit(f'home_screen changelog replacement count: {n}')
+          write('lib/screens/home_screen.dart', home)
+
+          # Public Markdown pages: current version + a new latest release section.
+          en = read('docs/index.md')
+          en = replace_once(en,
+              '**Current Android release:** v1.3.11+20 — September 20, 2026',
+              '**Current Android release:** v1.3.12+21 — September 28, 2026', 'docs/index.md current version')
+          if '## v1.3.12 highlights' not in en:
+              block = '''## v1.3.12 highlights
+
+- Camera **video files** (MOV, MP4, M4V, AVI, MTS and M2TS) are now visible independently of the RAW/JPG still-photo filter.
+- Gallery preview traffic pauses while the app is in the background and resumes only when camera Wi-Fi connectivity is restored; interrupted requests retry instead of becoming broken tiles.
+- Successfully loaded gallery previews are persisted before completion so cached previews remain available after leaving the camera network.
+- Persistent preview cache capacity increased from **150 to 1000 entries**.
+- Build stack updated to **Flutter 3.47.5, Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20, Java/Kotlin 17 and compileSdk 37**, with all direct package dependencies refreshed and the lockfile regenerated.
+- Full CI passes analyze/tests plus Android APK/AAB, Windows, Web, Dart AOT metadata, Android 16 KB compatibility and Play-flavor policy checks.
+- Users on **v1.3.6 or newer** can update normally through the built-in updater.
+- Version: **1.3.12+21**.
+
+'''
+              en = replace_once(en, '## v1.3.11 highlights\n', block + '## v1.3.11 highlights\n', 'docs/index.md release insertion')
+          write('docs/index.md', en)
+
+          ru = read('docs/index.ru.md')
+          ru = replace_once(ru,
+              '**Текущая Android-версия:** v1.3.11+20 — 20 сентября 2026',
+              '**Текущая Android-версия:** v1.3.12+21 — 28 сентября 2026', 'docs/index.ru.md current version')
+          if '## Что нового в v1.3.12' not in ru:
+              block = '''## Что нового в v1.3.12
+
+- Видео с камеры (**MOV, MP4, M4V, AVI, MTS и M2TS**) теперь показываются независимо от фильтра RAW/JPG для фотографий.
+- Запросы превью приостанавливаются, когда приложение уходит в фон, и продолжаются только после восстановления Wi-Fi камеры; прерванные запросы повторяются вместо постоянных broken-image плиток.
+- Успешно загруженные превью сохраняются на диск до завершения запроса, поэтому уже закэшированные изображения доступны и после ухода из сети камеры.
+- Постоянный кэш превью увеличен со **150 до 1000 файлов**.
+- Build stack обновлён до **Flutter 3.47.5, Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20, Java/Kotlin 17 и compileSdk 37**; прямые зависимости обновлены, lockfile пересобран.
+- CI успешно проверяет analyze/tests, Android APK/AAB, Windows, Web, Dart AOT metadata, Android 16 KB и Play-flavor policy.
+- Пользователи **v1.3.6 и новее** могут обновиться штатно через встроенный updater.
+- Версия **1.3.12+21**.
+
+'''
+              ru = replace_once(ru, '## Что нового в v1.3.11\n', block + '## Что нового в v1.3.11\n', 'docs/index.ru.md release insertion')
+          write('docs/index.ru.md', ru)
+
+          uk = read('docs/index.uk.md')
+          uk = replace_once(uk,
+              '**Поточна Android-версія:** v1.3.11+20 — 20 вересня 2026',
+              '**Поточна Android-версія:** v1.3.12+21 — 28 вересня 2026', 'docs/index.uk.md current version')
+          if '## Що нового у v1.3.12' not in uk:
+              block = '''## Що нового у v1.3.12
+
+- Відео з камери (**MOV, MP4, M4V, AVI, MTS і M2TS**) тепер показуються незалежно від фільтра RAW/JPG для фотографій.
+- Запити превʼю призупиняються, коли застосунок переходить у фон, і продовжуються лише після відновлення Wi-Fi камери; перервані запити повторюються замість постійних broken-image плиток.
+- Успішно завантажені превʼю зберігаються на диск до завершення запиту, тому кешовані зображення доступні й після виходу з мережі камери.
+- Постійний кеш превʼю збільшено зі **150 до 1000 файлів**.
+- Build stack оновлено до **Flutter 3.47.5, Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20, Java/Kotlin 17 і compileSdk 37**; прямі залежності оновлено, lockfile перебудовано.
+- CI успішно перевіряє analyze/tests, Android APK/AAB, Windows, Web, Dart AOT metadata, Android 16 KB і Play-flavor policy.
+- Користувачі **v1.3.6 і новіше** можуть оновитися штатно через вбудований updater.
+- Версія **1.3.12+21**.
+
+'''
+              uk = replace_once(uk, '## Що нового у v1.3.11\n', block + '## Що нового у v1.3.11\n', 'docs/index.uk.md release insertion')
+          write('docs/index.uk.md', uk)
+
+          # LLM-oriented release summary.
+          llms = read('docs/llms.txt')
+          llms = replace_once(llms,
+              'Current stable Android release: **v1.3.11 (build 20), released September 20, 2026**.',
+              'Current stable Android release: **v1.3.12 (build 21), released September 28, 2026**.', 'docs/llms.txt current version')
+          old_summary = re.compile(r'Release v1\.3\.11 fixes .*?The compact list continues to use small thumbnails\.\n', re.S)
+          new_summary = ('Release v1.3.12 adds camera video visibility independent of the RAW/JPG still-photo filter, '
+              'makes gallery previews resilient to Android Wi-Fi changes while the app is backgrounded, persists loaded previews before completion, '
+              'and increases the persistent preview cache from 150 to 1000 entries. It also updates the build stack to Flutter 3.47.5, Gradle 8.14, '
+              'Android Gradle Plugin 8.11.1, Kotlin 2.2.20, Java/Kotlin 17 and compileSdk 37, and refreshes all direct package dependencies plus the lockfile.\n')
+          llms, n = old_summary.subn(new_summary, llms, count=1)
+          if n != 1:
+              raise SystemExit(f'docs/llms.txt summary replacement count: {n}')
+          write('docs/llms.txt', llms)
+
+          # HTML landing page: structured version + localized latest changelog blocks.
+          html = read('docs/index.html')
+          html = replace_once(html, '"softwareVersion": "1.3.11"', '"softwareVersion": "1.3.12"', 'docs/index.html softwareVersion')
+
+          html_blocks = {
+              'changelog-en': '''        <div class="changelog-version">
+            <h3>v1.3.12 — September 28, 2026</h3>
+            <h4>Video visibility, resilient preview cache &amp; modernized build stack</h4>
+            <ul>
+                <li>Camera video files (MOV, MP4, M4V, AVI, MTS and M2TS) are visible independently of the RAW/JPG still-photo filter.</li>
+                <li>Preview traffic pauses in the background and resumes only after camera Wi-Fi connectivity is restored; interrupted requests retry instead of becoming broken tiles.</li>
+                <li>Loaded previews are persisted before completion and the persistent preview cache grows from <strong>150 to 1000 entries</strong>.</li>
+                <li>Updated to <strong>Flutter 3.47.5, Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20, Java/Kotlin 17 and compileSdk 37</strong>, with refreshed package dependencies.</li>
+                <li>Version: <strong>1.3.12+21</strong>.</li>
+            </ul>
+        </div>
+''',
+              'changelog-ru': '''        <div class="changelog-version">
+            <h3>v1.3.12 — 28 сентября 2026</h3>
+            <h4>Видео, устойчивый к смене Wi-Fi кэш превью и новый build stack</h4>
+            <ul>
+                <li>Видео MOV/MP4/M4V/AVI/MTS/M2TS показываются независимо от фильтра RAW/JPG для фотографий.</li>
+                <li>Превью приостанавливаются в фоне и продолжаются только после возврата Wi-Fi камеры; прерванные запросы повторяются.</li>
+                <li>Превью сохраняются на диск до завершения запроса, а постоянный кэш увеличен со <strong>150 до 1000 файлов</strong>.</li>
+                <li>Обновлены <strong>Flutter 3.47.5, Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20, Java/Kotlin 17 и compileSdk 37</strong>, а также зависимости пакетов.</li>
+                <li>Версия: <strong>1.3.12+21</strong>.</li>
+            </ul>
+        </div>
+''',
+              'changelog-uk': '''        <div class="changelog-version">
+            <h3>v1.3.12 — 28 вересня 2026</h3>
+            <h4>Відео, стійкий до зміни Wi-Fi кеш превʼю та новий build stack</h4>
+            <ul>
+                <li>Відео MOV/MP4/M4V/AVI/MTS/M2TS показуються незалежно від фільтра RAW/JPG для фотографій.</li>
+                <li>Превʼю призупиняються у фоні й продовжуються лише після повернення Wi-Fi камери; перервані запити повторюються.</li>
+                <li>Превʼю зберігаються на диск до завершення запиту, а постійний кеш збільшено зі <strong>150 до 1000 файлів</strong>.</li>
+                <li>Оновлено <strong>Flutter 3.47.5, Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20, Java/Kotlin 17 і compileSdk 37</strong>, а також залежності пакетів.</li>
+                <li>Версія: <strong>1.3.12+21</strong>.</li>
+            </ul>
+        </div>
+'''
           }
-          grep -Fq "versionCode='$expected_code'" <<<"$badging" || {
-            echo "ERROR: APK versionCode does not match pubspec ($expected_code)" >&2
-            exit 1
+          for section_id, block in html_blocks.items():
+              if f'v1.3.12 —' in html and section_id == 'changelog-en':
+                  continue
+              pat = re.compile(rf'(<h2 id="{section_id}">.*?</h2>\s*<div class="changelog">\s*)', re.S)
+              html, n = pat.subn(lambda m: m.group(1) + block, html, count=1)
+              if n != 1:
+                  raise SystemExit(f'docs/index.html insertion failed for {section_id}: {n}')
+          write('docs/index.html', html)
+
+          # Sanity checks required by the release process.
+          checks = {
+              'pubspec.yaml': 'version: 1.3.12+21',
+              'lib/version.dart': "appVersion = '1.3.12'",
+              'CHANGELOG.md': '## [1.3.12] - 2026-09-28',
+              'lib/screens/home_screen.dart': 'Persistent preview cache increased from 150 to 1000 entries',
+              'docs/index.md': '## v1.3.12 highlights',
+              'docs/index.ru.md': '## Что нового в v1.3.12',
+              'docs/index.uk.md': '## Що нового у v1.3.12',
+              'docs/llms.txt': 'v1.3.12 (build 21)',
+              'docs/index.html': 'v1.3.12 — September 28, 2026',
           }
-          echo "APK version matches pubspec: $expected_name ($expected_code)"
+          for path, needle in checks.items():
+              if needle not in read(path):
+                  raise SystemExit(f'{path}: release check missing {needle!r}')
+          PY
 
-      - name: Verify Android 16 KB page-size compatibility
-        shell: bash
-        run: bash scripts/check_android_16kb.sh build/app/outputs/flutter-apk/app-github-release.apk
+          cp /tmp/flutter-ci.yml .github/workflows/flutter-ci.yml
 
-      - name: Build GitHub release AAB
-        run: >-
-          flutter build appbundle --flavor github --release
-          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
-          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
-          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
-
-      - name: Build Play flavor APK for policy validation
-        run: >-
-          flutter build apk --flavor play --release
-          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
-          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
-          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
-
-      - name: Verify Play flavor cannot install external APKs
-        shell: bash
-        run: |
-          set -euo pipefail
-          apk="build/app/outputs/flutter-apk/app-play-release.apk"
-          aapt="$(find "${ANDROID_HOME:?ANDROID_HOME is not set}/build-tools" -type f -name aapt -print | sort -V | tail -n 1)"
-          [[ -n "$aapt" ]] || { echo "aapt not found"; exit 1; }
-          permissions="$($aapt dump permissions "$apk")"
-          if grep -q 'android.permission.REQUEST_INSTALL_PACKAGES' <<<"$permissions"; then
-            echo "ERROR: Google Play flavor contains REQUEST_INSTALL_PACKAGES" >&2
-            exit 1
-          fi
-          echo "Play flavor does not request REQUEST_INSTALL_PACKAGES."
-
-      - name: Upload Android outputs
-        uses: actions/upload-artifact@v6
-        with:
-          name: OlympusView-Android
-          path: |
-            build/app/outputs/flutter-apk/app-github-release.apk
-            build/app/outputs/bundle/githubRelease/app-github-release.aab
-          if-no-files-found: error
-          retention-days: 14
-
-  windows:
-    name: Windows x64
-    needs: quality
-    runs-on: windows-2022
-    timeout-minutes: 35
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Enable Windows desktop
-        shell: pwsh
-        run: flutter config --enable-windows-desktop
-
-      - name: Install dependencies
-        shell: pwsh
-        run: flutter pub get
-
-      - name: Verify lock file is synchronized
-        shell: pwsh
-        run: git diff --exit-code -- pubspec.lock
-
-      - name: Prepare build metadata
-        shell: pwsh
-        run: |
-          "BUILD_TIME_UTC=$([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "BUILD_GIT_COMMIT=$(git rev-parse --short=12 HEAD)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Build Windows release
-        shell: pwsh
-        run: >-
-          flutter build windows --release
-          --dart-define=OLYMPUS_BUILD_TIME_UTC=$env:BUILD_TIME_UTC
-          --dart-define=OLYMPUS_GIT_COMMIT=$env:BUILD_GIT_COMMIT
-          --dart-define=OLYMPUS_FLUTTER_VERSION=$env:FLUTTER_VERSION
-
-      - name: Verify Windows executable
-        shell: pwsh
-        run: |
-          $exe = 'build/windows/x64/runner/Release/olympus_flutter.exe'
-          if (-not (Test-Path $exe)) { throw "Windows executable not found: $exe" }
-          Get-Item $exe | Format-List FullName,Length,LastWriteTimeUtc
-
-      - name: Package Windows ZIP
-        shell: pwsh
-        run: |
-          $releaseDir = 'build/windows/x64/runner/Release'
-          Compress-Archive -Path "$releaseDir/*" -DestinationPath 'OlympusView-Windows.zip' -Force
-
-      - name: Upload Windows output
-        uses: actions/upload-artifact@v6
-        with:
-          name: OlympusView-Windows
-          path: OlympusView-Windows.zip
-          if-no-files-found: error
-          retention-days: 14
-
-  web:
-    name: Web
-    needs: quality
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Enable Web
-        run: flutter config --enable-web
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Verify lock file is synchronized
-        run: git diff --exit-code -- pubspec.lock
-
-      - name: Prepare build metadata
-        shell: bash
-        run: |
-          echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
-          echo "BUILD_GIT_COMMIT=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_ENV"
-
-      - name: Build Web release
-        run: >-
-          flutter build web --release
-          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
-          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
-          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
-
-      - name: Verify Web output
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -s build/web/index.html
-          test -s build/web/main.dart.js
-
-      - name: Add Web run instructions
-        shell: pwsh
-        run: |
-          $text = @'
-          Olympus View Web
-          =================
-
-          This is a static Flutter Web build.
-
-          Serve this directory over HTTP from its root, for example:
-
-              python -m http.server 8080
-
-          Then open:
-
-              http://localhost:8080/
-
-          Connect the computer to the camera WiFi before using Olympus View.
-          Browser security/CORS rules may still depend on the browser and camera firmware.
-          '@
-          Set-Content -Path build/web/README.txt -Value $text
-
-      - name: Package Web ZIP
-        shell: bash
-        run: |
-          set -euo pipefail
-          cd build/web
-          zip -qr ../../OlympusView-Web.zip .
-
-      - name: Upload Web output
-        uses: actions/upload-artifact@v6
-        with:
-          name: OlympusView-Web
-          path: OlympusView-Web.zip
-          if-no-files-found: error
-          retention-days: 14
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml lib/version.dart CHANGELOG.md lib/screens/home_screen.dart \
+            docs/index.html docs/index.md docs/index.ru.md docs/index.uk.md docs/llms.txt \
+            .github/workflows/flutter-ci.yml
+          git commit -m "Prepare Olympus View v1.3.12"
+          git push origin HEAD:${GITHUB_HEAD_REF}

@@ -1,6 +1,6 @@
 # Olympus View
 
-Cross-platform app to manage photos on Olympus / OM System cameras via WiFi. Works on Android, Windows, and Web.
+Cross-platform app to manage photos on Olympus / OM System cameras via WiFi. Works on Android, Windows, macOS, and Web.
 
 **Open source** — you can study, modify, and build the app yourself.
 
@@ -13,7 +13,7 @@ Unlike the official **OI.Share** app, Olympus View can:
 - **Download in the background on Android** while the app is minimized or the screen is off
 - **Remember downloaded files** with persistent green markers across app restarts
 - **Show/hide RAW (ORF)** files to remove duplicates
-- **Run on Windows and in a browser**, not just on mobile
+- **Run on Windows, macOS and in a browser**, not just on mobile
 - **Fully open source** — modify it to suit your needs
 
 ## Supported Cameras
@@ -27,7 +27,7 @@ Unlike the official **OI.Share** app, Olympus View can:
 ### Connection
 - QR code scanning from camera screen (Android) — automatic WiFi connection
 - Decoding proprietary OIS1 and OIS3 formats
-- Manual SSID/password entry (Windows, Web)
+- Manual SSID/password entry (Windows, macOS, Web)
 - Bluetooth info display for BLE cameras (OM-1)
 
 ### File Management
@@ -44,6 +44,7 @@ Unlike the official **OI.Share** app, Olympus View can:
 - Android: optional **background download** continues while Olympus View is minimized or the screen is off
 - Android: successfully transferred files keep a persistent green **downloaded** marker
 - Windows: saves to documents folder
+- macOS: saves to the sandboxed app documents folder (`~/Library/Containers/com.flynew.olympusTg6Manager/Data/Documents/OlympusView`)
 - Web: browser download
 
 ### Interface
@@ -69,6 +70,7 @@ Pre-built binaries are published with each GitHub Release:
 |----------|------|
 | Android  | [OlympusView-Android.apk](https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk) |
 | Windows  | [OlympusView-Windows.zip](https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Windows.zip) |
+| macOS    | [OlympusView-macOS.zip](https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-macOS.zip) |
 | Web      | [OlympusView-Web.zip](https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Web.zip) |
 
 ### Build from Source
@@ -77,6 +79,7 @@ Pre-built binaries are published with each GitHub Release:
 - Flutter SDK >= 3.0
 - Android SDK (for Android)
 - Visual Studio with C++ (for Windows)
+- Xcode (for macOS)
 
 #### Run
 ```bash
@@ -91,6 +94,9 @@ flutter build apk --flavor github --release
 
 # Windows
 flutter build windows --release
+
+# macOS
+flutter build macos --release
 
 # Web
 flutter build web --release
@@ -111,7 +117,7 @@ flutter build web --release
 
 1. Enable WiFi on the camera
 2. **Android**: scan the QR code from the camera screen — the app will connect to WiFi automatically
-3. **Windows/Web**: connect to the camera's WiFi manually, enter SSID and password
+3. **Windows/macOS/Web**: connect to the camera's WiFi manually, enter SSID and password
 4. The photo list will load automatically
 5. **Long press** — enter file selection mode
 6. **Date button** — select all files for the same dates
@@ -157,7 +163,7 @@ sponsored by OM Digital Solutions, Olympus Corporation, or OM System.
 
 # Olympus View (Українська)
 
-Кросплатформний додаток для керування фотографіями на камерах Olympus / OM System через WiFi. Працює на Android, Windows та Web.
+Кросплатформний додаток для керування фотографіями на камерах Olympus / OM System через WiFi. Працює на Android, Windows, macOS та Web.
 
 **Відкритий вихідний код** — ви можете вивчити, змінити та зібрати додаток самостійно.
 
@@ -170,7 +176,7 @@ sponsored by OM Digital Solutions, Olympus Corporation, or OM System.
 - **Завантажувати у фоні на Android** після згортання застосунку або вимкнення екрана
 - **Пам’ятати вже завантажені файли** та позначати їх зеленим між запусками
 - **Показувати/приховувати RAW (ORF)** файли, щоб прибрати дублі
-- **Працювати на Windows та у браузері**, а не лише на мобільних
+- **Працювати на Windows, macOS та у браузері**, а не лише на мобільних
 - **Повністю відкритий вихідний код** — можна модифікувати під свої потреби
 
 ## Підтримувані камери
@@ -184,7 +190,7 @@ sponsored by OM Digital Solutions, Olympus Corporation, or OM System.
 ### Підключення
 - Сканування QR-коду з камери (Android) — автоматичне підключення до WiFi
 - Декодування пропрієтарних форматів OIS1 та OIS3
-- Ручне введення SSID/пароля (Windows, Web)
+- Ручне введення SSID/пароля (Windows, macOS, Web)
 - Відображення Bluetooth-інформації для камер з BLE (OM-1)
 
 ### Керування файлами
@@ -201,6 +207,7 @@ sponsored by OM Digital Solutions, Olympus Corporation, or OM System.
 - На Android: опційне **фонове завантаження** продовжується після згортання застосунку або вимкнення екрана
 - На Android: успішно перенесені файли зберігають постійну зелену позначку **завантажено**
 - На Windows: збереження у папку документів
+- На macOS: збереження у теку документів застосунку в пісочниці (`~/Library/Containers/com.flynew.olympusTg6Manager/Data/Documents/OlympusView`)
 - На Web: завантаження через браузер
 
 ### Інтерфейс
@@ -226,6 +233,7 @@ sponsored by OM Digital Solutions, Olympus Corporation, or OM System.
 |-----------|------|
 | Android   | [OlympusView-Android.apk](https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk) |
 | Windows   | [OlympusView-Windows.zip](https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Windows.zip) |
+| macOS     | [OlympusView-macOS.zip](https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-macOS.zip) |
 | Web       | [OlympusView-Web.zip](https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Web.zip) |
 
 ### Збірка з вихідних кодів
@@ -234,6 +242,7 @@ sponsored by OM Digital Solutions, Olympus Corporation, or OM System.
 - Flutter SDK >= 3.0
 - Android SDK (для Android)
 - Visual Studio з C++ (для Windows)
+- Xcode (для macOS)
 
 #### Запуск
 ```bash
@@ -249,6 +258,9 @@ flutter build apk --flavor github --release
 # Windows
 flutter build windows --release
 
+# macOS
+flutter build macos --release
+
 # Web
 flutter build web --release
 ```
@@ -257,7 +269,7 @@ flutter build web --release
 
 1. Увімкніть WiFi на камері
 2. **Android**: відскануйте QR-код з екрану камери — додаток автоматично підключиться до WiFi
-3. **Windows/Web**: підключіться до WiFi камери вручну, введіть SSID та пароль
+3. **Windows/macOS/Web**: підключіться до WiFi камери вручну, введіть SSID та пароль
 4. Список фотографій завантажиться автоматично
 5. **Довге натискання** — режим вибору файлів
 6. **Кнопка дати** — виділити усі файли за ті самі дати
@@ -274,7 +286,7 @@ flutter build web --release
 
 # Olympus View (Русский)
 
-Кроссплатформенное приложение для управления фотографиями на камерах Olympus / OM System через WiFi. Работает на Android, Windows и Web.
+Кроссплатформенное приложение для управления фотографиями на камерах Olympus / OM System через WiFi. Работает на Android, Windows, macOS и Web.
 
 **Открытый исходный код** — вы можете изучить, изменить и собрать приложение самостоятельно.
 
@@ -287,7 +299,7 @@ flutter build web --release
 - **Скачивать в фоне на Android** после сворачивания приложения или выключения экрана
 - **Помнить уже скачанные файлы** и отмечать их зелёным между запусками
 - **Показывать/скрывать RAW (ORF)** файлы, чтобы убрать дубли
-- **Работать на Windows и в браузере**, а не только на мобильных
+- **Работать на Windows, macOS и в браузере**, а не только на мобильных
 - **Полностью открытый исходный код** — можно модифицировать под свои нужды
 
 ## Поддерживаемые камеры
@@ -301,7 +313,7 @@ flutter build web --release
 ### Подключение
 - Сканирование QR-кода с камеры (Android) — автоматическое подключение к WiFi
 - Декодирование проприетарных форматов OIS1 и OIS3
-- Ручной ввод SSID/пароля (Windows, Web)
+- Ручной ввод SSID/пароля (Windows, macOS, Web)
 - Отображение Bluetooth-информации для камер с BLE (OM-1)
 
 ### Управление файлами
@@ -318,6 +330,7 @@ flutter build web --release
 - На Android: опциональное **фоновое скачивание** продолжается после сворачивания приложения или выключения экрана
 - На Android: успешно перенесённые файлы сохраняют постоянную зелёную отметку **скачано**
 - На Windows: сохранение в папку документов
+- На macOS: сохранение в папку документов приложения в песочнице (`~/Library/Containers/com.flynew.olympusTg6Manager/Data/Documents/OlympusView`)
 - На Web: скачивание через браузер
 
 ### Интерфейс
@@ -343,6 +356,7 @@ flutter build web --release
 |-----------|------|
 | Android   | [OlympusView-Android.apk](https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk) |
 | Windows   | [OlympusView-Windows.zip](https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Windows.zip) |
+| macOS     | [OlympusView-macOS.zip](https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-macOS.zip) |
 | Web       | `releases/web/` (открыть `index.html`) |
 
 ### Сборка из исходников
@@ -351,6 +365,7 @@ flutter build web --release
 - Flutter SDK >= 3.0
 - Android SDK (для Android)
 - Visual Studio с C++ (для Windows)
+- Xcode (для macOS)
 
 #### Запуск
 ```bash
@@ -366,6 +381,9 @@ flutter build apk --flavor github --release
 # Windows
 flutter build windows --release
 
+# macOS
+flutter build macos --release
+
 # Web
 flutter build web --release
 ```
@@ -374,7 +392,7 @@ flutter build web --release
 
 1. Включите WiFi на камере
 2. **Android**: отсканируйте QR-код с экрана камеры — приложение автоматически подключится к WiFi
-3. **Windows/Web**: подключитесь к WiFi камеры вручную, введите SSID и пароль
+3. **Windows/macOS/Web**: подключитесь к WiFi камеры вручную, введите SSID и пароль
 4. Список фотографий загрузится автоматически
 5. **Долгое нажатие** — режим выбора файлов
 6. **Кнопка 📅** — выделить все файлы за те же даты

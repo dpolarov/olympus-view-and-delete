@@ -1,6 +1,6 @@
 # Olympus View — WiFi File Manager for Olympus & OM System Cameras
 
-> Manage, download, and delete photos on Olympus and OM System cameras over the camera's local WiFi network. Olympus View is an unofficial cross-platform alternative to OI.Share for Android, Windows, and Web.
+> Manage, download, and delete photos on Olympus and OM System cameras over the camera's local WiFi network. Olympus View is an unofficial cross-platform alternative to OI.Share for Android, Windows, macOS, and Web.
 
 **Current Android release:** v1.3.13+22 — September 28, 2026  
 **Source:** https://github.com/dpolarov/olympus-view-and-delete  
@@ -19,7 +19,7 @@ Olympus View focuses on camera file management:
 - Remember successfully downloaded files with persistent green markers.
 - Select all currently visible files carrying the downloaded marker, making it easy to remove already-copied photos from the camera in one batch.
 - Choose whether the gallery shows **RAW only**, **JPG only**, or **RAW + JPG** when shooting paired files; camera video files remain visible in every still-photo filter mode.
-- Run on Android, Windows, and in a browser.
+- Run on Android, Windows, macOS, and in a browser.
 - Inspect and build the source code yourself.
 
 ## Supported cameras
@@ -86,7 +86,7 @@ The Google Play flavor disables external APK self-install/update behavior.
 
 1. Enable WiFi on the Olympus / OM System camera.
 2. Android: open Olympus View and scan the QR code displayed by the camera.
-3. Windows/Web: connect the computer to the camera's WiFi network and open Olympus View.
+3. Windows/macOS/Web: connect the computer to the camera's WiFi network and open Olympus View.
 4. Wait for the file list and previews to load.
 5. Long-press a file to enter file-selection mode.
 6. Use selection tools for date-based selection or downloaded-file selection.
@@ -106,6 +106,13 @@ https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/Oly
 Latest portable Windows x64 build:
 
 https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Windows.zip
+
+### macOS
+
+Latest macOS arm64 build. Unzip and move Olympus View to Applications; connect the
+computer to the camera's WiFi network before opening it.
+
+https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-macOS.zip
 
 ### Web
 

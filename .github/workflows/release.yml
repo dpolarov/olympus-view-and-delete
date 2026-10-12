@@ -237,6 +237,60 @@ jobs:
           path: OlympusView-Windows.zip
           if-no-files-found: error
 
+  macos:
+    name: Build macOS arm64 ZIP
+    needs: quality
+    runs-on: macos-26
+    timeout-minutes: 35
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Prepare build metadata
+        shell: bash
+        run: |
+          echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+          echo "BUILD_GIT_COMMIT=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_ENV"
+
+      - name: Build macOS release
+        run: >-
+          flutter build macos --release
+          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
+          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
+          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
+
+      - name: Verify and package macOS build
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="build/macos/Build/Products/Release/olympus_tg6_manager.app"
+          test -d "$app" || { echo "app bundle not found: $app" >&2; exit 1; }
+          codesign -d --entitlements - --xml "$app" 2>/dev/null \
+            | plutil -convert xml1 -o - - \
+            | grep -q 'com.apple.security.network.client' \
+            || { echo "ERROR: network.client entitlement missing from the signed bundle" >&2; exit 1; }
+          ditto -c -k --sequesterRsrc --keepParent "$app" OlympusView-macOS.zip
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-macos
+          path: OlympusView-macOS.zip
+          if-no-files-found: error
+
   web:
     name: Build Web ZIP
     needs: quality
@@ -310,7 +364,7 @@ jobs:
 
   publish:
     name: Publish GitHub Release
-    needs: [android, windows, web]
+    needs: [android, windows, macos, web]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout release tag
@@ -328,6 +382,12 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: release-windows
+          path: dist
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: release-macos
           path: dist
 
       - name: Download Web artifact
@@ -362,6 +422,7 @@ jobs:
               OlympusView-Android.apk \
               OlympusView-Android.aab \
               OlympusView-Windows.zip \
+              OlympusView-macOS.zip \
               OlympusView-Web.zip \
               > SHA256SUMS.txt
           )
@@ -382,6 +443,7 @@ jobs:
             dist/OlympusView-Android.apk \
             dist/OlympusView-Android.aab \
             dist/OlympusView-Windows.zip \
+            dist/OlympusView-macOS.zip \
             dist/OlympusView-Web.zip \
             dist/SHA256SUMS.txt \
             --repo "$GITHUB_REPOSITORY" \

@@ -1,6 +1,6 @@
 # Olympus View — файловый менеджер WiFi для камер Olympus и OM System
 
-> Olympus View позволяет просматривать, скачивать и удалять фотографии и видео на совместимых камерах Olympus и OM System через локальную WiFi-сеть камеры. Это неофициальная кроссплатформенная альтернатива OI.Share для Android, Windows и Web.
+> Olympus View позволяет просматривать, скачивать и удалять фотографии и видео на совместимых камерах Olympus и OM System через локальную WiFi-сеть камеры. Это неофициальная кроссплатформенная альтернатива OI.Share для Android, Windows, macOS и Web.
 
 **Текущая Android-версия:** v1.3.13+22 — 28 сентября 2026  
 **Исходный код:** https://github.com/dpolarov/olympus-view-and-delete  
@@ -25,7 +25,7 @@ Olympus View не связан с OM Digital Solutions, Olympus Corporation ил
 - Постоянный дисковый кэш превью до 1000 записей.
 - Видео на Android сохраняется через `MediaStore.Video` с корректным MIME-типом.
 - QR-подключение на Android с поддержкой форматов OIS1 и OIS3.
-- Работа на Android, Windows и в браузере.
+- Работа на Android, Windows, macOS и в браузере.
 
 ## Поддерживаемые камеры
 
@@ -51,7 +51,7 @@ Olympus View не связан с OM Digital Solutions, Olympus Corporation ил
 
 1. Включите WiFi на камере Olympus / OM System.
 2. На Android откройте Olympus View и отсканируйте QR-код с экрана камеры.
-3. На Windows/Web подключите компьютер к WiFi-сети камеры и откройте Olympus View.
+3. На Windows/macOS/Web подключите компьютер к WiFi-сети камеры и откройте Olympus View.
 4. Дождитесь загрузки списка файлов и миниатюр.
 5. Долгим нажатием на файл войдите в режим выбора.
 6. Используйте выбор по дате или кнопку **«Выделить скачанные»**.
@@ -71,6 +71,13 @@ https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/Oly
 Последняя portable-сборка Windows x64:
 
 https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Windows.zip
+
+### macOS
+
+Последняя сборка macOS arm64. Распакуйте архив, перенесите Olympus View в Applications
+и подключите компьютер к WiFi камеры перед запуском.
+
+https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-macOS.zip
 
 ### Web
 

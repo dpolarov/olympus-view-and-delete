@@ -227,6 +227,74 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  macos:
+    name: macOS arm64
+    needs: quality
+    runs-on: macos-26
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify lock file is synchronized
+        run: git diff --exit-code -- pubspec.lock
+
+      - name: Prepare build metadata
+        shell: bash
+        run: |
+          echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+          echo "BUILD_GIT_COMMIT=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_ENV"
+
+      - name: Build macOS release
+        run: >-
+          flutter build macos --release
+          --dart-define=OLYMPUS_BUILD_TIME_UTC=${BUILD_TIME_UTC}
+          --dart-define=OLYMPUS_GIT_COMMIT=${BUILD_GIT_COMMIT}
+          --dart-define=OLYMPUS_FLUTTER_VERSION=${FLUTTER_VERSION}
+
+      - name: Verify macOS app bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="build/macos/Build/Products/Release/olympus_tg6_manager.app"
+          test -d "$app" || { echo "app bundle not found: $app" >&2; exit 1; }
+          test -x "$app/Contents/MacOS/olympus_tg6_manager"
+          du -sh "$app"
+          codesign -d --entitlements - --xml "$app" 2>/dev/null \
+            | plutil -convert xml1 -o - - \
+            | grep -q 'com.apple.security.network.client' \
+            || { echo "ERROR: network.client entitlement missing from the signed bundle" >&2; exit 1; }
+          echo "network.client entitlement present."
+
+      - name: Package macOS ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/macos/Build/Products/Release/olympus_tg6_manager.app \
+            OlympusView-macOS.zip
+
+      - name: Upload macOS output
+        uses: actions/upload-artifact@v6
+        with:
+          name: OlympusView-macOS
+          path: OlympusView-macOS.zip
+          if-no-files-found: error
+          retention-days: 14
+
   web:
     name: Web
     needs: quality

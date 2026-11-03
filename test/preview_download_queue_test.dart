@@ -38,7 +38,7 @@ void main() {
     final started = <String>[];
     var sounds = 0;
     final queue = PreviewDownloadQueue(
-      onQueueFinished: () async => sounds++,
+      onQueueFinished: () async { sounds++; },
       downloadAndSave: (file) async {
       started.add(file.filename);
       if (file.filename == 'A.JPG') {

@@ -122,6 +122,8 @@ void main() {
         switch (call.method) {
           case 'getDownloadedKeys':
             return <String>[];
+          case 'markDownloaded':
+            return null;
           default:
             return false; // isRunning -> no downloads active
         }

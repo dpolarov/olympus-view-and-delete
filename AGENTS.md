@@ -152,6 +152,7 @@ Use one release path only. Do not add one-off release workflows, temporary relea
 For **every release**:
 - Bump the application version/build in `pubspec.yaml` and `lib/version.dart`.
 - Add the new release section to `CHANGELOG.md`.
+- Update `docs/current-release.html` (RELEASE_VERSION, RELEASE_DATE, and all three localized release fragments). `.github/workflows/pages.yml` checks this file against `pubspec.yaml` and `CHANGELOG.md`, then injects the fragments into the live HTML changelogs. Do not duplicate the latest release by manually adding the same version to `docs/index.html`.
 - Update the public website release information and changelog in `docs/index.html`, `docs/index.md`, `docs/index.ru.md`, and `docs/index.uk.md`.
 - Update the changelog shown inside the application About dialog so it describes the same release changes as `CHANGELOG.md` and the website. Do not leave a generic feature list under a release-version heading.
 - Update `docs/llms.txt` so its current stable version and release summary match the new release.

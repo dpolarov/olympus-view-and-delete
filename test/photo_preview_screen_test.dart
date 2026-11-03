@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart'
@@ -12,6 +13,7 @@ import 'package:olympus_tg6_manager/screens/photo_preview_screen.dart';
 import 'package:olympus_tg6_manager/services/camera_api.dart';
 import 'package:olympus_tg6_manager/services/download_history.dart';
 import 'package:olympus_tg6_manager/services/image_cache.dart';
+import 'package:olympus_tg6_manager/services/preview_download_queue.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -77,6 +79,7 @@ Future<void> _pumpPreview(
   required int initialIndex,
   required CameraApi api,
   http.Client? httpClient,
+  PreviewDownloadQueue? downloadQueue,
 }) async {
   await tester.pumpWidget(MaterialApp(
     home: PhotoPreviewScreen(
@@ -85,6 +88,7 @@ Future<void> _pumpPreview(
       initialIndex: initialIndex,
       api: api,
       httpClient: httpClient ?? _makeMockClient(),
+      downloadQueue: downloadQueue,
     ),
   ));
   await tester.pump();
@@ -297,6 +301,60 @@ void main() {
     expect(api.deletedPaths, isEmpty);
     expect(find.text('A.JPG'), findsOneWidget);
     expect(find.text('1/2'), findsOneWidget);
+  });
+
+  testWidgets('downloads are queued across swipes and survive closing preview',
+      (tester) async {
+    final files = [_file('A.JPG'), _file('B.JPG')];
+    final finishA = Completer<void>();
+    final finishB = Completer<void>();
+    final started = <String>[];
+    final queue = PreviewDownloadQueue(downloadAndSave: (file) async {
+      started.add(file.filename);
+      if (file.filename == 'A.JPG') {
+        await finishA.future;
+      } else {
+        await finishB.future;
+      }
+    });
+    await _pumpPreview(
+      tester,
+      files: files,
+      initialIndex: 0,
+      api: _FakeApi(),
+      httpClient: _makeJpegClient(),
+      downloadQueue: queue,
+    );
+
+    await tester.tap(find.byTooltip('Download'));
+    await tester.pump();
+    expect(started, ['A.JPG']);
+    expect(queue.isQueued(files[0]), isTrue);
+
+    final controller =
+        tester.widget<PageView>(find.byType(PageView)).controller!;
+    controller.jumpToPage(1);
+    await tester.pump();
+    await tester.tap(find.byTooltip('Download'));
+    await tester.pump();
+
+    expect(queue.queuedCount, 2);
+    expect(started, ['A.JPG']);
+    expect(queue.isQueued(files[1]), isTrue);
+
+    // Closing the preview must not dispose the queue or its active download.
+    await tester.pumpWidget(const MaterialApp(home: Scaffold()));
+    finishA.complete();
+    await tester.pump();
+    await tester.pump();
+    expect(started, ['A.JPG', 'B.JPG']);
+
+    finishB.complete();
+    await tester.pump();
+    await tester.pump();
+    await queue.whenIdle();
+    expect(queue.isBusy, isFalse);
+    expect(queue.completedKeys, containsAll(files.map((f) => f.downloadHistoryKey)));
   });
 
   testWidgets('downloaded file shows download-done marker in preview',

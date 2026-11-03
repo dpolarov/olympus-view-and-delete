@@ -27,11 +27,15 @@ void main() {
   testWidgets('overall progress updates as files finish', (tester) async {
     final first = Completer<void>();
     final second = Completer<void>();
+    final secondStarted = Completer<void>();
     var soundCount = 0;
     final queue = PreviewDownloadQueue(
       onQueueFinished: () async { soundCount++; },
-      downloadAndSave: (file) =>
-          file.filename == 'A.JPG' ? first.future : second.future,
+      downloadAndSave: (file) {
+        if (file.filename == 'A.JPG') return first.future;
+        secondStarted.complete();
+        return second.future;
+      },
     );
 
     queue.enqueue(_file('A.JPG'));
@@ -45,7 +49,7 @@ void main() {
       find.byType(LinearProgressIndicator)).value, 0);
 
     first.complete();
-    await tester.pump();
+    await secondStarted.future;
     await tester.pump();
     expect(find.text('Downloads: 1 of 2 · 1 remaining'), findsOneWidget);
     expect(find.text('Now: B.JPG'), findsOneWidget);

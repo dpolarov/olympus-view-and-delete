@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:olympus_tg6_manager/services/camera_api.dart';
 import 'package:olympus_tg6_manager/services/preview_download_queue.dart';
@@ -22,6 +23,23 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('com.flynew.photomanager/background_download'),
+      (call) async {
+        if (call.method == 'markDownloaded') return null;
+        if (call.method == 'getDownloadedKeys') return <String>[];
+        return false;
+      },
+    );
+  });
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('com.flynew.photomanager/background_download'),
+      null,
+    );
   });
 
   testWidgets('overall progress updates as files finish', (tester) async {

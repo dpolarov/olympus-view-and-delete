@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart'
-    show TargetPlatform, debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:olympus_tg6_manager/services/camera_api.dart';
@@ -23,12 +21,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
-    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
     SharedPreferences.setMockInitialValues({});
-  });
-
-  tearDown(() {
-    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('overall progress updates as files finish', (tester) async {

@@ -28,6 +28,7 @@ import '../widgets/delete_progress_dialog.dart';
 import '../widgets/diagnostics_info_action.dart';
 import '../widgets/download_progress_dialog.dart';
 import '../widgets/photo_grid.dart';
+import '../widgets/preview_download_progress.dart';
 import 'debug_info_screen.dart';
 import 'photo_preview_screen.dart';
 import 'qr_scan_screen.dart';
@@ -1591,6 +1592,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       body: Column(
         children: [
+          const PreviewDownloadProgress(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             color: const Color(0xFF1A1A2E),

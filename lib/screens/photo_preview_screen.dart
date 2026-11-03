@@ -15,6 +15,7 @@ import '../services/preview_download_queue.dart';
 import '../services/preview_preload_plan.dart';
 import '../services/service_config.dart';
 import '../services/thumbnail_manager.dart';
+import '../widgets/preview_download_progress.dart';
 
 /// Full-screen photo preview prefers the camera's screennail image and falls
 /// back to a 1920 px resize request when screennail is unavailable.
@@ -536,6 +537,10 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
             ],
             const SizedBox(width: 4),
           ],
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: PreviewDownloadProgress(queue: _downloadQueue),
         ),
         body: PageView.builder(
           controller: _pageController,

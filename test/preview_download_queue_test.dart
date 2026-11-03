@@ -36,7 +36,10 @@ void main() {
     final firstGate = Completer<void>();
     final secondStarted = Completer<void>();
     final started = <String>[];
-    final queue = PreviewDownloadQueue(downloadAndSave: (file) async {
+    var sounds = 0;
+    final queue = PreviewDownloadQueue(
+      onQueueFinished: () async { sounds++; },
+      downloadAndSave: (file) async {
       started.add(file.filename);
       if (file.filename == 'A.JPG') {
         await firstGate.future;
@@ -49,12 +52,23 @@ void main() {
     expect(queue.enqueue(second), isTrue);
     expect(queue.enqueue(first), isFalse);
     expect(queue.queuedCount, 2);
+    expect(queue.totalCount, 2);
+    expect(queue.finishedCount, 0);
+    expect(queue.activeFilename, 'A.JPG');
+    expect(queue.progress, 0);
     expect(started, ['A.JPG']);
 
     firstGate.complete();
     await secondStarted.future;
+    expect(queue.finishedCount, 1);
+    expect(queue.progress, 0.5);
     await queue.whenIdle();
 
+    expect(sounds, 1);
+    expect(queue.totalCount, 2);
+    expect(queue.finishedCount, 2);
+    expect(queue.failedCount, 0);
+    expect(queue.progress, 1);
     expect(started, ['A.JPG', 'B.JPG']);
     expect(queue.isBusy, isFalse);
     expect(queue.completedKeys, containsAll([
@@ -85,6 +99,9 @@ void main() {
 
     expect(started, ['FAIL.JPG', 'OK.JPG']);
     expect(queue.errorFor(first), contains('camera disconnected'));
+    expect(queue.totalCount, 2);
+    expect(queue.finishedCount, 2);
+    expect(queue.failedCount, 1);
     expect(queue.completedKeys, contains(second.downloadHistoryKey));
     expect(queue.completedKeys, isNot(contains(first.downloadHistoryKey)));
 
@@ -92,6 +109,9 @@ void main() {
     expect(queue.enqueue(first), isTrue);
     await queue.whenIdle();
     expect(queue.errorFor(first), isNull);
+    expect(queue.totalCount, 1);
+    expect(queue.finishedCount, 1);
+    expect(queue.failedCount, 0);
     expect(queue.completedKeys, contains(first.downloadHistoryKey));
   });
 }

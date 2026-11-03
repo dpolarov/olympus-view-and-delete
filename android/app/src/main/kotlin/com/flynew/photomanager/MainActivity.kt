@@ -9,6 +9,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.media.MediaScannerConnection
+import android.media.RingtoneManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -96,6 +97,21 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     }
                     "isRunning" -> result.success(BackgroundDownloadService.isRunning)
+                    "playCompletionSound" -> {
+                        try {
+                            val ringtoneUri = RingtoneManager.getDefaultUri(
+                                RingtoneManager.TYPE_NOTIFICATION,
+                            )
+                            RingtoneManager.getRingtone(this, ringtoneUri)?.play()
+                            result.success(null)
+                        } catch (error: Exception) {
+                            result.error(
+                                "completion_sound_failed",
+                                error.message ?: "Could not play notification sound",
+                                null,
+                            )
+                        }
+                    }
                     "start" -> {
                         if (BackgroundDownloadService.isRunning) {
                             result.error(

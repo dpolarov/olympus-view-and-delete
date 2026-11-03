@@ -104,7 +104,7 @@ class PreviewDownloadQueue extends ChangeNotifier {
     _idleCompleter = null;
     try {
       await _onQueueFinished();
-    } catch (error, stackTrace) {
+    } catch (error) {
       AppLogger.debug(
         'download completion sound unavailable: $error',
         name: 'preview_download_queue',

@@ -799,27 +799,30 @@ class _HomeScreenState extends State<HomeScreen>
             'This is an unofficial app, not affiliated with or endorsed by '
             'OM Digital Solutions.';
     final changelog = _localizedText(
-      en: '• Video files stay visible independently of the RAW/JPG photo filter\n'
-          '• Movie grid previews now use high-quality screennail first frames\n'
-          '• Video previews and thumbnail fallbacks are persistently cached\n'
-          '• Preview loading survives Android background and Wi-Fi changes\n'
-          '• Android movie downloads use MediaStore.Video with correct MIME types\n'
-          '• Successful background video downloads reliably receive green markers\n'
-          '• Persistent preview cache increased to 1000 entries',
-      ru: '• Видео остаётся видимым независимо от фильтра RAW/JPG для фотографий\n'
-          '• Превью видео в сетке используют качественный первый кадр screennail\n'
-          '• Превью видео и запасные thumbnail сохраняются в постоянном кэше\n'
-          '• Загрузка превью восстанавливается после фона и переключения Wi-Fi\n'
-          '• Видео на Android сохраняется через MediaStore.Video с правильным MIME\n'
-          '• Успешно скачанное в фоне видео надёжно получает зелёную метку\n'
-          '• Постоянный кэш превью увеличен до 1000 записей',
-      uk: '• Відео залишається видимим незалежно від фільтра RAW/JPG для фото\n'
-          '• Превʼю відео в сітці використовують якісний перший кадр screennail\n'
-          '• Превʼю відео та запасні thumbnail зберігаються в постійному кеші\n'
-          '• Завантаження превʼю відновлюється після фону та перемикання Wi-Fi\n'
-          '• Відео на Android зберігається через MediaStore.Video з правильним MIME\n'
-          '• Успішно завантажене у фоні відео надійно отримує зелену позначку\n'
-          '• Постійний кеш превʼю збільшено до 1000 записів',
+      en: '• Download requests in full-screen preview are queued in FIFO order\n'
+          '• Swiping or leaving preview no longer cancels queued downloads\n'
+          '• Repeated Download taps do not duplicate an in-progress file\n'
+          '• Overall progress shows completed/total, remaining and current file\n'
+          '• Queue progress and failures remain visible in the main gallery\n'
+          '• Failed downloads can be retried without stopping later files\n'
+          '• Android plays one default notification sound when the queue ends\n'
+          '• Progress is per completed file; force-closing the app stops the queue',
+      ru: '• Загрузки из просмотра идут по очереди, в порядке нажатий\n'
+          '• Перелистывание и выход из просмотра не отменяют очередь\n'
+          '• Повторное нажатие Download не создаёт дубликат задания\n'
+          '• Общий прогресс: скачано/всего, осталось и текущий файл\n'
+          '• Прогресс и ошибки видны также в основной галерее\n'
+          '• Ошибочный файл можно повторить, остальные продолжат скачиваться\n'
+          '• Android подаёт один системный звук после завершения очереди\n'
+          '• Прогресс по файлам; принудительное закрытие прерывает очередь',
+      uk: '• Завантаження з перегляду йдуть у черзі в порядку натискань\n'
+          '• Гортання та вихід із перегляду не скасовують чергу\n'
+          '• Повторне натискання Download не дублює завдання\n'
+          '• Загальний прогрес: завершено/всього, залишилось і поточний файл\n'
+          '• Прогрес і помилки видно також в основній галереї\n'
+          '• Невдалий файл можна повторити, решта завантажуються далі\n'
+          '• Android відтворює один системний звук після завершення черги\n'
+          '• Прогрес за файлами; примусове закриття перериває чергу',
     );
     showAboutDialog(
       context: context,

@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.3.14] - 2026-11-03
+
+### Added
+- **FIFO download queue in full-screen photo preview**: tapping Download for another file no longer cancels an unfinished transfer. Every newly requested file is added to the same sequential queue in the order selected.
+- **Downloads survive swiping and leaving the preview screen** as long as the application process remains running. Repeated taps on a file already in progress or waiting do not add duplicates.
+- **Queue-wide progress indicator** on both the photo preview and gallery home screen: finished / total files, remaining count, active filename, and failed-file count with a progress bar. Progress is based on completed files, not transferred bytes.
+- **Android completion sound**: the phone's default notification tone plays once when the entire preview download queue finishes, respecting device sound settings. No per-file sound and no sound on other platforms.
+
+### Fixed
+- Queued downloads continue after an individual file fails; failures are displayed and failed files can be requested again.
+- Downloaded markers update when queued transfers finish, including after returning to the main gallery.
+
+### Notes
+- The preview queue is app-scoped, not a persistent Android background service: force-closing the app can interrupt pending transfers. Existing Android batch-background downloads are separate.
+- Version set to **1.3.14+23**.
+- Direct APK users on **v1.3.6 or newer** can update normally through the built-in updater, using the existing production signing identity.
+
 ## [1.3.13] - 2026-09-28
 
 This is the first public release after **v1.3.11**. It includes the v1.3.12 development changes plus the video preview/download fixes completed for v1.3.13.

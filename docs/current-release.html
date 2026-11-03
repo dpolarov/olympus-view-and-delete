@@ -3,62 +3,53 @@
 <head><meta charset="UTF-8"><title>Olympus View current release fragments</title></head>
 <body>
 <!-- Current release fragments injected into docs/index.html by pages.yml. -->
-<!-- RELEASE_VERSION:1.3.13 -->
-<!-- RELEASE_DATE:2026-09-28 -->
+<!-- RELEASE_VERSION:1.3.14 -->
+<!-- RELEASE_DATE:2026-11-03 -->
 
 <!-- RELEASE_EN_BEGIN -->
-        <div class="changelog-version">
-            <h3>v1.3.13 — September 28, 2026</h3>
-            <h4>Video previews, persistent cache &amp; reliable Android video downloads</h4>
+<div class="changelog-version">
+            <h3>v1.3.14 — November 3, 2026 (prepared)</h3>
+            <h4>Sequential preview downloads, overall progress and completion tone</h4>
             <ul>
-                <li><strong>First public release after v1.3.11</strong> — includes the v1.3.12 development changes plus the final video fixes completed for v1.3.13.</li>
-                <li>Camera videos (MOV, MP4, M4V, AVI, MTS and M2TS) remain visible independently of the RAW/JPG still-photo filter.</li>
-                <li><strong>Higher-quality movie previews</strong> use the camera's <code>get_screennail.cgi</code> first-frame JPEG instead of stretching the small thumbnail whenever possible.</li>
-                <li>Movie screennails and the low-resolution thumbnail fallback are <strong>persistently cached</strong>, so video previews are not downloaded again on every gallery visit.</li>
-                <li>Preview requests survive Android background/Wi-Fi changes and retry interrupted camera requests instead of leaving broken tiles.</li>
-                <li>The persistent preview cache now keeps up to <strong>1000 entries</strong>.</li>
-                <li>Foreground and background movie downloads on Android use <strong>MediaStore.Video with the correct MIME type</strong>.</li>
-                <li>Background download history is committed before completion and refreshed once more in the UI, so successful videos — including the last item in a batch — receive the persistent green downloaded marker.</li>
-                <li>Build stack: Flutter 3.47.5 / Dart 3.13, Gradle 9.3.1, AGP 9.1.1, Kotlin 2.4.20, Java/Kotlin 17, compileSdk 37 and targetSdk 36.</li>
-                <li>Version: <strong>1.3.13+22</strong>.</li>
+                <li><strong>FIFO download queue:</strong> Download on another photo/video no longer cancels a running transfer; files download in selection order.</li>
+                <li>Swiping photos or leaving the viewer keeps queued transfers running while the app remains open; repeated taps do not duplicate active entries.</li>
+                <li><strong>Overall queue progress</strong> in the viewer and gallery shows finished/total, remaining files, current filename, failures and a file-count progress bar (not byte progress).</li>
+                <li><strong>Android plays one system notification tone</strong> when the full preview queue ends, following the phone's sound settings.</li>
+                <li>Failed files can be retried without stopping other queued transfers; downloaded markers update in the gallery.</li>
+                <li>The viewer queue is not persistent after force-closing the application; background batch downloads use a separate Android service.</li>
+                <li>Version: <strong>1.3.14+23</strong>. Publication follows the signed GitHub release workflow.</li>
             </ul>
         </div>
 <!-- RELEASE_EN_END -->
 
 <!-- RELEASE_RU_BEGIN -->
-        <div class="changelog-version">
-            <h3>v1.3.13 — 28 сентября 2026</h3>
-            <h4>Превью видео, постоянный кэш и надёжное скачивание видео на Android</h4>
+<div class="changelog-version">
+            <h3>v1.3.14 — 3 ноября 2026 (подготовлена)</h3>
+            <h4>Очередь загрузок из просмотра, общий прогресс и звуковой сигнал</h4>
             <ul>
-                <li><strong>Первый публичный релиз после v1.3.11</strong> — включает изменения v1.3.12 и финальные исправления видео, завершённые в v1.3.13.</li>
-                <li>Видео с камеры (MOV, MP4, M4V, AVI, MTS и M2TS) остаётся видимым независимо от RAW/JPG-фильтра фотографий.</li>
-                <li><strong>Более качественные превью видео</strong> используют первый JPEG-кадр <code>get_screennail.cgi</code> вместо растягивания маленькой thumbnail, когда камера это поддерживает.</li>
-                <li>Screennail видео и запасная маленькая thumbnail <strong>сохраняются в постоянном кэше</strong>, поэтому превью не перекачиваются при каждом открытии галереи.</li>
-                <li>Запросы превью восстанавливаются после ухода Android в фон и переключения Wi-Fi; прерванные запросы повторяются вместо broken-image плиток.</li>
-                <li>Постоянный кэш превью увеличен до <strong>1000 записей</strong>.</li>
-                <li>Обычное и фоновое скачивание видео на Android использует <strong>MediaStore.Video с правильным MIME-типом</strong>.</li>
-                <li>История фоновых загрузок записывается до завершения worker и затем ещё раз обновляется в UI, поэтому успешно скачанное видео, включая последний файл в пачке, получает постоянную зелёную метку.</li>
-                <li>Build stack: Flutter 3.47.5 / Dart 3.13, Gradle 9.3.1, AGP 9.1.1, Kotlin 2.4.20, Java/Kotlin 17, compileSdk 37, targetSdk 36.</li>
-                <li>Версия: <strong>1.3.13+22</strong>.</li>
+                <li><strong>Очередь FIFO:</strong> Download для следующего фото или видео не отменяет текущую загрузку; файлы скачиваются в порядке добавления.</li>
+                <li>Перелистывание и выход из просмотра не прерывают очередь, пока приложение работает; повторные нажатия не добавляют дубликаты.</li>
+                <li><strong>Общий прогресс</strong> в просмотре и галерее: скачано/всего, осталось, текущий файл, ошибки и полоса прогресса (по файлам, не по байтам).</li>
+                <li><strong>Один системный звук Android</strong> после завершения всей очереди, с учётом настроек телефона.</li>
+                <li>Ошибочные файлы можно повторить, не останавливая остальные загрузки; зелёные отметки обновляются в галерее.</li>
+                <li>Очередь просмотра не переживает принудительное закрытие приложения; пакетная фоновая загрузка Android работает отдельно.</li>
+                <li>Версия: <strong>1.3.14+23</strong>. Публикация через существующий подписанный GitHub Release.</li>
             </ul>
         </div>
 <!-- RELEASE_RU_END -->
 
 <!-- RELEASE_UK_BEGIN -->
-        <div class="changelog-version">
-            <h3>v1.3.13 — 28 вересня 2026</h3>
-            <h4>Превʼю відео, постійний кеш і надійне завантаження відео на Android</h4>
+<div class="changelog-version">
+            <h3>v1.3.14 — 3 листопада 2026 (підготовлена)</h3>
+            <h4>Черга завантажень із перегляду, загальний прогрес і звуковий сигнал</h4>
             <ul>
-                <li><strong>Перший публічний реліз після v1.3.11</strong> — містить зміни v1.3.12 і фінальні виправлення відео, завершені у v1.3.13.</li>
-                <li>Відео з камери (MOV, MP4, M4V, AVI, MTS і M2TS) залишається видимим незалежно від RAW/JPG-фільтра фотографій.</li>
-                <li><strong>Якісніші превʼю відео</strong> використовують перший JPEG-кадр <code>get_screennail.cgi</code> замість розтягування малої thumbnail, коли камера це підтримує.</li>
-                <li>Screennail відео та резервна мала thumbnail <strong>зберігаються у постійному кеші</strong>, тому превʼю не завантажуються заново при кожному відкритті галереї.</li>
-                <li>Запити превʼю відновлюються після переходу Android у фон і перемикання Wi-Fi; перервані запити повторюються замість broken-image плиток.</li>
-                <li>Постійний кеш превʼю збільшено до <strong>1000 записів</strong>.</li>
-                <li>Звичайне та фонове завантаження відео на Android використовує <strong>MediaStore.Video з правильним MIME-типом</strong>.</li>
-                <li>Історія фонових завантажень записується до завершення worker і потім ще раз оновлюється в UI, тому успішно завантажене відео, включно з останнім файлом у пакеті, отримує постійну зелену позначку.</li>
-                <li>Build stack: Flutter 3.47.5 / Dart 3.13, Gradle 9.3.1, AGP 9.1.1, Kotlin 2.4.20, Java/Kotlin 17, compileSdk 37, targetSdk 36.</li>
-                <li>Версія: <strong>1.3.13+22</strong>.</li>
+                <li><strong>Черга FIFO:</strong> Download для наступного фото чи відео не скасовує поточне завантаження; файли завантажуються в порядку додавання.</li>
+                <li>Гортання та вихід із перегляду не переривають чергу, доки застосунок працює; повторні натискання не додають дублікатів.</li>
+                <li><strong>Загальний прогрес</strong> у перегляді та галереї: завершено/всього, залишилось, поточний файл, помилки та смуга прогресу (за файлами, не за байтами).</li>
+                <li><strong>Один системний звук Android</strong> після завершення всієї черги, з урахуванням налаштувань телефону.</li>
+                <li>Невдалі файли можна повторити без зупинки інших завантажень; зелені позначки оновлюються в галереї.</li>
+                <li>Черга перегляду не переживає примусового закриття застосунку; фонове пакетне завантаження Android працює окремо.</li>
+                <li>Версія: <strong>1.3.14+23</strong>. Публікація через наявний підписаний GitHub Release.</li>
             </ul>
         </div>
 <!-- RELEASE_UK_END -->

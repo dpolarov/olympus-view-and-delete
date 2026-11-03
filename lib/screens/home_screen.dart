@@ -20,6 +20,7 @@ import '../services/download_history.dart';
 import '../services/file_saver.dart' as file_saver;
 import '../services/file_type_filter.dart';
 import '../services/locale_controller.dart';
+import '../services/preview_download_queue.dart';
 import '../services/thumbnail_manager.dart';
 import '../version.dart';
 import '../widgets/date_filter_sheet.dart';
@@ -82,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    PreviewDownloadQueue.instance.addListener(_onPreviewDownloadsChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_startApp());
     });
@@ -90,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    PreviewDownloadQueue.instance.removeListener(_onPreviewDownloadsChanged);
     _downloadPollTimer?.cancel();
     _appUpdatePollTimer?.cancel();
     _batchFlushTimer?.cancel();
@@ -138,10 +141,20 @@ class _HomeScreenState extends State<HomeScreen>
     if (mounted) unawaited(_initLoad());
   }
 
+  void _onPreviewDownloadsChanged() {
+    if (!mounted) return;
+    setState(() {
+      _downloadedKeys.addAll(PreviewDownloadQueue.instance.completedKeys);
+    });
+  }
+
   Future<void> _refreshDownloadedHistory() async {
     final keys = await DownloadHistory.load();
     if (!mounted) return;
-    setState(() => _downloadedKeys = keys);
+    setState(() => _downloadedKeys = {
+          ...keys,
+          ...PreviewDownloadQueue.instance.completedKeys,
+        });
   }
 
   Future<void> _loadFileTypeFilter() async {

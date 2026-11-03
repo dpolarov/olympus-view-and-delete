@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -11,8 +10,8 @@ import '../services/background_download_service.dart';
 import '../services/camera_api.dart';
 import '../services/camera_image_validator.dart';
 import '../services/download_history.dart';
-import '../services/file_saver.dart' as file_saver;
 import '../services/image_cache.dart';
+import '../services/preview_download_queue.dart';
 import '../services/preview_preload_plan.dart';
 import '../services/service_config.dart';
 import '../services/thumbnail_manager.dart';
@@ -25,6 +24,7 @@ class PhotoPreviewScreen extends StatefulWidget {
   final int initialIndex;
   final CameraApi? api;
   final http.Client? httpClient;
+  final PreviewDownloadQueue? downloadQueue;
 
   const PhotoPreviewScreen({
     super.key,
@@ -33,6 +33,7 @@ class PhotoPreviewScreen extends StatefulWidget {
     required this.initialIndex,
     this.api,
     this.httpClient,
+    this.downloadQueue,
   });
 
   @override
@@ -43,7 +44,6 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   static const int _keepNeighbors = kPreviewKeepNeighbors;
   static const int _maxPreviewAttempts = 3;
   static const int _priorityVisiblePreview = 0;
-  static const int _priorityDownload = 1;
   static const int _priorityNeighborPreload = 2;
 
   late PageController _pageController;
@@ -58,6 +58,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   late final bool _ownsClient;
   late final CameraApi _api;
   final _PreviewCameraQueue _cameraQueue = _PreviewCameraQueue();
+  late final PreviewDownloadQueue _downloadQueue;
   late final bool _ownsApi;
   bool _busy = false;
   int _preloadGeneration = 0;
@@ -68,6 +69,8 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
     super.initState();
     _ownsApi = widget.api == null;
     _api = widget.api ?? CameraApi();
+    _downloadQueue = widget.downloadQueue ?? PreviewDownloadQueue.instance;
+    _downloadQueue.addListener(_onDownloadsChanged);
     _ownsClient = widget.httpClient == null;
     _client = widget.httpClient ?? http.Client();
     _files = List.of(widget.files);
@@ -80,12 +83,18 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
 
   @override
   void dispose() {
+    _downloadQueue.removeListener(_onDownloadsChanged);
     _cameraQueue.dispose();
     ThumbnailManager.instance.resumeNetwork();
     _pageController.dispose();
     if (_ownsClient) _client.close();
     if (_ownsApi) _api.dispose();
     super.dispose();
+  }
+
+  void _onDownloadsChanged() {
+    if (!mounted) return;
+    setState(() => _downloadedKeys.addAll(_downloadQueue.completedKeys));
   }
 
   String _cacheKey(CameraFile file) => file.downloadHistoryKey;
@@ -96,7 +105,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   Future<void> _refreshDownloadedHistory() async {
     final keys = await DownloadHistory.load();
     if (!mounted) return;
-    setState(() => _downloadedKeys = keys);
+    setState(() => _downloadedKeys = {...keys, ..._downloadQueue.completedKeys});
   }
 
   void _loadAround(int index) {
@@ -122,7 +131,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       generation == _preloadGeneration;
 
   Future<bool> _downloadsAreRunning() async {
-    if (_busy) return true;
+    if (_busy || _downloadQueue.isBusy) return true;
     try {
       return await BackgroundDownloadService.isRunning();
     } catch (e) {
@@ -130,7 +139,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
         'background download state unavailable: $e',
         name: 'photo_preview',
       );
-      return _busy;
+      return _busy || _downloadQueue.isBusy;
     }
   }
 
@@ -203,65 +212,13 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
     _imageCache.removeWhere((k, _) => !keep.contains(k));
   }
 
-  Future<void> _downloadCurrent() async {
+  void _downloadCurrent() {
     final file = _files[_currentIndex];
-    final key = _cacheKey(file);
-    setState(() => _busy = true);
-    try {
-      // Highest priority is always the image the user is currently waiting to
-      // see. If it is still pending, finish/promote it before starting the full
-      // file download. Downloads then run ahead of all neighbor preloads.
-      await _loadImage(
-        _currentIndex,
-        priority: _priorityVisiblePreview,
-      );
+    if (!_downloadQueue.enqueue(file)) return;
 
-      final bytes = await _cameraQueue.schedule(
-        key: 'download:$key',
-        priority: _priorityDownload,
-        run: () async => Uint8List.fromList(await _api.downloadFile(file)),
-      );
-      if (bytes == null) throw StateError('Camera returned no file data');
-
-      final saveDirPath = kIsWeb ? null : await file_saver.getSaveDirectory();
-      await file_saver.saveFileToDevice(file.filename, bytes, saveDirPath);
-      await DownloadHistory.mark(file.downloadHistoryKey);
-      if (!mounted) return;
-
-      setState(() {
-        _downloadedKeys.add(key);
-        _loading.remove(key);
-        _error.remove(key);
-        if (isCompleteCameraJpeg(bytes)) {
-          // The downloaded original is also a valid full-screen preview. Reuse
-          // it immediately rather than leaving a failed preview request spinning.
-          _imageCache[key] = bytes;
-        }
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${AppStrings.download}: ${file.filename}')),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _loading.remove(key);
-        _error.remove(key);
-      });
-      unawaited(_loadImage(
-        _currentIndex,
-        priority: _priorityVisiblePreview,
-      ));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${AppStrings.download} failed: $e')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _busy = false);
-        // Restart deterministic right-first neighbor preloading after the
-        // foreground download completes. Cached neighbors are skipped cheaply.
-        _loadAround(_currentIndex);
-      }
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Queued for download: ${file.filename}')),
+    );
   }
 
   Future<void> _deleteCurrent() async {
@@ -496,7 +453,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
 
   void _onPageChanged(int index) {
     setState(() => _currentIndex = index);
-    // Promote the newly visible item over queued downloads/preloads.
+    // Promote the newly visible preview over pending neighbor preloads.
     _loadAround(index);
     unawaited(_refreshDownloadedHistory());
   }
@@ -507,6 +464,8 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       return const Scaffold(backgroundColor: Colors.black);
     }
     final file = _files[_currentIndex];
+    final queued = _downloadQueue.isQueued(file);
+    final downloadError = _downloadQueue.errorFor(file);
     return PopScope(
       canPop: !_busy,
       onPopInvokedWithResult: (didPop, _) {
@@ -551,15 +510,23 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
             else ...[
               IconButton(
                 icon: Icon(
-                  _isDownloaded(file)
-                      ? Icons.download_done
-                      : Icons.download,
-                  color: kAccentColor,
+                  queued
+                      ? Icons.hourglass_top
+                      : downloadError != null
+                          ? Icons.error_outline
+                          : _isDownloaded(file)
+                              ? Icons.download_done
+                              : Icons.download,
+                  color: downloadError != null ? kErrorColor : kAccentColor,
                 ),
-                tooltip: _isDownloaded(file)
-                    ? 'Already downloaded · tap to download again'
-                    : AppStrings.downloadTooltip,
-                onPressed: _downloadCurrent,
+                tooltip: queued
+                    ? 'Queued for download'
+                    : downloadError != null
+                        ? 'Download failed: $downloadError · tap to retry'
+                        : _isDownloaded(file)
+                            ? 'Already downloaded · tap to download again'
+                            : AppStrings.downloadTooltip,
+                onPressed: queued ? null : _downloadCurrent,
               ),
               IconButton(
                 icon: const Icon(Icons.delete, color: kErrorColor),
@@ -647,7 +614,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
 }
 
 class _PreviewCameraQueue {
-  static const int _exclusivePriorityMax = 1;
+  static const int _exclusivePriorityMax = 0;
   static const int _maxParallelPreloads = 2;
 
   final List<_QueuedPreviewTask> _pending = <_QueuedPreviewTask>[];
@@ -718,7 +685,7 @@ class _PreviewCameraQueue {
       (task) => task.priority <= _exclusivePriorityMax,
     );
     if (exclusiveIndex >= 0) {
-      // Visible preview and Download are exclusive camera operations. If a
+      // Visible previews are exclusive camera operations. If a
       // preload pair is already in flight, let that pair finish, then the new
       // high-priority task starts before any further preload.
       if (_preloadsRunning > 0) return;

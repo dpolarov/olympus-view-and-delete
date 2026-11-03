@@ -2,7 +2,7 @@
 
 > Manage, download, and delete photos on Olympus and OM System cameras over the camera's local WiFi network. Olympus View is an unofficial cross-platform alternative to OI.Share for Android, Windows, macOS, and Web.
 
-**Current Android release:** v1.3.13+22 — September 28, 2026  
+**Next Android release (prepared):** v1.3.14+23 — November 3, 2026  
 **Source:** https://github.com/dpolarov/olympus-view-and-delete  
 **Latest release:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest  
 **Android APK:** https://github.com/dpolarov/olympus-view-and-delete/releases/latest/download/OlympusView-Android.apk
@@ -167,6 +167,16 @@ Olympus View has no user accounts, advertising, developer analytics backend, or 
 Full privacy policy:
 
 https://dpolarov.github.io/olympus-view-and-delete/privacy.md
+
+## v1.3.14 highlights
+
+- **Sequential FIFO queue in the full-screen preview:** pressing Download on another photo or video adds it to the queue instead of interrupting an existing transfer.
+- Swiping through files or leaving the preview screen no longer cancels queued downloads while Olympus View remains running; repeated taps on an already queued file are deduplicated.
+- **Overall queue progress** in the viewer and main gallery: completed / total files, files remaining, current filename, failures and a progress bar (calculated per completed file, not downloaded bytes).
+- **Android notification sound** plays once after the preview download queue finishes, using the device's default tone and sound settings.
+- A failed file does not stop later transfers and can be downloaded again; completed files receive updated green markers.
+- The queue survives leaving the preview, **not a force-close of the application**. Existing Android background batch downloads are independent of this preview queue.
+- Version: **1.3.14+23**. Users on v1.3.6 or newer can update normally once the signed GitHub release is published.
 
 ## v1.3.13 highlights
 

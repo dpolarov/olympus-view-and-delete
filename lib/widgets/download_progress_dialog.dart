@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/olympus_theme.dart';
+
 import '../constants.dart';
 import '../services/app_logger.dart';
 import '../services/camera_api.dart';
@@ -80,7 +82,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
               value: progress,
               strokeWidth: 4,
               color: kPrimaryColor,
-              backgroundColor: const Color(0xFF252540),
+              backgroundColor: const OlympusPalette.raised,
             ),
           ),
           const SizedBox(height: 20),
@@ -94,7 +96,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2ECC71),
+              color: OlympusPalette.success,
             ),
           ),
           const SizedBox(height: 8),

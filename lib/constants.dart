@@ -3,12 +3,14 @@
 import 'package:flutter/material.dart';
 
 // Цвета
-const kPrimaryColor = Color(0xFFE94560);
-const kAccentColor = Color(0xFF2ECC71);
-const kBackgroundColor = Color(0xFF1A1A2E);
-const kBorderColor = Color(0xFF333355);
-const kButtonColor = Color(0xFF0F3460);
-const kErrorColor = Colors.red;
+// Camera-shell palette: restrained coral, warm ink and semantic transfer green.
+// These match the Olympus View website; green means downloaded/success.
+const kPrimaryColor = Color(0xFFEB7780);
+const kAccentColor = Color(0xFF79C6A0);
+const kBackgroundColor = Color(0xFF202425);
+const kBorderColor = Color(0xFF383F40);
+const kButtonColor = Color(0xFFF2F1ED);
+const kErrorColor = Color(0xFFE77E80);
 
 // Таймауты и лимиты UI.
 // Сервисные тюнинг-константы (кэш, сеть, история) — в services/service_config.dart.

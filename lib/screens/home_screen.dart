@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+
+import '../theme/olympus_theme.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -829,7 +831,7 @@ class _HomeScreenState extends State<HomeScreen>
       applicationName: appName,
       applicationVersion: installedVersion.display,
       applicationIcon:
-          const Icon(Icons.camera_alt, size: 48, color: Color(0xFFE94560)),
+          const Icon(Icons.camera_alt, size: 48, color: OlympusPalette.coral),
       children: [
         const SizedBox(height: 8),
         const Text('WiFi Camera Manager for Olympus/OM System cameras.'),
@@ -849,9 +851,9 @@ class _HomeScreenState extends State<HomeScreen>
           child: const Text(
             'dpolarov.github.io/olympus-view-and-delete',
             style: TextStyle(
-              color: Color(0xFF64B5F6),
+              color: OlympusPalette.coral,
               decoration: TextDecoration.underline,
-              decorationColor: Color(0xFF64B5F6),
+              decorationColor: OlympusPalette.coral,
               fontSize: 13,
             ),
           ),
@@ -925,7 +927,7 @@ class _HomeScreenState extends State<HomeScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: const OlympusPalette.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1513,7 +1515,7 @@ class _HomeScreenState extends State<HomeScreen>
               onPressed: _deselectAll,
             ),
             IconButton(
-              icon: const Icon(Icons.download_done, color: Color(0xFF2ECC71)),
+              icon: const Icon(Icons.download_done, color: OlympusPalette.success),
               tooltip: _localizedText(
                 en: 'Select downloaded',
                 ru: 'Выделить скачанные',
@@ -1527,7 +1529,7 @@ class _HomeScreenState extends State<HomeScreen>
               onPressed: _selectByDates,
             ),
             IconButton(
-              icon: const Icon(Icons.download, color: Color(0xFF2ECC71)),
+              icon: const Icon(Icons.download, color: OlympusPalette.success),
               tooltip: 'Download selected',
               onPressed: _handleDownload,
             ),
@@ -1598,7 +1600,7 @@ class _HomeScreenState extends State<HomeScreen>
           const PreviewDownloadProgress(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: const Color(0xFF1A1A2E),
+            color: const OlympusPalette.surface,
             child: Column(
               children: [
                 Row(
@@ -1633,7 +1635,7 @@ class _HomeScreenState extends State<HomeScreen>
                         height: 12,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Color(0xFFE94560),
+                          color: OlympusPalette.coral,
                         ),
                       ),
                   ],
@@ -1648,11 +1650,11 @@ class _HomeScreenState extends State<HomeScreen>
                             style: const TextStyle(fontSize: 13)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: hasFilter
-                              ? const Color(0xFFE94560)
+                              ? const OlympusPalette.coral
                               : Colors.grey[400],
                           side: BorderSide(
                             color: hasFilter
-                                ? const Color(0xFFE94560)
+                                ? const OlympusPalette.coral
                                 : Colors.grey[700]!,
                           ),
                           padding: const EdgeInsets.symmetric(
@@ -1668,7 +1670,7 @@ class _HomeScreenState extends State<HomeScreen>
                       IconButton(
                         icon: const Icon(Icons.close, size: 18),
                         style: IconButton.styleFrom(
-                          backgroundColor: const Color(0xFF252540),
+                          backgroundColor: const OlympusPalette.raised,
                         ),
                         onPressed: _clearFilter,
                       ),
@@ -1696,7 +1698,7 @@ class _HomeScreenState extends State<HomeScreen>
                   )
                 : RefreshIndicator(
                     onRefresh: _loadFiles,
-                    color: const Color(0xFFE94560),
+                    color: const OlympusPalette.coral,
                     child: PhotoGrid(
                       files: _filteredFiles,
                       gridView: _gridView,
@@ -1732,9 +1734,9 @@ class _HomeScreenState extends State<HomeScreen>
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF1A1A2E),
+                  color: OlympusPalette.surface,
                   border: Border(
-                    top: BorderSide(color: Color(0xFF333355)),
+                    top: BorderSide(color: OlympusPalette.border),
                   ),
                 ),
                 child: Row(
@@ -1748,7 +1750,7 @@ class _HomeScreenState extends State<HomeScreen>
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0F3460),
+                          backgroundColor: const OlympusPalette.raised,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: const Text('Select Files',
@@ -1763,7 +1765,7 @@ class _HomeScreenState extends State<HomeScreen>
                           setState(() => _selectionMode = true);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE74C3C),
+                          backgroundColor: const OlympusPalette.danger,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: const Text('Select All & Delete',

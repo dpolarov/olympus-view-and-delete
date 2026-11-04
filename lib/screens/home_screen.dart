@@ -788,7 +788,9 @@ class _HomeScreenState extends State<HomeScreen>
             'This is an unofficial app, not affiliated with or endorsed by '
             'OM Digital Solutions.';
     final changelog = _localizedText(
-      en: '• Download requests in full-screen preview are queued in FIFO order\n'
+      en: '• New graphite camera-shell UI with coral actions, no purple tones\n'
+          '• Compact toolbar, adaptive gallery and restyled dialogs\n'
+          '• Download requests in full-screen preview are queued in FIFO order\n'
           '• Swiping or leaving preview no longer cancels queued downloads\n'
           '• Repeated Download taps do not duplicate an in-progress file\n'
           '• Overall progress shows completed/total, remaining and current file\n'
@@ -796,7 +798,9 @@ class _HomeScreenState extends State<HomeScreen>
           '• Failed downloads can be retried without stopping later files\n'
           '• Android plays one default notification sound when the queue ends\n'
           '• Progress is per completed file; force-closing the app stops the queue',
-      ru: '• Загрузки из просмотра идут по очереди, в порядке нажатий\n'
+      ru: '• Новый графитовый интерфейс с коралловыми кнопками, без фиолетового\n'
+          '• Компактная панель, адаптивная галерея и новые диалоги\n'
+          '• Загрузки из просмотра идут по очереди, в порядке нажатий\n'
           '• Перелистывание и выход из просмотра не отменяют очередь\n'
           '• Повторное нажатие Download не создаёт дубликат задания\n'
           '• Общий прогресс: скачано/всего, осталось и текущий файл\n'
@@ -804,7 +808,9 @@ class _HomeScreenState extends State<HomeScreen>
           '• Ошибочный файл можно повторить, остальные продолжат скачиваться\n'
           '• Android подаёт один системный звук после завершения очереди\n'
           '• Прогресс по файлам; принудительное закрытие прерывает очередь',
-      uk: '• Завантаження з перегляду йдуть у черзі в порядку натискань\n'
+      uk: '• Новий графітовий інтерфейс із кораловими кнопками, без фіолетового\n'
+          '• Компактна панель, адаптивна галерея й оновлені діалоги\n'
+          '• Завантаження з перегляду йдуть у черзі в порядку натискань\n'
           '• Гортання та вихід із перегляду не скасовують чергу\n'
           '• Повторне натискання Download не дублює завдання\n'
           '• Загальний прогрес: завершено/всього, залишилось і поточний файл\n'

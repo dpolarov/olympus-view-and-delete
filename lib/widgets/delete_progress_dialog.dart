@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../theme/olympus_theme.dart';
-
 import '../constants.dart';
 import '../services/app_logger.dart';
 import '../services/camera_api.dart';
+import '../theme/olympus_theme.dart';
 
 class DeleteProgressDialog extends StatefulWidget {
   final CameraApi api;

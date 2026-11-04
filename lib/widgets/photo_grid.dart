@@ -208,7 +208,7 @@ class _GridItem extends StatelessWidget {
                         height: 24,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Color(0xFF2ECC71),
+                          color: kAccentColor,
                         ),
                         child: const Icon(
                           Icons.download_done,
@@ -328,7 +328,7 @@ class _ListItem extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 child: Icon(
                   Icons.download_done,
-                  color: Color(0xFF2ECC71),
+                  color: kAccentColor,
                 ),
               ),
           ],
@@ -428,7 +428,7 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Color(0xFFE94560),
+              color: kPrimaryColor,
             ),
           ),
         ),

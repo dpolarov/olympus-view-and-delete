@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../constants.dart';
-import '../theme/olympus_theme.dart';
 import '../services/app_logger.dart';
 import '../services/background_download_service.dart';
 import '../services/camera_api.dart';
@@ -16,6 +15,7 @@ import '../services/preview_download_queue.dart';
 import '../services/preview_preload_plan.dart';
 import '../services/service_config.dart';
 import '../services/thumbnail_manager.dart';
+import '../theme/olympus_theme.dart';
 import '../widgets/preview_download_progress.dart';
 
 /// Full-screen photo preview prefers the camera's screennail image and falls

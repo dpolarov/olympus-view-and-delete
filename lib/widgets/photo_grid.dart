@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../constants.dart';
+import '../theme/olympus_theme.dart';
 import '../services/camera_api.dart';
 import '../services/thumbnail_manager.dart';
 
@@ -14,17 +15,17 @@ BoxDecoration _itemDecoration({
   final borderColor = selected
       ? kPrimaryColor
       : downloaded
-          ? const Color(0xFF2ECC71)
+          ? kAccentColor
           : null;
   return BoxDecoration(
-    borderRadius: BorderRadius.circular(8),
+    borderRadius: BorderRadius.circular(12),
     border: borderColor == null
         ? null
         : Border.all(color: borderColor, width: borderWidth),
     color: selected
         ? kPrimaryColor.withValues(alpha: 0.15)
         : downloaded
-            ? const Color(0xFF2ECC71).withValues(alpha: 0.07)
+            ? kAccentColor.withValues(alpha: 0.07)
             : kBackgroundColor,
   );
 }
@@ -226,13 +227,13 @@ class _GridItem extends StatelessWidget {
                 children: [
                   Text(
                     file.filename,
-                    style: const TextStyle(fontSize: 10, color: Colors.white),
+                    style: const TextStyle(fontSize: 11, color: OlympusTheme.ink),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     file.sizeHuman,
-                    style: TextStyle(fontSize: 9, color: Colors.grey[600]),
+                    style: const TextStyle(fontSize: 10, color: OlympusTheme.inkMuted),
                   ),
                 ],
               ),
@@ -410,7 +411,7 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
 
   Widget _brokenImage() {
     return Container(
-      color: const Color(0xFF252540),
+      color: OlympusTheme.elevated,
       child: const Icon(Icons.broken_image, color: Colors.grey, size: 32),
     );
   }
@@ -420,7 +421,7 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
     if (_error) return _brokenImage();
     if (_loading || _bytes == null) {
       return Container(
-        color: const Color(0xFF252540),
+        color: OlympusTheme.elevated,
         child: const Center(
           child: SizedBox(
             width: 20,

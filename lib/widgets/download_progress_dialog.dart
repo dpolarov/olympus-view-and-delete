@@ -82,7 +82,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
               value: progress,
               strokeWidth: 4,
               color: kPrimaryColor,
-              backgroundColor: const OlympusPalette.raised,
+              backgroundColor: OlympusPalette.raised,
             ),
           ),
           const SizedBox(height: 20),

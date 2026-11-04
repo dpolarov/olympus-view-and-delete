@@ -1533,7 +1533,7 @@ class _HomeScreenState extends State<HomeScreen>
               onPressed: _handleDownload,
             ),
             IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
+              icon: const Icon(Icons.delete_outline, color: kErrorColor),
               tooltip: 'Delete selected',
               onPressed: _handleDelete,
             ),
@@ -1733,9 +1733,9 @@ class _HomeScreenState extends State<HomeScreen>
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF1A1A2E),
+                  color: OlympusTheme.surface,
                   border: Border(
-                    top: BorderSide(color: Color(0xFF333355)),
+                    top: BorderSide(color: kBorderColor),
                   ),
                 ),
                 child: Row(
@@ -1749,6 +1749,7 @@ class _HomeScreenState extends State<HomeScreen>
                           });
                         },
                         style: ElevatedButton.styleFrom(
+                          foregroundColor: OlympusTheme.canvas,
                           backgroundColor: kButtonColor,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),

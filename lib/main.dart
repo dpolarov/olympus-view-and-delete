@@ -7,6 +7,7 @@ import 'l10n/l10n.dart';
 import 'screens/debug_info_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/locale_controller.dart';
+import 'theme/olympus_theme.dart';
 import 'widgets/camera_wifi_lifecycle_guard.dart';
 import 'widgets/four_finger_debug_trigger.dart';
 
@@ -61,25 +62,7 @@ class OlympusApp extends StatelessWidget {
         return MaterialApp(
           navigatorKey: _navigatorKey,
           debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            brightness: Brightness.dark,
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFFE94560),
-              secondary: Color(0xFF0F3460),
-              surface: Color(0xFF1A1A2E),
-              error: Color(0xFFE74C3C),
-            ),
-            scaffoldBackgroundColor: const Color(0xFF0F0F1A),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF1A1A2E),
-              elevation: 0,
-            ),
-            cardTheme: const CardThemeData(
-              color: Color(0xFF1A1A2E),
-              elevation: 0,
-            ),
-            useMaterial3: true,
-          ),
+          theme: OlympusTheme.dark,
           localizationsDelegates: localizationsDelegates,
           supportedLocales: L10n.all,
           locale: locale,

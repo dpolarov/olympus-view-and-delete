@@ -22,6 +22,7 @@ import '../services/file_type_filter.dart';
 import '../services/locale_controller.dart';
 import '../services/preview_download_queue.dart';
 import '../services/thumbnail_manager.dart';
+import '../theme/olympus_theme.dart';
 import '../version.dart';
 import '../widgets/date_filter_sheet.dart';
 import '../widgets/delete_progress_dialog.dart';
@@ -829,7 +830,7 @@ class _HomeScreenState extends State<HomeScreen>
       applicationName: appName,
       applicationVersion: installedVersion.display,
       applicationIcon:
-          const Icon(Icons.camera_alt, size: 48, color: Color(0xFFE94560)),
+          const Icon(Icons.camera_alt, size: 48, color: kPrimaryColor),
       children: [
         const SizedBox(height: 8),
         const Text('WiFi Camera Manager for Olympus/OM System cameras.'),
@@ -849,9 +850,9 @@ class _HomeScreenState extends State<HomeScreen>
           child: const Text(
             'dpolarov.github.io/olympus-view-and-delete',
             style: TextStyle(
-              color: Color(0xFF64B5F6),
+              color: kPrimaryColor,
               decoration: TextDecoration.underline,
-              decorationColor: Color(0xFF64B5F6),
+              decorationColor: kPrimaryColor,
               fontSize: 13,
             ),
           ),
@@ -925,7 +926,7 @@ class _HomeScreenState extends State<HomeScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: OlympusTheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1513,7 +1514,7 @@ class _HomeScreenState extends State<HomeScreen>
               onPressed: _deselectAll,
             ),
             IconButton(
-              icon: const Icon(Icons.download_done, color: Color(0xFF2ECC71)),
+              icon: const Icon(Icons.download_done, color: kAccentColor),
               tooltip: _localizedText(
                 en: 'Select downloaded',
                 ru: 'Выделить скачанные',
@@ -1527,7 +1528,7 @@ class _HomeScreenState extends State<HomeScreen>
               onPressed: _selectByDates,
             ),
             IconButton(
-              icon: const Icon(Icons.download, color: Color(0xFF2ECC71)),
+              icon: const Icon(Icons.download, color: kAccentColor),
               tooltip: 'Download selected',
               onPressed: _handleDownload,
             ),
@@ -1598,7 +1599,7 @@ class _HomeScreenState extends State<HomeScreen>
           const PreviewDownloadProgress(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: const Color(0xFF1A1A2E),
+            color: OlympusTheme.surface,
             child: Column(
               children: [
                 Row(
@@ -1609,13 +1610,13 @@ class _HomeScreenState extends State<HomeScreen>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color:
-                            _connected ? Colors.greenAccent : Colors.redAccent,
+                            _connected ? kAccentColor : kErrorColor,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 10),
                     Text(
                       _connected ? 'Connected' : 'Disconnected',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                      style: const TextStyle(color: OlympusTheme.inkSecondary, fontSize: 13),
                     ),
                     if (_allFiles.isNotEmpty)
                       Text(
@@ -1623,7 +1624,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ? ' · Loading... ${_allFiles.length} files'
                             : ' · ${_filteredFiles.length} files · '
                                 '${CameraFile.formatSize(_totalBytes)}',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                        style: const TextStyle(color: OlympusTheme.inkMuted, fontSize: 13),
                       ),
                     if (_loading && _allFiles.isNotEmpty)
                       const SizedBox(width: 8),
@@ -1633,7 +1634,7 @@ class _HomeScreenState extends State<HomeScreen>
                         height: 12,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Color(0xFFE94560),
+                          color: kPrimaryColor,
                         ),
                       ),
                   ],
@@ -1648,11 +1649,11 @@ class _HomeScreenState extends State<HomeScreen>
                             style: const TextStyle(fontSize: 13)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: hasFilter
-                              ? const Color(0xFFE94560)
+                              ? kPrimaryColor
                               : Colors.grey[400],
                           side: BorderSide(
                             color: hasFilter
-                                ? const Color(0xFFE94560)
+                                ? kPrimaryColor
                                 : Colors.grey[700]!,
                           ),
                           padding: const EdgeInsets.symmetric(
@@ -1668,7 +1669,7 @@ class _HomeScreenState extends State<HomeScreen>
                       IconButton(
                         icon: const Icon(Icons.close, size: 18),
                         style: IconButton.styleFrom(
-                          backgroundColor: const Color(0xFF252540),
+                          backgroundColor: OlympusTheme.elevated,
                         ),
                         onPressed: _clearFilter,
                       ),
@@ -1696,7 +1697,7 @@ class _HomeScreenState extends State<HomeScreen>
                   )
                 : RefreshIndicator(
                     onRefresh: _loadFiles,
-                    color: const Color(0xFFE94560),
+                    color: kPrimaryColor,
                     child: PhotoGrid(
                       files: _filteredFiles,
                       gridView: _gridView,
@@ -1748,11 +1749,10 @@ class _HomeScreenState extends State<HomeScreen>
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0F3460),
+                          backgroundColor: kButtonColor,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text('Select Files',
-                            style: TextStyle(color: Colors.white)),
+                        child: const Text('Select Files'),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -1763,11 +1763,11 @@ class _HomeScreenState extends State<HomeScreen>
                           setState(() => _selectionMode = true);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE74C3C),
+                          foregroundColor: OlympusTheme.canvas,
+                          backgroundColor: kErrorColor,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text('Select All & Delete',
-                            style: TextStyle(color: Colors.white)),
+                        child: const Text('Select All & Delete'),
                       ),
                     ),
                   ],

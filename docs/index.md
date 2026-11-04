@@ -170,6 +170,7 @@ https://dpolarov.github.io/olympus-view-and-delete/privacy.md
 
 ## v1.3.14 highlights
 
+- **New camera-shell interface:** graphite Material 3 surfaces replace purple/navy tones; coral marks primary actions and selection, sage marks completed downloads. More compact gallery toolbar with all actions accessible through its menu, updated photo grid and controls.
 - **Sequential FIFO queue in the full-screen preview:** pressing Download on another photo or video adds it to the queue instead of interrupting an existing transfer.
 - Swiping through files or leaving the preview screen no longer cancels queued downloads while Olympus View remains running; repeated taps on an already queued file are deduplicated.
 - **Overall queue progress** in the viewer and main gallery: completed / total files, files remaining, current filename, failures and a progress bar (calculated per completed file, not downloaded bytes).

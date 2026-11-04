@@ -463,7 +463,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   @override
   Widget build(BuildContext context) {
     if (_files.isEmpty) {
-      return const Scaffold(backgroundColor: Colors.black);
+      return const Scaffold(backgroundColor: OlympusPalette.photoBackground);
     }
     final file = _files[_currentIndex];
     final queued = _downloadQueue.isQueued(file);

@@ -16,7 +16,7 @@ BoxDecoration _itemDecoration({
   final borderColor = selected
       ? kPrimaryColor
       : downloaded
-          ? const OlympusPalette.success
+          ? OlympusPalette.success
           : null;
   return BoxDecoration(
     borderRadius: BorderRadius.circular(8),
@@ -26,7 +26,7 @@ BoxDecoration _itemDecoration({
     color: selected
         ? kPrimaryColor.withValues(alpha: 0.15)
         : downloaded
-            ? const OlympusPalette.success.withValues(alpha: 0.07)
+            ? OlympusPalette.success.withValues(alpha: 0.07)
             : kBackgroundColor,
   );
 }
@@ -412,7 +412,7 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
 
   Widget _brokenImage() {
     return Container(
-      color: const OlympusPalette.raised,
+      color: OlympusPalette.raised,
       child: const Icon(Icons.broken_image, color: Colors.grey, size: 32),
     );
   }
@@ -422,7 +422,7 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
     if (_error) return _brokenImage();
     if (_loading || _bytes == null) {
       return Container(
-        color: const OlympusPalette.raised,
+        color: OlympusPalette.raised,
         child: const Center(
           child: SizedBox(
             width: 20,

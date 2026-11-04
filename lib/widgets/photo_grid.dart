@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../theme/olympus_theme.dart';
+
 import '../constants.dart';
 import '../services/camera_api.dart';
 import '../services/thumbnail_manager.dart';
@@ -14,7 +16,7 @@ BoxDecoration _itemDecoration({
   final borderColor = selected
       ? kPrimaryColor
       : downloaded
-          ? const Color(0xFF2ECC71)
+          ? const OlympusPalette.success
           : null;
   return BoxDecoration(
     borderRadius: BorderRadius.circular(8),
@@ -24,7 +26,7 @@ BoxDecoration _itemDecoration({
     color: selected
         ? kPrimaryColor.withValues(alpha: 0.15)
         : downloaded
-            ? const Color(0xFF2ECC71).withValues(alpha: 0.07)
+            ? const OlympusPalette.success.withValues(alpha: 0.07)
             : kBackgroundColor,
   );
 }
@@ -207,7 +209,7 @@ class _GridItem extends StatelessWidget {
                         height: 24,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Color(0xFF2ECC71),
+                          color: OlympusPalette.success,
                         ),
                         child: const Icon(
                           Icons.download_done,
@@ -327,7 +329,7 @@ class _ListItem extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 child: Icon(
                   Icons.download_done,
-                  color: Color(0xFF2ECC71),
+                  color: OlympusPalette.success,
                 ),
               ),
           ],
@@ -410,7 +412,7 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
 
   Widget _brokenImage() {
     return Container(
-      color: const Color(0xFF252540),
+      color: const OlympusPalette.raised,
       child: const Icon(Icons.broken_image, color: Colors.grey, size: 32),
     );
   }
@@ -420,14 +422,14 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
     if (_error) return _brokenImage();
     if (_loading || _bytes == null) {
       return Container(
-        color: const Color(0xFF252540),
+        color: const OlympusPalette.raised,
         child: const Center(
           child: SizedBox(
             width: 20,
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Color(0xFFE94560),
+              color: OlympusPalette.coral,
             ),
           ),
         ),

@@ -145,6 +145,14 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
+## Website UI / Unslop skill
+
+- The project-local `unslop` skill is vendored under `.agents/skills/unslop/SKILL.md` with its references, examples, scripts and CC BY 4.0 license. It is intended for Codex-style agents; Claude Code users can copy the directory into `.claude/skills/unslop`. Attribution: Damir Sokolovsky, https://github.com/heydamir/unslop.
+- For the landing page, follow the audit/direction guidance in the skill, keeping Olympus View's real product screenshots and camera-file-management purpose. The design direction is recorded in `docs/UNSLOP_DESIGN.md`.
+- The site keeps all EN/RU/UK content in `docs/index.html`. Global visual styles are in `docs/unslop.css`, loaded after the legacy inline stylesheet. Preserve download URLs, language switching, feedback forms, FAQ/SEO and current-release injection by `.github/workflows/pages.yml`.
+- Run `python3 scripts/check_website_design.py` when touching the website. Ensure GitHub Pages build passes. Site-only design changes must **not** bump the app version or create a release tag.
+- The original unslop skill files are CC BY 4.0; keep author credit and the included license when modifying or redistributing them.
+
 ## Release Process
 
 Use one release path only. Do not add one-off release workflows, temporary release scripts, or alternate publishing paths.

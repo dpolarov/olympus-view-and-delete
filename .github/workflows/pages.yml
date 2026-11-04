@@ -70,6 +70,9 @@ jobs:
           cp -a build/web/. _site/app/
           touch _site/.nojekyll
 
+      - name: Check localized site design and links
+        run: python3 scripts/check_website_design.py
+
       - name: Synchronize current release on landing page
         shell: bash
         run: |

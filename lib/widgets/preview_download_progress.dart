@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../constants.dart';
-import '../theme/olympus_theme.dart';
 import '../services/preview_download_queue.dart';
+import '../theme/olympus_theme.dart';
 
 /// Compact file-count progress indicator shared by preview and the home screen.
 class PreviewDownloadProgress extends StatelessWidget {

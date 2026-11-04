@@ -1,7 +1,5 @@
 // lib/constants.dart
 
-import 'package:flutter/material.dart';
-
 import 'theme/olympus_theme.dart';
 
 // Shared camera-shell colors (use theme roles in new widgets).

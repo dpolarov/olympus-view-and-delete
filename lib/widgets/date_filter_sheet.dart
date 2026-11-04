@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants.dart';
+import '../theme/olympus_theme.dart';
 import '../services/camera_api.dart';
 
 class DateFilterSheet extends StatefulWidget {
@@ -47,12 +48,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
       lastDate: now,
       builder: (context, child) {
         return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFFE94560),
-              surface: Color(0xFF1A1A2E),
-            ),
-          ),
+          data: OlympusTheme.dark,
           child: child!,
         );
       },
@@ -171,13 +167,14 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                   ElevatedButton(
                     onPressed: () => widget.onRangeSelected(_from, _to),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: kPrimaryColor,
+                      foregroundColor: OlympusTheme.canvas,
+                      backgroundColor: kButtonColor,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     child: Text(
                       'Apply Range'
                       '${(_from != null && _to != null) ? ' (${CameraApi.filterByDateRange(widget.files, _from, _to).length} files)' : ''}',
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: OlympusTheme.canvas),
                     ),
                   ),
                   const SizedBox(height: 8),

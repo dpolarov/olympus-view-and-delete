@@ -2,11 +2,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../theme/olympus_theme.dart';
-
 import '../constants.dart';
 import '../services/camera_api.dart';
 import '../services/thumbnail_manager.dart';
+import '../theme/olympus_theme.dart';
 
 BoxDecoration _itemDecoration({
   required bool selected,

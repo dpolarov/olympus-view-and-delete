@@ -915,7 +915,7 @@ class _HomeScreenState extends State<HomeScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const OlympusPalette.surface,
+      backgroundColor: OlympusPalette.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1671,7 +1671,7 @@ class _HomeScreenState extends State<HomeScreen>
           const PreviewDownloadProgress(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: const OlympusPalette.surface,
+            color: OlympusPalette.surface,
             child: Column(
               children: [
                 Row(
@@ -1721,11 +1721,11 @@ class _HomeScreenState extends State<HomeScreen>
                             style: const TextStyle(fontSize: 13)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: hasFilter
-                              ? const OlympusPalette.coral
+                              ? OlympusPalette.coral
                               : Colors.grey[400],
                           side: BorderSide(
                             color: hasFilter
-                                ? const OlympusPalette.coral
+                                ? OlympusPalette.coral
                                 : Colors.grey[700]!,
                           ),
                           padding: const EdgeInsets.symmetric(
@@ -1741,7 +1741,7 @@ class _HomeScreenState extends State<HomeScreen>
                       IconButton(
                         icon: const Icon(Icons.close, size: 18),
                         style: IconButton.styleFrom(
-                          backgroundColor: const OlympusPalette.raised,
+                          backgroundColor: OlympusPalette.raised,
                         ),
                         onPressed: _clearFilter,
                       ),
@@ -1769,7 +1769,7 @@ class _HomeScreenState extends State<HomeScreen>
                   )
                 : RefreshIndicator(
                     onRefresh: _loadFiles,
-                    color: const OlympusPalette.coral,
+                    color: OlympusPalette.coral,
                     child: PhotoGrid(
                       files: _filteredFiles,
                       gridView: _gridView,
@@ -1821,7 +1821,7 @@ class _HomeScreenState extends State<HomeScreen>
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const OlympusPalette.raised,
+                          backgroundColor: OlympusPalette.raised,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: const Text('Select Files',
@@ -1836,7 +1836,7 @@ class _HomeScreenState extends State<HomeScreen>
                           setState(() => _selectionMode = true);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const OlympusPalette.danger,
+                          backgroundColor: OlympusPalette.danger,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: const Text('Select All & Delete',

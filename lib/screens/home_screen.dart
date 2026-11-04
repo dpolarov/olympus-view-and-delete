@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
-
-import '../theme/olympus_theme.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -24,6 +22,7 @@ import '../services/file_type_filter.dart';
 import '../services/locale_controller.dart';
 import '../services/preview_download_queue.dart';
 import '../services/thumbnail_manager.dart';
+import '../theme/olympus_theme.dart';
 import '../version.dart';
 import '../widgets/date_filter_sheet.dart';
 import '../widgets/delete_progress_dialog.dart';

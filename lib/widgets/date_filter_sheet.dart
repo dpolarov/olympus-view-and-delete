@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/olympus_theme.dart';
+
 import '../constants.dart';
 import '../services/camera_api.dart';
 
@@ -49,8 +51,8 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
         return Theme(
           data: ThemeData.dark().copyWith(
             colorScheme: const ColorScheme.dark(
-              primary: Color(0xFFE94560),
-              surface: Color(0xFF1A1A2E),
+              primary: OlympusPalette.coral,
+              surface: OlympusPalette.surface,
             ),
           ),
           child: child!,

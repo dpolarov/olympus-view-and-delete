@@ -12,6 +12,10 @@
 - Queued downloads continue after an individual file fails; failures are displayed and failed files can be requested again.
 - Downloaded markers update when queued transfers finish, including after returning to the main gallery.
 
+### Changed
+- **Camera-shell interface refresh**: replace the old purple/navy UI with a coherent dark graphite Material 3 theme, coral primary actions, restrained sage success markers, and near-black photo viewing canvas.
+- **Cleaner camera gallery controls**: compact overflow toolbar for view mode, RAW/JPG filters, language and selection utilities; simpler selection actions, responsive thumbnail grid, and restyled date filter, dialogs and download progress.
+
 ### Notes
 - The preview queue is app-scoped, not a persistent Android background service: force-closing the app can interrupt pending transfers. Existing Android batch-background downloads are separate.
 - Version set to **1.3.14+23**.

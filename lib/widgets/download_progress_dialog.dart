@@ -80,7 +80,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
               value: progress,
               strokeWidth: 4,
               color: kPrimaryColor,
-              backgroundColor: const Color(0xFF252540),
+              backgroundColor: kBackgroundColor,
             ),
           ),
           const SizedBox(height: 20),
@@ -94,7 +94,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2ECC71),
+              color: kAccentColor,
             ),
           ),
           const SizedBox(height: 8),

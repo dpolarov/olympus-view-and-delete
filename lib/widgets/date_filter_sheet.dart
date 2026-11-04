@@ -47,17 +47,6 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
       initialDate: isFrom ? (_from ?? now) : (_to ?? now),
       firstDate: DateTime(2000),
       lastDate: now,
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: OlympusPalette.coral,
-              surface: OlympusPalette.surface,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
     if (picked != null) {
       setState(() {
@@ -87,7 +76,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[700],
+                color: OlympusPalette.mutedText,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -95,7 +84,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
           const SizedBox(height: 16),
           const Text(
             'Filter by Date',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 16),
           Flexible(
@@ -125,7 +114,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.grey[400],
+                    color: OlympusPalette.secondaryText,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -135,7 +124,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                       child: OutlinedButton(
                         onPressed: () => _pickDate(true),
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.grey[700]!),
+                          side: const BorderSide(color: OlympusPalette.border),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: Text(
@@ -149,7 +138,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child:
-                          Text('—', style: TextStyle(color: Colors.grey[600])),
+                          Text('—', style: TextStyle(color: OlympusPalette.mutedText)),
                     ),
                     Expanded(
                       child: OutlinedButton(
@@ -179,7 +168,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                     child: Text(
                       'Apply Range'
                       '${(_from != null && _to != null) ? ' (${CameraApi.filterByDateRange(widget.files, _from, _to).length} files)' : ''}',
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: OlympusPalette.onCoral),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -215,7 +204,13 @@ class _DateTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: active ? kPrimaryColor.withValues(alpha: 0.15) : null,
+          color: active
+              ? OlympusPalette.coral.withValues(alpha: 0.12)
+              : OlympusPalette.card,
+          border: Border.all(
+            color: active ? OlympusPalette.coral : OlympusPalette.border,
+            width: active ? 1.2 : 0.7,
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -223,7 +218,8 @@ class _DateTile extends StatelessWidget {
             Text(label, style: const TextStyle(fontSize: 15)),
             Text(
               '$count files',
-              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+              style: const TextStyle(
+                fontSize: 13, color: OlympusPalette.mutedText),
             ),
           ],
         ),

@@ -1447,6 +1447,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     if (_error != null && _allFiles.isEmpty) {
       return Scaffold(
+        appBar: AppBar(title: const Text('Olympus View')),
         body: LayoutBuilder(
           builder: (context, constraints) => SingleChildScrollView(
             child: ConstrainedBox(
@@ -1460,7 +1461,8 @@ class _HomeScreenState extends State<HomeScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Icon(Icons.camera_alt, size: 64, color: Colors.grey),
+                    const Icon(Icons.photo_camera_outlined,
+                        size: 64, color: OlympusPalette.secondaryText),
                     const SizedBox(height: 16),
                     Text(
                       _error!,
@@ -1477,19 +1479,20 @@ class _HomeScreenState extends State<HomeScreen>
                             _isMobilePlatform()
                                 ? Icons.qr_code_scanner
                                 : Icons.wifi,
-                            color: Colors.white,
+                            color: OlympusPalette.onCoral,
                           ),
                           label: Text(
                             _isMobilePlatform()
                                 ? AppStrings.scanQr
                                 : AppStrings.connectWifi,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: OlympusPalette.onCoral,
                               fontSize: 16,
                             ),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: kAccentColor,
+                            backgroundColor: kPrimaryColor,
+                            foregroundColor: OlympusPalette.onCoral,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                         ),
@@ -1824,45 +1827,55 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       bottomNavigationBar: !_selectionMode && _allFiles.isNotEmpty
           ? SafeArea(
+              top: false,
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                 decoration: const BoxDecoration(
                   color: OlympusPalette.surface,
                   border: Border(
-                    top: BorderSide(color: OlympusPalette.border),
+                    top: BorderSide(
+                      color: OlympusPalette.border, width: 0.6),
                   ),
                 ),
                 child: Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton(
+                      child: FilledButton.icon(
                         onPressed: () {
                           setState(() {
                             _selectionMode = true;
                             _selectedPaths.clear();
                           });
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: OlympusPalette.raised,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        icon: const Icon(Icons.checklist_rounded, size: 19),
+                        label: Text(
+                          _localizedText(
+                            en: 'Select files',
+                            ru: 'Выбрать файлы',
+                            uk: 'Вибрати файли',
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        child: const Text('Select Files',
-                            style: TextStyle(color: Colors.white)),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton(
+                      child: OutlinedButton.icon(
                         onPressed: () {
                           _selectAll();
                           setState(() => _selectionMode = true);
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: OlympusPalette.danger,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        icon: const Icon(Icons.select_all_rounded, size: 19),
+                        label: Text(
+                          _localizedText(
+                            en: 'Select all',
+                            ru: 'Выбрать всё',
+                            uk: 'Вибрати все',
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        child: const Text('Select All & Delete',
-                            style: TextStyle(color: Colors.white)),
                       ),
                     ),
                   ],

@@ -73,7 +73,7 @@ class _DeleteProgressDialogState extends State<DeleteProgressDialog> {
               value: progress,
               strokeWidth: 4,
               color: kPrimaryColor,
-              backgroundColor: const Color(0xFF252540),
+              backgroundColor: kBackgroundColor,
             ),
           ),
           const SizedBox(height: 20),
@@ -87,7 +87,7 @@ class _DeleteProgressDialogState extends State<DeleteProgressDialog> {
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFFE94560),
+              color: kPrimaryColor,
             ),
           ),
           const SizedBox(height: 8),

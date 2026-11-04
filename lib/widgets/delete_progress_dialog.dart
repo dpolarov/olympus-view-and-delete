@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/olympus_theme.dart';
+
 import '../constants.dart';
 import '../services/app_logger.dart';
 import '../services/camera_api.dart';
@@ -73,7 +75,7 @@ class _DeleteProgressDialogState extends State<DeleteProgressDialog> {
               value: progress,
               strokeWidth: 4,
               color: kPrimaryColor,
-              backgroundColor: const Color(0xFF252540),
+              backgroundColor: const OlympusPalette.raised,
             ),
           ),
           const SizedBox(height: 20),
@@ -87,7 +89,7 @@ class _DeleteProgressDialogState extends State<DeleteProgressDialog> {
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFFE94560),
+              color: OlympusPalette.coral,
             ),
           ),
           const SizedBox(height: 8),

@@ -108,7 +108,7 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                 const SizedBox(height: 16),
                 const Divider(color: kBorderColor),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'Date Range',
                   style: TextStyle(
                     fontSize: 14,
@@ -134,16 +134,18 @@ class _DateFilterSheetState extends State<DateFilterSheet> {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child:
-                          Text('—', style: TextStyle(color: OlympusPalette.mutedText)),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        '—',
+                        style: TextStyle(color: OlympusPalette.mutedText),
+                      ),
                     ),
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () => _pickDate(false),
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.grey[700]!),
+                          side: const BorderSide(color: OlympusPalette.border),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: Text(

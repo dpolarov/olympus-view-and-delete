@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants.dart';
+import '../theme/olympus_theme.dart';
 import '../services/preview_download_queue.dart';
 
 /// Compact file-count progress indicator shared by preview and the home screen.
@@ -40,8 +41,8 @@ class PreviewDownloadProgress extends StatelessWidget {
         };
 
         return Container(
-          color: kBackgroundColor,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          color: OlympusTheme.surface,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,7 +54,7 @@ class PreviewDownloadProgress extends StatelessWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: const TextStyle(color: OlympusTheme.ink, fontSize: 12),
                     ),
                   ),
                   if (failed > 0)
@@ -76,7 +77,7 @@ class PreviewDownloadProgress extends StatelessWidget {
                   current,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  style: const TextStyle(color: OlympusTheme.inkSecondary, fontSize: 11),
                 ),
               ],
             ],

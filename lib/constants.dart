@@ -1,14 +1,14 @@
 // lib/constants.dart
 
-import 'package:flutter/material.dart';
+import 'theme/olympus_theme.dart';
 
-// Цвета
-const kPrimaryColor = Color(0xFFE94560);
-const kAccentColor = Color(0xFF2ECC71);
-const kBackgroundColor = Color(0xFF1A1A2E);
-const kBorderColor = Color(0xFF333355);
-const kButtonColor = Color(0xFF0F3460);
-const kErrorColor = Colors.red;
+// Shared camera-shell colors (use theme roles in new widgets).
+const kPrimaryColor = OlympusPalette.coral;
+const kAccentColor = OlympusPalette.success;
+const kBackgroundColor = OlympusPalette.card;
+const kBorderColor = OlympusPalette.border;
+const kButtonColor = OlympusPalette.raised;
+const kErrorColor = OlympusPalette.danger;
 
 // Таймауты и лимиты UI.
 // Сервисные тюнинг-константы (кэш, сеть, история) — в services/service_config.dart.

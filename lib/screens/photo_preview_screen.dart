@@ -15,6 +15,7 @@ import '../services/preview_download_queue.dart';
 import '../services/preview_preload_plan.dart';
 import '../services/service_config.dart';
 import '../services/thumbnail_manager.dart';
+import '../theme/olympus_theme.dart';
 import '../widgets/preview_download_progress.dart';
 
 /// Full-screen photo preview prefers the camera's screennail image and falls
@@ -462,7 +463,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   @override
   Widget build(BuildContext context) {
     if (_files.isEmpty) {
-      return const Scaffold(backgroundColor: Colors.black);
+      return const Scaffold(backgroundColor: OlympusPalette.photoBackground);
     }
     final file = _files[_currentIndex];
     final queued = _downloadQueue.isQueued(file);
@@ -473,10 +474,10 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
         if (didPop) return;
       },
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: OlympusPalette.photoBackground,
         appBar: AppBar(
-          backgroundColor: Colors.black.withValues(alpha: 0.7),
-          foregroundColor: Colors.white,
+          backgroundColor: OlympusPalette.surface,
+          foregroundColor: OlympusPalette.text,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context, _deletedPaths.isNotEmpty),
@@ -484,17 +485,23 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(file.filename, style: const TextStyle(fontSize: 14)),
+              Text(file.filename,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w500)),
               Text(
                 '${file.sizeHuman} · ${file.dateTimeStr}',
-                style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+                style: const TextStyle(
+                  fontSize: 11, color: OlympusPalette.secondaryText),
               ),
             ],
           ),
           actions: [
             Text(
               '${_currentIndex + 1}/${_files.length}',
-              style: TextStyle(color: Colors.grey[400], fontSize: 13),
+              style: const TextStyle(
+                color: OlympusPalette.mutedText, fontSize: 12),
             ),
             if (_busy)
               const Padding(
@@ -518,7 +525,11 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
                           : _isDownloaded(file)
                               ? Icons.download_done
                               : Icons.download,
-                  color: downloadError != null ? kErrorColor : kAccentColor,
+                  color: downloadError != null
+                      ? kErrorColor
+                      : _isDownloaded(file)
+                          ? kAccentColor
+                          : kPrimaryColor,
                 ),
                 tooltip: queued
                     ? 'Queued for download'
@@ -530,7 +541,8 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
                 onPressed: queued ? null : _downloadCurrent,
               ),
               IconButton(
-                icon: const Icon(Icons.delete, color: kErrorColor),
+                icon: const Icon(
+                  Icons.delete_outline_rounded, color: kErrorColor),
                 tooltip: AppStrings.deleteTooltip,
                 onPressed: _deleteCurrent,
               ),

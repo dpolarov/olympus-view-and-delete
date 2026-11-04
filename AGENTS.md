@@ -153,6 +153,13 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Run `python3 scripts/check_website_design.py` when touching the website. Ensure GitHub Pages build passes. Site-only design changes must **not** bump the app version or create a release tag.
 - The original unslop skill files are CC BY 4.0; keep author credit and the included license when modifying or redistributing them.
 
+## Flutter UI / Camera-shell theme
+
+- Keep Flutter UI consistent with the Olympus View website's unslop design: matte graphite backgrounds, coral primary actions, sage for completed downloads, and a near-black image viewer. **No purple/navy surfaces or gradients.**
+- Use `lib/theme/olympus_theme.dart` as the single source of Material 3 palette and component styling; prefer `Theme.of(context).colorScheme` / `OlympusPalette` over hard-coded `Color(0x...)` expressions. See `docs/FLUTTER_DESIGN.md`.
+- On phones, favor compact toolbar actions and a clearly labeled overflow menu; preserve access to RAW/JPG filters, locales, downloads, selection and diagnostics.
+- Keep delete confirmations, preview/background download queues and camera network behavior unchanged by visual refactors. Run `flutter analyze`, `flutter test` and Android CI before merging.
+
 ## Release Process
 
 Use one release path only. Do not add one-off release workflows, temporary release scripts, or alternate publishing paths.

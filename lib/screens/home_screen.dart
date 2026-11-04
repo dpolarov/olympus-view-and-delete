@@ -22,10 +22,10 @@ import '../services/file_type_filter.dart';
 import '../services/locale_controller.dart';
 import '../services/preview_download_queue.dart';
 import '../services/thumbnail_manager.dart';
+import '../theme/olympus_theme.dart';
 import '../version.dart';
 import '../widgets/date_filter_sheet.dart';
 import '../widgets/delete_progress_dialog.dart';
-import '../widgets/diagnostics_info_action.dart';
 import '../widgets/download_progress_dialog.dart';
 import '../widgets/photo_grid.dart';
 import '../widgets/preview_download_progress.dart';
@@ -183,17 +183,6 @@ class _HomeScreenState extends State<HomeScreen>
           en: 'JPG only', ru: 'Только JPG', uk: 'Лише JPG');
       case FileTypeFilter.both:
         return 'RAW + JPG';
-    }
-  }
-
-  IconData _fileTypeFilterIcon(FileTypeFilter filter) {
-    switch (filter) {
-      case FileTypeFilter.raw:
-        return Icons.raw_on;
-      case FileTypeFilter.jpg:
-        return Icons.image_outlined;
-      case FileTypeFilter.both:
-        return Icons.photo_library_outlined;
     }
   }
 
@@ -799,7 +788,9 @@ class _HomeScreenState extends State<HomeScreen>
             'This is an unofficial app, not affiliated with or endorsed by '
             'OM Digital Solutions.';
     final changelog = _localizedText(
-      en: '• Download requests in full-screen preview are queued in FIFO order\n'
+      en: '• New graphite camera-shell UI with coral actions, no purple tones\n'
+          '• Compact toolbar, adaptive gallery and restyled dialogs\n'
+          '• Download requests in full-screen preview are queued in FIFO order\n'
           '• Swiping or leaving preview no longer cancels queued downloads\n'
           '• Repeated Download taps do not duplicate an in-progress file\n'
           '• Overall progress shows completed/total, remaining and current file\n'
@@ -807,7 +798,9 @@ class _HomeScreenState extends State<HomeScreen>
           '• Failed downloads can be retried without stopping later files\n'
           '• Android plays one default notification sound when the queue ends\n'
           '• Progress is per completed file; force-closing the app stops the queue',
-      ru: '• Загрузки из просмотра идут по очереди, в порядке нажатий\n'
+      ru: '• Новый графитовый интерфейс с коралловыми кнопками, без фиолетового\n'
+          '• Компактная панель, адаптивная галерея и новые диалоги\n'
+          '• Загрузки из просмотра идут по очереди, в порядке нажатий\n'
           '• Перелистывание и выход из просмотра не отменяют очередь\n'
           '• Повторное нажатие Download не создаёт дубликат задания\n'
           '• Общий прогресс: скачано/всего, осталось и текущий файл\n'
@@ -815,7 +808,9 @@ class _HomeScreenState extends State<HomeScreen>
           '• Ошибочный файл можно повторить, остальные продолжат скачиваться\n'
           '• Android подаёт один системный звук после завершения очереди\n'
           '• Прогресс по файлам; принудительное закрытие прерывает очередь',
-      uk: '• Завантаження з перегляду йдуть у черзі в порядку натискань\n'
+      uk: '• Новий графітовий інтерфейс із кораловими кнопками, без фіолетового\n'
+          '• Компактна панель, адаптивна галерея й оновлені діалоги\n'
+          '• Завантаження з перегляду йдуть у черзі в порядку натискань\n'
           '• Гортання та вихід із перегляду не скасовують чергу\n'
           '• Повторне натискання Download не дублює завдання\n'
           '• Загальний прогрес: завершено/всього, залишилось і поточний файл\n'
@@ -829,7 +824,7 @@ class _HomeScreenState extends State<HomeScreen>
       applicationName: appName,
       applicationVersion: installedVersion.display,
       applicationIcon:
-          const Icon(Icons.camera_alt, size: 48, color: Color(0xFFE94560)),
+          const Icon(Icons.camera_alt, size: 48, color: OlympusPalette.coral),
       children: [
         const SizedBox(height: 8),
         const Text('WiFi Camera Manager for Olympus/OM System cameras.'),
@@ -849,9 +844,9 @@ class _HomeScreenState extends State<HomeScreen>
           child: const Text(
             'dpolarov.github.io/olympus-view-and-delete',
             style: TextStyle(
-              color: Color(0xFF64B5F6),
+              color: OlympusPalette.coral,
               decoration: TextDecoration.underline,
-              decorationColor: Color(0xFF64B5F6),
+              decorationColor: OlympusPalette.coral,
               fontSize: 13,
             ),
           ),
@@ -925,7 +920,7 @@ class _HomeScreenState extends State<HomeScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: OlympusPalette.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1299,6 +1294,135 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  void _onToolbarAction(String action) {
+    switch (action) {
+      case 'select_all':
+        _selectAll();
+        return;
+      case 'deselect_all':
+        _deselectAll();
+        return;
+      case 'select_downloaded':
+        _selectDownloaded();
+        return;
+      case 'select_dates':
+        _selectByDates();
+        return;
+      case 'grid':
+        setState(() => _gridView = !_gridView);
+        return;
+      case 'refresh':
+        unawaited(_loadFiles());
+        return;
+      case 'filter_raw':
+        unawaited(_setFileTypeFilter(FileTypeFilter.raw));
+        return;
+      case 'filter_jpg':
+        unawaited(_setFileTypeFilter(FileTypeFilter.jpg));
+        return;
+      case 'filter_both':
+        unawaited(_setFileTypeFilter(FileTypeFilter.both));
+        return;
+      case 'lang_system':
+        unawaited(widget.localeController.setLocale(null));
+        return;
+      case 'lang_en':
+        unawaited(widget.localeController.setLocale(const Locale('en')));
+        return;
+      case 'lang_ru':
+        unawaited(widget.localeController.setLocale(const Locale('ru')));
+        return;
+      case 'lang_uk':
+        unawaited(widget.localeController.setLocale(const Locale('uk')));
+        return;
+      case 'about':
+        unawaited(_showAbout());
+        return;
+    }
+  }
+
+  List<PopupMenuEntry<String>> _toolbarMenuItems() {
+    if (_selectionMode) {
+      return [
+        PopupMenuItem(
+          value: 'select_all',
+          child: Text(_localizedText(
+            en: 'Select all', ru: 'Выделить всё', uk: 'Вибрати все')),
+        ),
+        PopupMenuItem(
+          value: 'deselect_all',
+          child: Text(_localizedText(
+            en: 'Deselect all', ru: 'Снять выделение', uk: 'Зняти вибір')),
+        ),
+        PopupMenuItem(
+          value: 'select_downloaded',
+          child: Text(_localizedText(
+            en: 'Select downloaded',
+            ru: 'Выделить скачанные',
+            uk: 'Вибрати завантажені')),
+        ),
+        PopupMenuItem(
+          value: 'select_dates',
+          child: Text(_localizedText(
+            en: 'Select by dates',
+            ru: 'Выделить по датам',
+            uk: 'Вибрати за датами')),
+        ),
+      ];
+    }
+
+    final currentLocale = widget.localeController.value?.languageCode;
+    return [
+      PopupMenuItem(
+        value: 'grid',
+        child: Text(_gridView
+            ? _localizedText(en: 'List view', ru: 'Список', uk: 'Список')
+            : _localizedText(en: 'Grid view', ru: 'Сетка', uk: 'Сітка')),
+      ),
+      PopupMenuItem(
+        value: 'refresh',
+        child: Text(_localizedText(
+          en: 'Refresh gallery', ru: 'Обновить галерею',
+          uk: 'Оновити галерею')),
+      ),
+      const PopupMenuDivider(),
+      CheckedPopupMenuItem(
+        value: 'filter_jpg',
+        checked: _fileTypeFilter == FileTypeFilter.jpg,
+        child: Text(_fileTypeFilterLabel(FileTypeFilter.jpg)),
+      ),
+      CheckedPopupMenuItem(
+        value: 'filter_raw',
+        checked: _fileTypeFilter == FileTypeFilter.raw,
+        child: Text(_fileTypeFilterLabel(FileTypeFilter.raw)),
+      ),
+      CheckedPopupMenuItem(
+        value: 'filter_both',
+        checked: _fileTypeFilter == FileTypeFilter.both,
+        child: Text(_fileTypeFilterLabel(FileTypeFilter.both)),
+      ),
+      const PopupMenuDivider(),
+      CheckedPopupMenuItem(
+        value: 'lang_system',
+        checked: currentLocale == null,
+        child: Text(_localeLabel(null)),
+      ),
+      ...L10n.all.map((locale) => CheckedPopupMenuItem<String>(
+        value: 'lang_${locale.languageCode}',
+        checked: currentLocale == locale.languageCode,
+        child: Text(_localeLabel(locale)),
+      )),
+      const PopupMenuDivider(),
+      PopupMenuItem(
+        value: 'about',
+        child: Text(_localizedText(
+          en: 'About Olympus View',
+          ru: 'О программе',
+          uk: 'Про застосунок')),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final appUpdate = _appUpdateStatus;
@@ -1328,6 +1452,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     if (_error != null && _allFiles.isEmpty) {
       return Scaffold(
+        appBar: AppBar(title: const Text('Olympus View')),
         body: LayoutBuilder(
           builder: (context, constraints) => SingleChildScrollView(
             child: ConstrainedBox(
@@ -1341,7 +1466,8 @@ class _HomeScreenState extends State<HomeScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Icon(Icons.camera_alt, size: 64, color: Colors.grey),
+                    const Icon(Icons.photo_camera_outlined,
+                        size: 64, color: OlympusPalette.secondaryText),
                     const SizedBox(height: 16),
                     Text(
                       _error!,
@@ -1358,19 +1484,20 @@ class _HomeScreenState extends State<HomeScreen>
                             _isMobilePlatform()
                                 ? Icons.qr_code_scanner
                                 : Icons.wifi,
-                            color: Colors.white,
+                            color: OlympusPalette.onCoral,
                           ),
                           label: Text(
                             _isMobilePlatform()
                                 ? AppStrings.scanQr
                                 : AppStrings.connectWifi,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: OlympusPalette.onCoral,
                               fontSize: 16,
                             ),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: kAccentColor,
+                            backgroundColor: kPrimaryColor,
+                            foregroundColor: OlympusPalette.onCoral,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                         ),
@@ -1491,151 +1618,130 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_selectionMode
-            ? '${_selectedPaths.length} selected'
-            : (_cameraModel.isNotEmpty ? _cameraModel : 'Olympus TG-6')),
+        title: Text(
+          _selectionMode
+              ? _localizedText(
+                  en: '${_selectedPaths.length} selected',
+                  ru: 'Выбрано: ${_selectedPaths.length}',
+                  uk: 'Вибрано: ${_selectedPaths.length}')
+              : (_cameraModel.isNotEmpty ? _cameraModel : 'Olympus View'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         leading: _selectionMode
             ? IconButton(
                 icon: const Icon(Icons.close),
+                tooltip: _localizedText(
+                  en: 'Cancel selection',
+                  ru: 'Отменить выделение',
+                  uk: 'Скасувати вибір'),
                 onPressed: _exitSelectionMode,
               )
             : null,
         actions: [
           if (_selectionMode) ...[
             IconButton(
-              icon: const Icon(Icons.select_all),
-              tooltip: 'Select all',
-              onPressed: _selectAll,
-            ),
-            IconButton(
-              icon: const Icon(Icons.deselect),
-              tooltip: 'Deselect all',
-              onPressed: _deselectAll,
-            ),
-            IconButton(
-              icon: const Icon(Icons.download_done, color: Color(0xFF2ECC71)),
+              icon: const Icon(Icons.download_rounded),
               tooltip: _localizedText(
-                en: 'Select downloaded',
-                ru: 'Выделить скачанные',
-                uk: 'Виділити завантажені',
-              ),
-              onPressed: _selectDownloaded,
-            ),
-            IconButton(
-              icon: const Icon(Icons.date_range),
-              tooltip: 'Select all by same dates',
-              onPressed: _selectByDates,
-            ),
-            IconButton(
-              icon: const Icon(Icons.download, color: Color(0xFF2ECC71)),
-              tooltip: 'Download selected',
+                en: 'Download selected',
+                ru: 'Скачать выбранные',
+                uk: 'Завантажити вибрані'),
               onPressed: _handleDownload,
             ),
             IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              tooltip: 'Delete selected',
+              icon: const Icon(Icons.delete_outline_rounded,
+                  color: OlympusPalette.danger),
+              tooltip: _localizedText(
+                en: 'Delete selected',
+                ru: 'Удалить выбранные',
+                uk: 'Видалити вибрані'),
               onPressed: _handleDelete,
             ),
-          ] else ...[
+          ] else
             IconButton(
-              icon: const Icon(Icons.qr_code_scanner),
-              tooltip: kIsWeb ? 'Connect to camera' : 'Scan camera QR',
+              icon: const Icon(Icons.qr_code_scanner_rounded),
+              tooltip: _localizedText(
+                en: 'Connect to camera',
+                ru: 'Подключиться к камере',
+                uk: 'Підключитися до камери'),
               onPressed: kIsWeb ? null : _openQrScanner,
             ),
-            IconButton(
-              icon: Icon(_gridView ? Icons.view_list : Icons.grid_view),
-              onPressed: () => setState(() => _gridView = !_gridView),
-            ),
-            PopupMenuButton<FileTypeFilter>(
-              icon: Icon(_fileTypeFilterIcon(_fileTypeFilter)),
-              tooltip: _localizedText(
-                en: 'File type filter',
-                ru: 'Фильтр типа файлов',
-                uk: 'Фільтр типу файлів',
-              ),
-              onSelected: (filter) =>
-                  unawaited(_setFileTypeFilter(filter)),
-              itemBuilder: (context) => FileTypeFilter.values
-                  .map(
-                    (filter) => CheckedPopupMenuItem<FileTypeFilter>(
-                      value: filter,
-                      checked: filter == _fileTypeFilter,
-                      child: Text(_fileTypeFilterLabel(filter)),
-                    ),
-                  )
-                  .toList(),
-            ),
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _loadFiles,
-            ),
-            ValueListenableBuilder<Locale?>(
-              valueListenable: widget.localeController,
-              builder: (context, current, _) => PopupMenuButton<Locale?>(
-                icon: const Icon(Icons.language),
-                tooltip: 'Language',
-                onSelected: widget.localeController.setLocale,
-                itemBuilder: (context) => <Locale?>[null, ...L10n.all]
-                    .map(
-                      (locale) => CheckedPopupMenuItem<Locale?>(
-                        value: locale,
-                        checked: current?.languageCode == locale?.languageCode,
-                        child: Text(_localeLabel(locale)),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-            DiagnosticsInfoAction(
-              onTap: _showAbout,
-              onDiagnostics: _openDebugInfo,
-            ),
-          ],
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert_rounded),
+            tooltip: _localizedText(
+              en: 'More actions', ru: 'Другие действия',
+              uk: 'Інші дії'),
+            onSelected: _onToolbarAction,
+            itemBuilder: (_) => _toolbarMenuItems(),
+          ),
+          const SizedBox(width: 4),
         ],
       ),
       body: Column(
         children: [
           const PreviewDownloadProgress(),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: const Color(0xFF1A1A2E),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: OlympusPalette.surface,
+              border: Border(
+                bottom: BorderSide(color: OlympusPalette.border, width: 0.6),
+              ),
+            ),
             child: Column(
               children: [
                 Row(
                   children: [
                     Container(
-                      width: 8,
-                      height: 8,
+                      width: 7,
+                      height: 7,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color:
-                            _connected ? Colors.greenAccent : Colors.redAccent,
+                        color: _connected
+                            ? OlympusPalette.success
+                            : OlympusPalette.danger,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 10),
                     Text(
-                      _connected ? 'Connected' : 'Disconnected',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 13),
-                    ),
-                    if (_allFiles.isNotEmpty)
-                      Text(
-                        _loading
-                            ? ' · Loading... ${_allFiles.length} files'
-                            : ' · ${_filteredFiles.length} files · '
-                                '${CameraFile.formatSize(_totalBytes)}',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      _connected
+                          ? _localizedText(
+                              en: 'Connected', ru: 'Подключено',
+                              uk: 'Підключено')
+                          : _localizedText(
+                              en: 'Disconnected', ru: 'Нет связи',
+                              uk: 'Немає звʼязку'),
+                      style: const TextStyle(
+                        color: OlympusPalette.secondaryText,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
-                    if (_loading && _allFiles.isNotEmpty)
+                    ),
+                    if (_allFiles.isNotEmpty) ...[
                       const SizedBox(width: 8),
-                    if (_loading && _allFiles.isNotEmpty)
+                      Expanded(
+                        child: Text(
+                          _loading
+                              ? '· ${_allFiles.length} …'
+                              : '· ${_filteredFiles.length} files · '
+                                  '${CameraFile.formatSize(_totalBytes)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                            color: OlympusPalette.mutedText, fontSize: 12),
+                        ),
+                      ),
+                    ] else
+                      const Spacer(),
+                    if (_loading && _allFiles.isNotEmpty) ...[
+                      const SizedBox(width: 10),
                       const SizedBox(
                         width: 12,
                         height: 12,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Color(0xFFE94560),
-                        ),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -1648,12 +1754,12 @@ class _HomeScreenState extends State<HomeScreen>
                             style: const TextStyle(fontSize: 13)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: hasFilter
-                              ? const Color(0xFFE94560)
-                              : Colors.grey[400],
+                              ? OlympusPalette.coral
+                              : OlympusPalette.secondaryText,
                           side: BorderSide(
                             color: hasFilter
-                                ? const Color(0xFFE94560)
-                                : Colors.grey[700]!,
+                                ? OlympusPalette.coral
+                                : OlympusPalette.border,
                           ),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -1668,7 +1774,7 @@ class _HomeScreenState extends State<HomeScreen>
                       IconButton(
                         icon: const Icon(Icons.close, size: 18),
                         style: IconButton.styleFrom(
-                          backgroundColor: const Color(0xFF252540),
+                          backgroundColor: OlympusPalette.raised,
                         ),
                         onPressed: _clearFilter,
                       ),
@@ -1696,7 +1802,7 @@ class _HomeScreenState extends State<HomeScreen>
                   )
                 : RefreshIndicator(
                     onRefresh: _loadFiles,
-                    color: const Color(0xFFE94560),
+                    color: OlympusPalette.coral,
                     child: PhotoGrid(
                       files: _filteredFiles,
                       gridView: _gridView,
@@ -1729,45 +1835,55 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       bottomNavigationBar: !_selectionMode && _allFiles.isNotEmpty
           ? SafeArea(
+              top: false,
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF1A1A2E),
+                  color: OlympusPalette.surface,
                   border: Border(
-                    top: BorderSide(color: Color(0xFF333355)),
+                    top: BorderSide(
+                      color: OlympusPalette.border, width: 0.6),
                   ),
                 ),
                 child: Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton(
+                      child: FilledButton.icon(
                         onPressed: () {
                           setState(() {
                             _selectionMode = true;
                             _selectedPaths.clear();
                           });
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0F3460),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        icon: const Icon(Icons.checklist_rounded, size: 19),
+                        label: Text(
+                          _localizedText(
+                            en: 'Select files',
+                            ru: 'Выбрать файлы',
+                            uk: 'Вибрати файли',
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        child: const Text('Select Files',
-                            style: TextStyle(color: Colors.white)),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton(
+                      child: OutlinedButton.icon(
                         onPressed: () {
                           _selectAll();
                           setState(() => _selectionMode = true);
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE74C3C),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        icon: const Icon(Icons.select_all_rounded, size: 19),
+                        label: Text(
+                          _localizedText(
+                            en: 'Select all',
+                            ru: 'Выбрать всё',
+                            uk: 'Вибрати все',
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        child: const Text('Select All & Delete',
-                            style: TextStyle(color: Colors.white)),
                       ),
                     ),
                   ],

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../constants.dart';
 import '../services/camera_api.dart';
 import '../services/thumbnail_manager.dart';
+import '../theme/olympus_theme.dart';
 
 BoxDecoration _itemDecoration({
   required bool selected,
@@ -12,20 +13,21 @@ BoxDecoration _itemDecoration({
   required double borderWidth,
 }) {
   final borderColor = selected
-      ? kPrimaryColor
+      ? OlympusPalette.coral
       : downloaded
-          ? const Color(0xFF2ECC71)
-          : null;
+          ? OlympusPalette.success
+          : OlympusPalette.border;
   return BoxDecoration(
-    borderRadius: BorderRadius.circular(8),
-    border: borderColor == null
-        ? null
-        : Border.all(color: borderColor, width: borderWidth),
+    borderRadius: BorderRadius.circular(12),
+    border: Border.all(
+      color: borderColor,
+      width: selected ? borderWidth : 0.8,
+    ),
     color: selected
-        ? kPrimaryColor.withValues(alpha: 0.15)
+        ? OlympusPalette.coral.withValues(alpha: 0.11)
         : downloaded
-            ? const Color(0xFF2ECC71).withValues(alpha: 0.07)
-            : kBackgroundColor,
+            ? OlympusPalette.success.withValues(alpha: 0.055)
+            : OlympusPalette.card,
   );
 }
 
@@ -72,10 +74,10 @@ class _PhotoGridState extends State<PhotoGrid> {
 
   void _updateVisibleRange(ScrollNotification notification) {
     final metrics = notification.metrics;
-    final width = MediaQuery.of(context).size.width - 16;
-    final itemWidth = (width - 12) / 3;
-    final itemHeight = itemWidth / 0.8 + 6;
-    const columns = 3;
+    final columns = _columnCount(MediaQuery.sizeOf(context).width);
+    final width = MediaQuery.sizeOf(context).width - 24;
+    final itemWidth = (width - (columns - 1) * 8) / columns;
+    final itemHeight = itemWidth / 0.8 + 8;
     final firstRow = (metrics.pixels / itemHeight).floor();
     final lastRow =
         ((metrics.pixels + metrics.viewportDimension) / itemHeight).ceil();
@@ -84,13 +86,20 @@ class _PhotoGridState extends State<PhotoGrid> {
     ThumbnailManager.instance.updateVisibleRange(first, last);
   }
 
+  int _columnCount(double width) {
+    if (width >= 1100) return 6;
+    if (width >= 780) return 5;
+    if (width >= 520) return 4;
+    return 3;
+  }
+
   Widget _buildGrid() {
     return GridView.builder(
-      padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 6,
-        mainAxisSpacing: 6,
+      padding: const EdgeInsets.all(12),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: _columnCount(MediaQuery.sizeOf(context).width),
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
         childAspectRatio: 0.8,
       ),
       itemCount: widget.files.length,
@@ -113,7 +122,7 @@ class _PhotoGridState extends State<PhotoGrid> {
 
   Widget _buildList() {
     return ListView.builder(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(12),
       itemCount: widget.files.length,
       itemBuilder: (ctx, i) => _ListItem(
         file: widget.files[i],
@@ -195,7 +204,7 @@ class _GridItem extends StatelessWidget {
                           color: kPrimaryColor,
                         ),
                         child: const Icon(Icons.check,
-                            color: Colors.white, size: 16),
+                            color: OlympusPalette.onCoral, size: 16),
                       ),
                     ),
                   if (downloaded)
@@ -207,11 +216,11 @@ class _GridItem extends StatelessWidget {
                         height: 24,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Color(0xFF2ECC71),
+                          color: OlympusPalette.success,
                         ),
                         child: const Icon(
                           Icons.download_done,
-                          color: Colors.white,
+                          color: OlympusPalette.background,
                           size: 15,
                         ),
                       ),
@@ -226,13 +235,15 @@ class _GridItem extends StatelessWidget {
                 children: [
                   Text(
                     file.filename,
-                    style: const TextStyle(fontSize: 10, color: Colors.white),
+                    style: const TextStyle(
+                      fontSize: 11, color: OlympusPalette.text),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     file.sizeHuman,
-                    style: TextStyle(fontSize: 9, color: Colors.grey[600]),
+                    style: const TextStyle(
+                      fontSize: 10, color: OlympusPalette.mutedText),
                   ),
                 ],
               ),
@@ -304,12 +315,14 @@ class _ListItem extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       '${file.sizeHuman} · ${file.dateTimeStr}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      style: const TextStyle(
+                        fontSize: 12, color: OlympusPalette.secondaryText),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       file.directory,
-                      style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+                      style: const TextStyle(
+                        fontSize: 11, color: OlympusPalette.mutedText),
                     ),
                   ],
                 ),
@@ -320,14 +333,14 @@ class _ListItem extends StatelessWidget {
                 width: 40,
                 height: 72,
                 color: kPrimaryColor,
-                child: const Icon(Icons.check, color: Colors.white),
+                child: const Icon(Icons.check, color: OlympusPalette.onCoral),
               ),
             if (!selected && downloaded)
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 child: Icon(
                   Icons.download_done,
-                  color: Color(0xFF2ECC71),
+                  color: OlympusPalette.success,
                 ),
               ),
           ],
@@ -410,7 +423,7 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
 
   Widget _brokenImage() {
     return Container(
-      color: const Color(0xFF252540),
+      color: OlympusPalette.raised,
       child: const Icon(Icons.broken_image, color: Colors.grey, size: 32),
     );
   }
@@ -420,14 +433,14 @@ class _CameraThumbnailState extends State<_CameraThumbnail> {
     if (_error) return _brokenImage();
     if (_loading || _bytes == null) {
       return Container(
-        color: const Color(0xFF252540),
+        color: OlympusPalette.raised,
         child: const Center(
           child: SizedBox(
             width: 20,
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Color(0xFFE94560),
+              color: OlympusPalette.coral,
             ),
           ),
         ),

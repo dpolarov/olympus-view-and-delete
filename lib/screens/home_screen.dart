@@ -1301,6 +1301,121 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  void _onToolbarAction(String action) {
+    switch (action) {
+      case 'select_all':
+        _selectAll();
+      case 'deselect_all':
+        _deselectAll();
+      case 'select_downloaded':
+        _selectDownloaded();
+      case 'select_dates':
+        _selectByDates();
+      case 'grid':
+        setState(() => _gridView = !_gridView);
+      case 'refresh':
+        unawaited(_loadFiles());
+      case 'filter_raw':
+        unawaited(_setFileTypeFilter(FileTypeFilter.raw));
+      case 'filter_jpg':
+        unawaited(_setFileTypeFilter(FileTypeFilter.jpg));
+      case 'filter_both':
+        unawaited(_setFileTypeFilter(FileTypeFilter.both));
+      case 'lang_system':
+        unawaited(widget.localeController.setLocale(null));
+      case 'lang_en':
+        unawaited(widget.localeController.setLocale(const Locale('en')));
+      case 'lang_ru':
+        unawaited(widget.localeController.setLocale(const Locale('ru')));
+      case 'lang_uk':
+        unawaited(widget.localeController.setLocale(const Locale('uk')));
+      case 'about':
+        unawaited(_showAbout());
+    }
+  }
+
+  List<PopupMenuEntry<String>> _toolbarMenuItems() {
+    if (_selectionMode) {
+      return [
+        PopupMenuItem(
+          value: 'select_all',
+          child: Text(_localizedText(
+            en: 'Select all', ru: 'Выделить всё', uk: 'Вибрати все')),
+        ),
+        PopupMenuItem(
+          value: 'deselect_all',
+          child: Text(_localizedText(
+            en: 'Deselect all', ru: 'Снять выделение', uk: 'Зняти вибір')),
+        ),
+        PopupMenuItem(
+          value: 'select_downloaded',
+          child: Text(_localizedText(
+            en: 'Select downloaded',
+            ru: 'Выделить скачанные',
+            uk: 'Вибрати завантажені')),
+        ),
+        PopupMenuItem(
+          value: 'select_dates',
+          child: Text(_localizedText(
+            en: 'Select by dates',
+            ru: 'Выделить по датам',
+            uk: 'Вибрати за датами')),
+        ),
+      ];
+    }
+
+    final currentLocale = widget.localeController.value?.languageCode;
+    return [
+      PopupMenuItem(
+        value: 'grid',
+        child: Text(_gridView
+            ? _localizedText(en: 'List view', ru: 'Список', uk: 'Список')
+            : _localizedText(en: 'Grid view', ru: 'Сетка', uk: 'Сітка')),
+      ),
+      PopupMenuItem(
+        value: 'refresh',
+        child: Text(_localizedText(
+          en: 'Refresh gallery', ru: 'Обновить галерею',
+          uk: 'Оновити галерею')),
+      ),
+      const PopupMenuDivider(),
+      CheckedPopupMenuItem(
+        value: 'filter_jpg',
+        checked: _fileTypeFilter == FileTypeFilter.jpg,
+        child: Text(_fileTypeFilterLabel(FileTypeFilter.jpg)),
+      ),
+      CheckedPopupMenuItem(
+        value: 'filter_raw',
+        checked: _fileTypeFilter == FileTypeFilter.raw,
+        child: Text(_fileTypeFilterLabel(FileTypeFilter.raw)),
+      ),
+      CheckedPopupMenuItem(
+        value: 'filter_both',
+        checked: _fileTypeFilter == FileTypeFilter.both,
+        child: Text(_fileTypeFilterLabel(FileTypeFilter.both)),
+      ),
+      const PopupMenuDivider(),
+      CheckedPopupMenuItem(
+        value: 'lang_system',
+        checked: currentLocale == null,
+        child: Text(_localeLabel(null)),
+      ),
+      ...L10n.all.map((locale) => CheckedPopupMenuItem<String>(
+        value: 'lang_${locale.languageCode}',
+        checked: currentLocale == locale.languageCode,
+        child: Text(_localeLabel(locale)),
+      )),
+      const PopupMenuDivider(),
+      PopupMenuItem(
+        value: 'about',
+        child: Text(_localizedText(
+          en: 'About Olympus View',
+          ru: 'О программе',
+          uk: 'Про застосунок')),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final appUpdate = _appUpdateStatus;
@@ -1493,106 +1608,60 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_selectionMode
-            ? '${_selectedPaths.length} selected'
-            : (_cameraModel.isNotEmpty ? _cameraModel : 'Olympus TG-6')),
+        title: Text(
+          _selectionMode
+              ? '${_selectedPaths.length} selected'
+              : (_cameraModel.isNotEmpty ? _cameraModel : 'Olympus View'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         leading: _selectionMode
             ? IconButton(
                 icon: const Icon(Icons.close),
+                tooltip: _localizedText(
+                  en: 'Cancel selection',
+                  ru: 'Отменить выделение',
+                  uk: 'Скасувати вибір'),
                 onPressed: _exitSelectionMode,
               )
             : null,
         actions: [
           if (_selectionMode) ...[
             IconButton(
-              icon: const Icon(Icons.select_all),
-              tooltip: 'Select all',
-              onPressed: _selectAll,
-            ),
-            IconButton(
-              icon: const Icon(Icons.deselect),
-              tooltip: 'Deselect all',
-              onPressed: _deselectAll,
-            ),
-            IconButton(
-              icon: const Icon(Icons.download_done, color: OlympusPalette.success),
+              icon: const Icon(Icons.download_rounded),
               tooltip: _localizedText(
-                en: 'Select downloaded',
-                ru: 'Выделить скачанные',
-                uk: 'Виділити завантажені',
-              ),
-              onPressed: _selectDownloaded,
-            ),
-            IconButton(
-              icon: const Icon(Icons.date_range),
-              tooltip: 'Select all by same dates',
-              onPressed: _selectByDates,
-            ),
-            IconButton(
-              icon: const Icon(Icons.download, color: OlympusPalette.success),
-              tooltip: 'Download selected',
+                en: 'Download selected',
+                ru: 'Скачать выбранные',
+                uk: 'Завантажити вибрані'),
               onPressed: _handleDownload,
             ),
             IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              tooltip: 'Delete selected',
+              icon: const Icon(Icons.delete_outline_rounded,
+                  color: OlympusPalette.danger),
+              tooltip: _localizedText(
+                en: 'Delete selected',
+                ru: 'Удалить выбранные',
+                uk: 'Видалити вибрані'),
               onPressed: _handleDelete,
             ),
-          ] else ...[
+          ] else
             IconButton(
-              icon: const Icon(Icons.qr_code_scanner),
-              tooltip: kIsWeb ? 'Connect to camera' : 'Scan camera QR',
+              icon: const Icon(Icons.qr_code_scanner_rounded),
+              tooltip: _localizedText(
+                en: 'Connect to camera',
+                ru: 'Подключиться к камере',
+                uk: 'Підключитися до камери'),
               onPressed: kIsWeb ? null : _openQrScanner,
             ),
-            IconButton(
-              icon: Icon(_gridView ? Icons.view_list : Icons.grid_view),
-              onPressed: () => setState(() => _gridView = !_gridView),
-            ),
-            PopupMenuButton<FileTypeFilter>(
-              icon: Icon(_fileTypeFilterIcon(_fileTypeFilter)),
-              tooltip: _localizedText(
-                en: 'File type filter',
-                ru: 'Фильтр типа файлов',
-                uk: 'Фільтр типу файлів',
-              ),
-              onSelected: (filter) =>
-                  unawaited(_setFileTypeFilter(filter)),
-              itemBuilder: (context) => FileTypeFilter.values
-                  .map(
-                    (filter) => CheckedPopupMenuItem<FileTypeFilter>(
-                      value: filter,
-                      checked: filter == _fileTypeFilter,
-                      child: Text(_fileTypeFilterLabel(filter)),
-                    ),
-                  )
-                  .toList(),
-            ),
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _loadFiles,
-            ),
-            ValueListenableBuilder<Locale?>(
-              valueListenable: widget.localeController,
-              builder: (context, current, _) => PopupMenuButton<Locale?>(
-                icon: const Icon(Icons.language),
-                tooltip: 'Language',
-                onSelected: widget.localeController.setLocale,
-                itemBuilder: (context) => <Locale?>[null, ...L10n.all]
-                    .map(
-                      (locale) => CheckedPopupMenuItem<Locale?>(
-                        value: locale,
-                        checked: current?.languageCode == locale?.languageCode,
-                        child: Text(_localeLabel(locale)),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-            DiagnosticsInfoAction(
-              onTap: _showAbout,
-              onDiagnostics: _openDebugInfo,
-            ),
-          ],
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert_rounded),
+            tooltip: _localizedText(
+              en: 'More actions', ru: 'Другие действия',
+              uk: 'Інші дії'),
+            onSelected: _onToolbarAction,
+            itemBuilder: (_) => _toolbarMenuItems(),
+          ),
+          const SizedBox(width: 4),
         ],
       ),
       body: Column(

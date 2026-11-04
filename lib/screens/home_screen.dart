@@ -1670,45 +1670,67 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           const PreviewDownloadProgress(),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: OlympusPalette.surface,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: OlympusPalette.surface,
+              border: Border(
+                bottom: BorderSide(color: OlympusPalette.border, width: 0.6),
+              ),
+            ),
             child: Column(
               children: [
                 Row(
                   children: [
                     Container(
-                      width: 8,
-                      height: 8,
+                      width: 7,
+                      height: 7,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color:
-                            _connected ? Colors.greenAccent : Colors.redAccent,
+                        color: _connected
+                            ? OlympusPalette.success
+                            : OlympusPalette.danger,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 10),
                     Text(
-                      _connected ? 'Connected' : 'Disconnected',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 13),
-                    ),
-                    if (_allFiles.isNotEmpty)
-                      Text(
-                        _loading
-                            ? ' · Loading... ${_allFiles.length} files'
-                            : ' · ${_filteredFiles.length} files · '
-                                '${CameraFile.formatSize(_totalBytes)}',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      _connected
+                          ? _localizedText(
+                              en: 'Connected', ru: 'Подключено',
+                              uk: 'Підключено')
+                          : _localizedText(
+                              en: 'Disconnected', ru: 'Нет связи',
+                              uk: 'Немає звʼязку'),
+                      style: const TextStyle(
+                        color: OlympusPalette.secondaryText,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
-                    if (_loading && _allFiles.isNotEmpty)
+                    ),
+                    if (_allFiles.isNotEmpty) ...[
                       const SizedBox(width: 8),
-                    if (_loading && _allFiles.isNotEmpty)
+                      Expanded(
+                        child: Text(
+                          _loading
+                              ? '· ${_allFiles.length} …'
+                              : '· ${_filteredFiles.length} files · '
+                                  '${CameraFile.formatSize(_totalBytes)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                            color: OlympusPalette.mutedText, fontSize: 12),
+                        ),
+                      ),
+                    ] else
+                      const Spacer(),
+                    if (_loading && _allFiles.isNotEmpty) ...[
+                      const SizedBox(width: 10),
                       const SizedBox(
                         width: 12,
                         height: 12,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: OlympusPalette.coral,
-                        ),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -1722,11 +1744,11 @@ class _HomeScreenState extends State<HomeScreen>
                         style: OutlinedButton.styleFrom(
                           foregroundColor: hasFilter
                               ? OlympusPalette.coral
-                              : Colors.grey[400],
+                              : OlympusPalette.secondaryText,
                           side: BorderSide(
                             color: hasFilter
                                 ? OlympusPalette.coral
-                                : Colors.grey[700]!,
+                                : OlympusPalette.border,
                           ),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,

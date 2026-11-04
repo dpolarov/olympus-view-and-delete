@@ -1615,7 +1615,10 @@ class _HomeScreenState extends State<HomeScreen>
       appBar: AppBar(
         title: Text(
           _selectionMode
-              ? '${_selectedPaths.length} selected'
+              ? _localizedText(
+                  en: '${_selectedPaths.length} selected',
+                  ru: 'Выбрано: ${_selectedPaths.length}',
+                  uk: 'Вибрано: ${_selectedPaths.length}')
               : (_cameraModel.isNotEmpty ? _cameraModel : 'Olympus View'),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

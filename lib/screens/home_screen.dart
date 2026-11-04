@@ -27,7 +27,6 @@ import '../services/thumbnail_manager.dart';
 import '../version.dart';
 import '../widgets/date_filter_sheet.dart';
 import '../widgets/delete_progress_dialog.dart';
-import '../widgets/diagnostics_info_action.dart';
 import '../widgets/download_progress_dialog.dart';
 import '../widgets/photo_grid.dart';
 import '../widgets/preview_download_progress.dart';
@@ -185,17 +184,6 @@ class _HomeScreenState extends State<HomeScreen>
           en: 'JPG only', ru: 'Только JPG', uk: 'Лише JPG');
       case FileTypeFilter.both:
         return 'RAW + JPG';
-    }
-  }
-
-  IconData _fileTypeFilterIcon(FileTypeFilter filter) {
-    switch (filter) {
-      case FileTypeFilter.raw:
-        return Icons.raw_on;
-      case FileTypeFilter.jpg:
-        return Icons.image_outlined;
-      case FileTypeFilter.both:
-        return Icons.photo_library_outlined;
     }
   }
 
@@ -1305,32 +1293,46 @@ class _HomeScreenState extends State<HomeScreen>
     switch (action) {
       case 'select_all':
         _selectAll();
+        return;
       case 'deselect_all':
         _deselectAll();
+        return;
       case 'select_downloaded':
         _selectDownloaded();
+        return;
       case 'select_dates':
         _selectByDates();
+        return;
       case 'grid':
         setState(() => _gridView = !_gridView);
+        return;
       case 'refresh':
         unawaited(_loadFiles());
+        return;
       case 'filter_raw':
         unawaited(_setFileTypeFilter(FileTypeFilter.raw));
+        return;
       case 'filter_jpg':
         unawaited(_setFileTypeFilter(FileTypeFilter.jpg));
+        return;
       case 'filter_both':
         unawaited(_setFileTypeFilter(FileTypeFilter.both));
+        return;
       case 'lang_system':
         unawaited(widget.localeController.setLocale(null));
+        return;
       case 'lang_en':
         unawaited(widget.localeController.setLocale(const Locale('en')));
+        return;
       case 'lang_ru':
         unawaited(widget.localeController.setLocale(const Locale('ru')));
+        return;
       case 'lang_uk':
         unawaited(widget.localeController.setLocale(const Locale('uk')));
+        return;
       case 'about':
         unawaited(_showAbout());
+        return;
     }
   }
 

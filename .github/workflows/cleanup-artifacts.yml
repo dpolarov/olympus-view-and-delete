@@ -1,59 +1,69 @@
-name: Cleanup old Actions artifacts
+name: Cleanup 12-hour Actions artifacts
 
+# upload-artifact supports a minimum retention-days of 1.
+# This job removes finished-run artifacts after ~12 hours.
+# GitHub schedule is best effort and may be delayed.
 on:
-  push:
-    paths:
-      - .github/workflows/cleanup-artifacts.yml
   workflow_dispatch:
   schedule:
-    - cron: '23 3 * * *'
+    - cron: '21 */2 * * *'
 
 permissions:
   contents: read
   actions: write
 
+concurrency:
+  group: cleanup-actions-artifacts
+  cancel-in-progress: false
+
 jobs:
   cleanup:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - name: Delete outdated artifacts, retain most recent per name
+      - name: Remove artifacts older than 12 hours (keep active runs)
         uses: actions/github-script@v7
         with:
           script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const cutoff = Date.now() - 48 * 60 * 60 * 1000;
+            const { owner, repo } = context.repo;
+            const cutoff = Date.now() - 12 * 60 * 60 * 1000;
             const artifacts = await github.paginate(
               github.rest.actions.listArtifactsForRepo,
               { owner, repo, per_page: 100 }
             );
-            const groups = new Map();
-            for (const artifact of artifacts.filter(a => !a.expired)
-                     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))) {
-              if (!groups.has(artifact.name)) groups.set(artifact.name, []);
-              groups.get(artifact.name).push(artifact);
-            }
-            let deletedCount = 0;
-            let freedBytes = 0;
-            let retained = 0;
-            for (const [name, group] of groups) {
-              // Keep the newest artifact for every unique name, even if it is old.
-              retained++;
-              for (const artifact of group.slice(1)) {
-                if (Date.parse(artifact.created_at) >= cutoff) {
-                  retained++;
+            const eligible = artifacts.filter(a =>
+              !a.expired && Date.parse(a.created_at) < cutoff
+            );
+            const statusByRun = new Map();
+            let count = 0;
+            let bytes = 0;
+            let skipped = 0;
+            for (const artifact of eligible) {
+              const runId = artifact.workflow_run?.id;
+              if (runId) {
+                if (!statusByRun.has(runId)) {
+                  try {
+                    const { data } = await github.rest.actions.getWorkflowRun({
+                      owner, repo, run_id: runId
+                    });
+                    statusByRun.set(runId, data.status);
+                  } catch (error) {
+                    core.warning(`Could not check run ${runId}: ${error.message}`);
+                    statusByRun.set(runId, 'unknown');
+                  }
+                }
+                if (statusByRun.get(runId) !== 'completed') {
+                  skipped++;
                   continue;
                 }
-                await github.rest.actions.deleteArtifact({
-                  owner, repo, artifact_id: artifact.id
-                });
-                deletedCount++;
-                freedBytes += artifact.size_in_bytes || 0;
-                core.info(`Deleted ${name} #${artifact.id}: ${(artifact.size_in_bytes / 1048576).toFixed(1)} MiB`);
               }
+              await github.rest.actions.deleteArtifact({
+                owner, repo, artifact_id: artifact.id
+              });
+              count++;
+              bytes += artifact.size_in_bytes || 0;
             }
-            const message = `Deleted ${deletedCount} artifacts, freed approx ${(freedBytes / 1048576).toFixed(1)} MiB; retained ${retained}. Current monthly accrued billing does not reset on deletion.`;
-            core.info(message);
-            await core.summary.addHeading('GitHub Actions artifact cleanup')
-              .addRaw(message).write();
+            const line = `Deleted ${count} artifacts (~${(bytes / 1048576).toFixed(1)} MiB). Skipped ${skipped} from active/unknown runs. Inspected ${artifacts.length} artifacts.`;
+            core.info(line);
+            await core.summary.addHeading('12-hour artifact cleanup')
+              .addRaw(line).write();

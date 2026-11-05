@@ -162,7 +162,7 @@ jobs:
             build/app/outputs/flutter-apk/app-github-release.apk
             build/app/outputs/bundle/githubRelease/app-github-release.aab
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 1
 
   windows:
     name: Windows x64
@@ -225,7 +225,7 @@ jobs:
           name: OlympusView-Windows
           path: OlympusView-Windows.zip
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 1
 
   macos:
     name: macOS arm64
@@ -293,7 +293,7 @@ jobs:
           name: OlympusView-macOS
           path: OlympusView-macOS.zip
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 1
 
   web:
     name: Web
@@ -375,4 +375,4 @@ jobs:
           name: OlympusView-Web
           path: OlympusView-Web.zip
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 1

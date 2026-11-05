@@ -173,6 +173,7 @@ jobs:
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v6
         with:
+          retention-days: 1
           name: release-android
           path: |
             OlympusView-Android.apk
@@ -233,6 +234,7 @@ jobs:
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v6
         with:
+          retention-days: 1
           name: release-windows
           path: OlympusView-Windows.zip
           if-no-files-found: error
@@ -287,6 +289,7 @@ jobs:
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v6
         with:
+          retention-days: 1
           name: release-macos
           path: OlympusView-macOS.zip
           if-no-files-found: error
@@ -358,6 +361,7 @@ jobs:
       - name: Upload Web artifact
         uses: actions/upload-artifact@v6
         with:
+          retention-days: 1
           name: release-web
           path: OlympusView-Web.zip
           if-no-files-found: error

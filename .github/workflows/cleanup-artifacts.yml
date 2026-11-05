@@ -1,0 +1,59 @@
+name: Cleanup old Actions artifacts
+
+on:
+  push:
+    paths:
+      - .github/workflows/cleanup-artifacts.yml
+  workflow_dispatch:
+  schedule:
+    - cron: '23 3 * * *'
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Delete outdated artifacts, retain most recent per name
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const cutoff = Date.now() - 48 * 60 * 60 * 1000;
+            const artifacts = await github.paginate(
+              github.rest.actions.listArtifactsForRepo,
+              { owner, repo, per_page: 100 }
+            );
+            const groups = new Map();
+            for (const artifact of artifacts.filter(a => !a.expired)
+                     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))) {
+              if (!groups.has(artifact.name)) groups.set(artifact.name, []);
+              groups.get(artifact.name).push(artifact);
+            }
+            let deletedCount = 0;
+            let freedBytes = 0;
+            let retained = 0;
+            for (const [name, group] of groups) {
+              // Keep the newest artifact for every unique name, even if it is old.
+              retained++;
+              for (const artifact of group.slice(1)) {
+                if (Date.parse(artifact.created_at) >= cutoff) {
+                  retained++;
+                  continue;
+                }
+                await github.rest.actions.deleteArtifact({
+                  owner, repo, artifact_id: artifact.id
+                });
+                deletedCount++;
+                freedBytes += artifact.size_in_bytes || 0;
+                core.info(`Deleted ${name} #${artifact.id}: ${(artifact.size_in_bytes / 1048576).toFixed(1)} MiB`);
+              }
+            }
+            const message = `Deleted ${deletedCount} artifacts, freed approx ${(freedBytes / 1048576).toFixed(1)} MiB; retained ${retained}. Current monthly accrued billing does not reset on deletion.`;
+            core.info(message);
+            await core.summary.addHeading('GitHub Actions artifact cleanup')
+              .addRaw(message).write();

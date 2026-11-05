@@ -5,8 +5,6 @@ name: Cleanup 12-hour Actions artifacts
 # GitHub schedule is best effort and may be delayed.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '21 */12 * * *'
 
 permissions:
   contents: read
